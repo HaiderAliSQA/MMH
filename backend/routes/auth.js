@@ -15,7 +15,11 @@ router.post('/login', (req, res) => {
     const { role, pass } = req.body;
     const user = USERS_MAP[role];
     if (user && user.pass === pass) {
-        res.json({ success: true, user });
+        // In a real app, generate a real JWT here
+        res.json({
+            user: { name: user.name, role: user.role },
+            token: 'mock-jwt-token-for-demo'
+        });
     } else {
         res.status(401).json({ success: false, message: 'Invalid credentials' });
     }

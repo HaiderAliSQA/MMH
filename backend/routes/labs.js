@@ -1,33 +1,26 @@
 const express = require('express');
-const router = express.Router();
-const LabRequest = require('../models/LabRequest');
+const router  = express.Router();
+const db      = require('../config/db');
+const { v4: uuidv4 } = require('uuid');
 
-router.get('/', async (req, res) => {
-    try {
-        const labs = await LabRequest.find().sort({ createdAt: -1 });
-        res.json(labs);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+router.get('/', (req, res) => {
+    res.json(db.get('labs').sortBy('createdAt').reverse().value());
 });
 
-router.post('/', async (req, res) => {
-    try {
-        const lab = new LabRequest(req.body);
-        await lab.save();
-        res.status(201).json(lab);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
+router.post('/', (req, res) => {
+    const lab = { _id: uuidv4(), ...req.body, createdAt: new Date().toISOString() };
+    db.get('labs').push(lab).write();
+    res.status(201).json(lab);
 });
 
-router.put('/:id', async (req, res) => {
-    try {
-        const lab = await LabRequest.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.json(lab);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
+router.put('/:id', (req, res) => {
+    db.get('labs').find({ _id: req.params.id }).assign(req.body).write();
+    res.json(db.get('labs').find({ _id: req.params.id }).value());
+});
+
+router.delete('/:id', (req, res) => {
+    db.get('labs').remove({ _id: req.params.id }).write();
+    res.json({ message: 'Lab request deleted' });
 });
 
 module.exports = router;

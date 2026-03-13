@@ -1,24 +1,16 @@
 const express = require('express');
-const router = express.Router();
-const Payment = require('../models/Payment');
+const router  = express.Router();
+const db      = require('../config/db');
+const { v4: uuidv4 } = require('uuid');
 
-router.get('/', async (req, res) => {
-    try {
-        const payments = await Payment.find().sort({ createdAt: -1 });
-        res.json(payments);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+router.get('/', (req, res) => {
+    res.json(db.get('payments').sortBy('createdAt').reverse().value());
 });
 
-router.post('/', async (req, res) => {
-    try {
-        const payment = new Payment(req.body);
-        await payment.save();
-        res.status(201).json(payment);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
+router.post('/', (req, res) => {
+    const payment = { _id: uuidv4(), ...req.body, createdAt: new Date().toISOString() };
+    db.get('payments').push(payment).write();
+    res.status(201).json(payment);
 });
 
 module.exports = router;
