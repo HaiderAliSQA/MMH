@@ -29,7 +29,7 @@ const Patient: React.FC<PatientProps> = ({ user: propUser, onLogout }) => {
         p.name?.toLowerCase() === user?.name?.toLowerCase()
       );
       const myLabsFiltered = allLabs.filter((l: any) =>
-        mine.some((p: any) => p._id === l.patientId)
+        mine.some((p: any) => p._id === (l.patient?._id || l.patient))
       );
       setMyRecords(mine);
       setMyLabs(myLabsFiltered);

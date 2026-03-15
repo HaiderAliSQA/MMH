@@ -626,10 +626,10 @@ const TodaysListTab: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/patients').then(r => {
+    api.get('/opd').then(r => {
       const today = new Date().toDateString();
-      const filtered = r.data.filter((p: any) => {
-        return p.createdAt && new Date(p.createdAt).toDateString() === today;
+      const filtered = r.data.filter((v: any) => {
+        return v.createdAt && new Date(v.createdAt).toDateString() === today;
       });
       setRecords(filtered);
     }).catch(()=>{}).finally(() => setLoading(false));
@@ -693,12 +693,12 @@ const TodaysListTab: React.FC = () => {
               ) : records.map((r, i) => (
                 <tr key={r._id}>
                   <td style={{ fontFamily:'JetBrains Mono', color:'#0ea5e9', fontWeight:800 }}>
-                    {r.token || (i + 1).toString().padStart(3,'0')}
+                    {r.tokenNumber || r.token || (i + 1).toString().padStart(3,'0')}
                   </td>
-                  <td style={{ fontFamily:'JetBrains Mono', fontSize:12 }}>{r.mrNo || '—'}</td>
-                  <td className="mmh-td-name">{r.name}</td>
-                  <td style={{ color:'#94a3b8' }}>{r.age || '—'} / {r.gender || '—'}</td>
-                  <td style={{ color:'#94a3b8' }}>{r.doctorName || '—'}</td>
+                  <td style={{ fontFamily:'JetBrains Mono', fontSize:12 }}>{r.patient?.mrNumber || r.patient?.mrNo || '—'}</td>
+                  <td className="mmh-td-name">{r.patient?.name || r.name}</td>
+                  <td style={{ color:'#94a3b8' }}>{r.patient?.age || r.age || '—'} / {r.patient?.gender || r.gender || '—'}</td>
+                  <td style={{ color:'#94a3b8' }}>{r.doctor?.name || r.doctorName || '—'}</td>
                   <td>{statusBadge(r.status || 'Waiting')}</td>
                   <td style={{ color:'#64748b', fontSize:12 }}>
                     {r.createdAt ? new Date(r.createdAt).toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit'}) : '—'}

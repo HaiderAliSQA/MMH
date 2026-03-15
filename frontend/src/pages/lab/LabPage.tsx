@@ -5,8 +5,7 @@ import '../../styles/mmh.css';
 // ─── Types ──────────────────────────────────────────────────────────
 interface LabReq {
   _id: string;
-  patientName: string;
-  patientId: string;
+  patient?: { _id: string; name: string; mrNumber?: string };
   tests: string[];
   status: 'Pending' | 'Processing' | 'Done';
   urgent: boolean;
@@ -68,7 +67,7 @@ const PendingTab: React.FC = () => {
   };
 
   const filtered = labs.filter(l => {
-    const matchSearch = !search || l.patientName?.toLowerCase().includes(search.toLowerCase()) || l._id.includes(search);
+    const matchSearch = !search || l.patient?.name?.toLowerCase().includes(search.toLowerCase()) || l._id.includes(search);
     const matchStatus = status === 'All' || l.status === status;
     const matchUrgent = !urgOnly || l.urgent;
     return matchSearch && matchStatus && matchUrgent;
@@ -147,7 +146,7 @@ const PendingTab: React.FC = () => {
 
                 {/* Patient */}
                 <div style={{ fontWeight:800, color:'white', fontSize:14, marginBottom:4 }}>
-                  {lab.patientName || 'Unknown Patient'}
+                  {lab.patient?.name || 'Unknown Patient'}
                 </div>
                 {lab.doctorName && (
                   <div style={{ fontSize:12, color:'#64748b', marginBottom:10 }}>
@@ -267,7 +266,7 @@ const ResultsTab: React.FC = () => {
               <option value="">— Select Pending/Processing Lab Request —</option>
               {labs.map(l => (
                 <option key={l._id} value={l._id}>
-                  #{l._id.slice(-6).toUpperCase()} — {l.patientName} ({(l.tests||[]).join(', ')})
+                  #{l._id.slice(-6).toUpperCase()} — {l.patient?.name} ({(l.tests||[]).join(', ')})
                 </option>
               ))}
             </select>
@@ -281,10 +280,10 @@ const ResultsTab: React.FC = () => {
           {/* Patient info card */}
           <div className="mmh-patient-info-card">
             <div className="mmh-patient-info-avatar">
-              {(selectedLab.patientName || 'P').charAt(0).toUpperCase()}
+              {(selectedLab.patient?.name || 'P').charAt(0).toUpperCase()}
             </div>
             <div>
-              <div className="mmh-patient-info-name">{selectedLab.patientName}</div>
+              <div className="mmh-patient-info-name">{selectedLab.patient?.name}</div>
               <div className="mmh-patient-info-meta">
                 <span>Lab ID: #{selectedLab._id.slice(-6).toUpperCase()}</span>
                 {selectedLab.urgent && <span style={{ color:'#fb7185', fontWeight:700 }}>🚨 URGENT</span>}

@@ -46,7 +46,7 @@ const Pharmacist: React.FC = () => {
             setLoading(true);
             for (const item of cart) {
                 const med = medicines.find(m => m._id === item.medicineId);
-                await api.put(`/medicines/${item.medicineId}`, { stock: med.stock - item.qty });
+                await api.put(`/medicines/${item.medicineId}`, { quantity: med.quantity - item.qty });
             }
             alert('Medicine Dispensed Successfully!');
             setCart([]);
@@ -86,7 +86,7 @@ const Pharmacist: React.FC = () => {
                                             <label className="mmh-label">Select Medicine</label>
                                             <select className="mmh-input-select" value={item.medicineId} onChange={e => updateCart(i, 'medicineId', e.target.value)}>
                                                 <option value="">Select SKU</option>
-                                                {medicines.map(m => <option key={m._id} value={m._id}>{m.name} (Stock: {m.stock})</option>)}
+                                                {medicines.map(m => <option key={m._id} value={m._id}>{m.name} (Stock: {m.quantity})</option>)}
                                             </select>
                                         </div>
                                         <div className="mmh-field">
@@ -148,15 +148,15 @@ const Pharmacist: React.FC = () => {
                                         <td className="mmh-td-name">{m.name}</td>
                                         <td><span className="mmh-badge mmh-badge-gray">{m.category}</span></td>
                                         <td>
-                                            <div style={{ fontWeight: 800 }}>{m.stock} <span style={{ fontSize: '10px', color: 'var(--mmh-muted)' }}>{m.unit}</span></div>
+                                            <div style={{ fontWeight: 800 }}>{m.quantity} <span style={{ fontSize: '10px', color: 'var(--mmh-muted)' }}>{m.unit}</span></div>
                                             <div style={{ height: '3px', background: 'var(--mmh-bg3)', width: '100px', marginTop: '5px', borderRadius: '10px', overflow: 'hidden' }}>
-                                                <div style={{ height: '100%', background: m.stock <= 20 ? 'var(--mmh-rose)' : 'var(--mmh-green)', width: `${Math.min(100, (m.stock/100)*100)}%` }} />
+                                                <div style={{ height: '100%', background: m.quantity <= 20 ? 'var(--mmh-rose)' : 'var(--mmh-green)', width: `${Math.min(100, (m.quantity/100)*100)}%` }} />
                                             </div>
                                         </td>
                                         <td style={{ fontFamily: 'JetBrains Mono', fontWeight: 700 }}>{m.price?.toFixed(2)}</td>
                                         <td>
-                                            <span className={`mmh-badge mmh-badge-${m.stock <= 20 ? 'rose' : 'green'}`}>
-                                                {m.stock <= 20 ? 'Reorder Required' : 'Optimized'}
+                                            <span className={`mmh-badge mmh-badge-${m.quantity <= 20 ? 'rose' : 'green'}`}>
+                                                {m.quantity <= 20 ? 'Reorder Required' : 'Optimized'}
                                             </span>
                                         </td>
                                     </tr>

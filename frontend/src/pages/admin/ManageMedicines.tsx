@@ -7,7 +7,7 @@ interface Medicine {
   name: string;
   category: string;
   price: number;
-  stock: number;
+  quantity: number;
   expiry: string;
   unit: string;
   reorderLevel: number;
@@ -24,7 +24,7 @@ const ManageMedicines: React.FC = () => {
     name: '',
     category: 'Tablet',
     price: 0,
-    stock: 0,
+    quantity: 0,
     expiry: '',
     unit: 'Box',
     reorderLevel: 20
@@ -89,7 +89,7 @@ const ManageMedicines: React.FC = () => {
           className="mmh-btn mmh-btn-green"
           onClick={() => {
             setEditingMed(null);
-            setFormData({ name: '', category: 'Tablet', price: 0, stock: 0, expiry: '', unit: 'Box', reorderLevel: 20 });
+            setFormData({ name: '', category: 'Tablet', price: 0, quantity: 0, expiry: '', unit: 'Box', reorderLevel: 20 });
             setModalOpen(true);
           }}
         >
@@ -104,7 +104,7 @@ const ManageMedicines: React.FC = () => {
          </div>
          <div className="mmh-stat-card" style={{ padding: '16px' }}>
             <div className="mmh-stat-label">Low Stock</div>
-            <div className="mmh-stat-value" style={{ fontSize: '24px', color: 'var(--mmh-rose)' }}>{meds.filter(m => m.stock < m.reorderLevel).length}</div>
+            <div className="mmh-stat-value" style={{ fontSize: '24px', color: 'var(--mmh-rose)' }}>{meds.filter(m => m.quantity < m.reorderLevel).length}</div>
          </div>
          <div className="mmh-stat-card" style={{ padding: '16px' }}>
             <div className="mmh-stat-label">Expiring Soon</div>
@@ -153,7 +153,7 @@ const ManageMedicines: React.FC = () => {
                   <td style={{ fontFamily: 'JetBrains Mono', fontWeight: 700 }}>{m.price.toFixed(2)}</td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                       <span style={{ fontWeight: 800, color: m.stock < m.reorderLevel ? 'var(--mmh-rose)' : 'white' }}>{m.stock}</span>
+                       <span style={{ fontWeight: 800, color: m.quantity < m.reorderLevel ? 'var(--mmh-rose)' : 'white' }}>{m.quantity}</span>
                        <span style={{ fontSize: '10px', color: 'var(--mmh-muted)' }}>{m.unit}</span>
                     </div>
                   </td>
@@ -203,8 +203,8 @@ const ManageMedicines: React.FC = () => {
                   <input type="number" className="mmh-input" value={formData.price} onChange={e => setFormData({...formData, price: parseFloat(e.target.value) || 0})} />
                 </div>
                 <div className="mmh-field">
-                  <label className="mmh-label">Stock</label>
-                  <input type="number" className="mmh-input" value={formData.stock} onChange={e => setFormData({...formData, stock: parseInt(e.target.value) || 0})} />
+                  <label className="mmh-label">Quantity</label>
+                  <input type="number" className="mmh-input" value={formData.quantity} onChange={e => setFormData({...formData, quantity: parseInt(e.target.value) || 0})} />
                 </div>
                 <div className="mmh-field">
                   <label className="mmh-label">Expiry Date</label>

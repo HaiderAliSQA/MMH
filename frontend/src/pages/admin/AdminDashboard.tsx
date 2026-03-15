@@ -49,7 +49,7 @@ const AdminDashboard: React.FC = () => {
           totalPatients: patients.length,
           admitted:      admissions.filter((a: any) => a.status !== 'Discharged').length,
           pendingLabs:   labs.filter((l: any) => l.status === 'Pending').length,
-          lowStock:      meds.filter((m: any) => (m.stock || 0) < (m.reorderLevel || 20)).length,
+          lowStock:      meds.filter((m: any) => (m.quantity || 0) < (m.reorderLevel || 20)).length,
         });
         setWards(wardData);
 

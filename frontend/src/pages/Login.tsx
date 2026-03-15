@@ -7,21 +7,21 @@ interface LoginProps {
 }
 
 const ROLES = [
-  { id: 'admin',        label: 'Admin',     icon: '🛡️' },
-  { id: 'doctor',       label: 'Doctor',    icon: '👨‍⚕️' },
+  { id: 'admin', label: 'Admin', icon: '🛡️' },
+  { id: 'doctor', label: 'Doctor', icon: '👨‍⚕️' },
   { id: 'receptionist', label: 'Reception', icon: '🏥' },
-  { id: 'lab',          label: 'Lab',       icon: '🔬' },
-  { id: 'pharmacist',   label: 'Pharmacy',  icon: '💊' },
-  { id: 'manager',      label: 'Manager',   icon: '📊' },
-  { id: 'patient',      label: 'Patient',   icon: '👤' },
+  { id: 'lab', label: 'Lab', icon: '🔬' },
+  { id: 'pharmacist', label: 'Pharmacy', icon: '💊' },
+  { id: 'manager', label: 'Manager', icon: '📊' },
+  { id: 'patient', label: 'Patient', icon: '👤' },
 ];
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole]         = useState('admin');
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [role, setRole] = useState('admin');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -30,7 +30,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError('');
     try {
       const res = await api.post('/users/login', { email, password });
-      const user = res.data;
+      const user = res.data.user || res.data;
 
       if (user.role !== role) {
         setError(`Incorrect role selected. This account is registered as: "${user.role}". Please select the correct role above.`);
@@ -59,8 +59,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         <div className="mmh-login-logo-row">
           <div className="mmh-login-logo-box">🏥</div>
           <div>
-            <div className="mmh-login-hospital-name">MMH</div>
-            <div className="mmh-login-hospital-sub">Majida Memorial Hospital</div>
+            <div className="mmh-login-hospital-name" style={{ textAlign: 'center' }}>MMH</div>
+
+            <div className="mmh-login-hospital-sab" style={{ color: 'white', textAlign: 'center' }}>Majida Memorial Hospital</div>
           </div>
         </div>
 
