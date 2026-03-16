@@ -95,8 +95,8 @@ function App() {
         <Route path="/lab-results" element={<ProtectedRoute allowedRoles={['lab']}><Lab onLogout={logout} /></ProtectedRoute>} />
 
         {/* Pharmacist Portal */}
-        <Route path="/dispense" element={<ProtectedRoute allowedRoles={['pharmacist']}><PharmacyPage /></ProtectedRoute>} />
-        <Route path="/inventory" element={<ProtectedRoute allowedRoles={['pharmacist']}><PharmacyPage /></ProtectedRoute>} />
+        <Route path="/dispense" element={<ProtectedRoute allowedRoles={['pharmacist']}><MainLayout user={user} title="Medicine Dispensing"><PharmacyPage /></MainLayout></ProtectedRoute>} />
+        <Route path="/inventory" element={<ProtectedRoute allowedRoles={['pharmacist']}><MainLayout user={user} title="Inventory Management"><PharmacyPage /></MainLayout></ProtectedRoute>} />
 
         {/* Manager Portal (Restored Legacy UI) */}
         <Route path="/manager" element={<ProtectedRoute allowedRoles={['manager']}><Manager onLogout={logout} /></ProtectedRoute>} />
