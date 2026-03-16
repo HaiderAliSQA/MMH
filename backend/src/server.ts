@@ -18,35 +18,15 @@ const allowedOrigins = [
 ].filter(Boolean) as string[];
 
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow Postman and server-to-server (no origin)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    // Allow any vercel.app subdomain for MMH
-    if (origin.includes('mmh-frontend') && 
-        origin.includes('vercel.app')) {
-      return callback(null, true);
-    }
-    
-    console.log('CORS blocked:', origin);
-    return callback(new Error('CORS not allowed'), false);
-  },
+  origin: [
+    'http://localhost:5173',
+    'https://mmh-frontend.vercel.app',
+    'https://mmh-frontend-qojj0oefb-haider-alis-projects-9f8f6426.vercel.app'
+  ],
   credentials: true,
   methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'X-Requested-With',
-    'Accept',
-    'Origin'
-  ],
-  exposedHeaders: ['Authorization'],
-  optionsSuccessStatus: 200
-}));
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}))
 
 // Handle ALL preflight requests
 app.options('*', cors());
