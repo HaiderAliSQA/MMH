@@ -3,7 +3,7 @@ import api from '../api';
 import '../styles/mmh.css';
 
 interface LoginProps {
-  onLogin: (user: any) => void;
+  onLogin: (user: any, token: string) => void;
 }
 
 const ROLES = [
@@ -30,7 +30,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError('');
     try {
       const res = await api.post('/users/login', { email, password });
-      const user = res.data.user || res.data;
+      const { user, token } = res.data;
 
       if (user.role !== role) {
         setError(`Incorrect role selected. This account is registered as: "${user.role}". Please select the correct role above.`);
@@ -38,11 +38,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         return;
       }
 
-      // Save to localStorage
-      localStorage.setItem('user', JSON.stringify(user));
-
-      // Update App state → triggers re-render → navigates to correct route
-      onLogin(user);
+      // Update App state via AuthContext → triggers re-render
+      onLogin(user, token);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid email or password.');
     } finally {

@@ -1,29 +1,20 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import '../styles/mmh.css';
 
 interface SidebarProps {
-  user: {
-    name?: string;
-    role?: string;
-  };
-  onLogout?: () => void;
   isOpen?: boolean;
   onToggle?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ user, onLogout, isOpen, onToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Clear ALL stored data
-    localStorage.clear();
-    sessionStorage.clear();
-    // Call parent callback to reset App state → shows login page instantly
-    if (onLogout) {
-      onLogout();
-    } else {
-      window.location.href = '/login';
-    }
+    logout();
+    navigate('/login', { replace: true });
   };
 
   const getNavItems = () => {

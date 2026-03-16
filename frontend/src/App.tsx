@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import AdminLayout from './pages/admin/AdminLayout';
 import Receptionist from './pages/Receptionist';
@@ -11,41 +11,19 @@ import Patient from './pages/Patient';
 import './styles/mmh.css';
 
 function App() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, login, logout } = useAuth();
 
-  useEffect(() => {
-    try {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        const parsed = JSON.parse(savedUser);
-        if (parsed && parsed.role) {
-          setUser(parsed);
-        } else {
-          localStorage.removeItem('user');
-        }
-      }
-    } catch {
-      localStorage.removeItem('user');
-    }
-    setLoading(false);
-  }, []);
-
-  const handleLogin = useCallback((loggedInUser: any) => {
-    setUser(loggedInUser);
-  }, []);
-
-  const handleLogout = useCallback(() => {
-    localStorage.clear();
-    setUser(null);
-  }, []);
-
-  if (loading) return null;
+  if (loading) return (
+    <div className="mmh-loading-container">
+      <div className="mmh-loader"></div>
+      <p>Loading MMH...</p>
+    </div>
+  );
 
   if (!user) {
     return (
       <Routes>
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
+        <Route path="/login" element={<Login onLogin={(u, t) => login(u, t)} />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
@@ -53,7 +31,7 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/admin/*"        element={<AdminLayout onLogout={handleLogout} />} />
+      <Route path="/admin/*"        element={<AdminLayout onLogout={logout} />} />
       <Route path="/receptionist/*" element={<Receptionist />} />
       <Route path="/doctor/*"       element={<Doctor user={user} />} />
       <Route path="/lab/*"          element={<Lab />} />
