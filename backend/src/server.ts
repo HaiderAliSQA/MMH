@@ -9,47 +9,66 @@ dotenv.config();
 
 const app = express();
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'https://mmh-frontend.vercel.app',
-  'https://mmh-frontend-qojj0oefb-haider-alis-projects-9f8f6426.vercel.app',
-  process.env.FRONTEND_URL,
-].filter(Boolean) as string[];
+// Handle ALL preflight requests — SABSE PEHLE
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  res.sendStatus(200);
+});
+
+// CORS — sab allow karo
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  next();
+});
 
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'https://mmh-frontend.vercel.app',
-    'https://mmh-frontend-qojj0oefb-haider-alis-projects-9f8f6426.vercel.app'
-  ],
-  credentials: true,
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-}))
+  credentials: false,
+}));
 
-// Handle ALL preflight requests
-app.options('*', cors());
-
-// This must come AFTER cors middleware
+// Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Health check
+app.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: '🏥 MMH API Running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// All routes
 app.use('/api', routes);
 
 // Global error handler
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({ message: err.message || 'Internal Server Error' });
+app.use((
+  err: any,
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  console.error('❌ Error:', err.message);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error'
+  });
 });
 
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
-  await connectDB(); // wait for DB first
-
+  await connectDB();
   app.listen(PORT, () => {
     console.log(`🏥 MMH Server running on port ${PORT}`);
+    console.log(`🌐 CORS: All origins allowed`);
   });
 };
 
