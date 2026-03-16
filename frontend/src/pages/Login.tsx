@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import api from '../api';
 import '../styles/mmh.css';
-
-interface LoginProps {
-  onLogin: (user: any, token: string) => void;
-}
 
 const ROLES = [
   { id: 'admin', label: 'Admin', icon: '🛡️' },
@@ -16,7 +14,9 @@ const ROLES = [
   { id: 'patient', label: 'Patient', icon: '👤' },
 ];
 
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+const Login: React.FC = () => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('admin');
@@ -38,8 +38,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         return;
       }
 
-      // Update App state via AuthContext → triggers re-render
-      onLogin(user, token);
+      // Update App state via AuthContext
+      login(user, token);
+
+      // REDIRECT BASED ON ROLE
+      if (user.role === 'admin') navigate('/dashboard');
+      else if (user.role === 'pharmacist') navigate('/dispense');
+      else if (user.role === 'receptionist') navigate('/receptionist');
+      else navigate(`/${user.role}`);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid email or password.');
     } finally {

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { login, getMe, changePassword } from '../controllers/auth.controller';
+import { protect } from '../middleware/auth.middleware';
 import { getPatients, createPatient, updatePatient, searchPatients } from '../controllers/patient.controller';
 import { getOpdVisits, createOpdVisit, updateOpdStatus } from '../controllers/opd.controller';
 import { getAdmissions, createAdmission, dischargePatient } from '../controllers/admission.controller';
@@ -12,13 +13,13 @@ const router = Router();
 
 // Auth / User Routes
 router.post('/users/login', login);
-router.get('/users/me', getMe);
-router.post('/auth/change-password', changePassword);
+router.get('/users/me', protect, getMe);
+router.post('/auth/change-password', protect, changePassword);
 
 // Admin User endpoints
-router.get('/users', getUsers);
-router.post('/users/register', createUser);
-router.put('/users/:id', updateUser);
+router.get('/users', protect, getUsers);
+router.post('/users/register', protect, createUser);
+router.put('/users/:id', protect, updateUser);
 router.get('/doctors', getDoctors);
 router.post('/doctors', createDoctor);
 

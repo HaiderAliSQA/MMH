@@ -24,31 +24,37 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
     const roleSpecific: Record<string, { path: string; label: string; icon: string }[]> = {
       admin: [
-        { path: '/admin',           label: 'Dashboard', icon: '📊' },
-        { path: '/admin/users',     label: 'Users',     icon: '👥' },
-        { path: '/admin/medicines', label: 'Pharmacy',  icon: '💊' },
-        { path: '/admin/wards',     label: 'Wards',     icon: '🏥' },
+        { path: '/dashboard',   label: 'Dashboard', icon: '🛡️' },
+        { path: '/patients',    label: 'Patients',  icon: '👥' },
+        { path: '/pharmacy',    label: 'Pharmacy',  icon: '💊' },
+        { path: '/wards',       label: 'Wards',     icon: '🏥' },
+        { path: '/payments',    label: 'Payments',  icon: '💰' },
+        { path: '/admin/users', label: 'Users',     icon: '👤' },
+        { path: '/admin/managers', label: 'Managers', icon: '📊' },
       ],
       doctor: [
-        { path: '/doctor',         label: 'My Patients', icon: '👨‍⚕️' },
-        { path: '/doctor/history', label: 'History',     icon: '📜' },
+        { path: '/my-patients', label: 'My Patients', icon: '👨‍⚕️' },
+        { path: '/lab-orders',  label: 'Lab Orders',  icon: '🔬' },
       ],
       receptionist: [
-        { path: '/receptionist',     label: 'Registration', icon: '📝' },
-        { path: '/receptionist/opd', label: 'OPD Queue',    icon: '🚶' },
+        { path: '/opd',         label: 'OPD Queue',    icon: '🚶' },
+        { path: '/admission',   label: 'Admission',    icon: '🏥' },
+        { path: '/lab-req',     label: 'Lab Request',  icon: '🧪' },
+        { path: '/payment',     label: 'Payment',      icon: '💰' },
       ],
       lab: [
-        { path: '/lab', label: 'Lab Reports', icon: '🔬' },
+        { path: '/lab-pending', label: 'Pending', icon: '🧪' },
+        { path: '/lab-results', label: 'Results', icon: '🔬' },
       ],
       pharmacist: [
-        { path: '/pharmacist', label: 'Pharmacy', icon: '💊' },
+        { path: '/dispense',    label: 'Dispense',  icon: '💊' },
+        { path: '/inventory',   label: 'Inventory', icon: '📦' },
       ],
       manager: [
-        { path: '/manager', label: 'Dashboard', icon: '📊' },
+        { path: '/analytics',   label: 'Analytics', icon: '📈' },
       ],
       patient: [
-        { path: '/patient',        label: 'My Health', icon: '❤️' },
-        { path: '/patient/visits', label: 'Visits',    icon: '🏥' },
+        { path: '/my-records',  label: 'My Records', icon: '📜' },
       ],
     };
 
@@ -99,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
               key={item.path}
               to={item.path}
               className={({ isActive }) => `mmh-nav-item${isActive ? ' active' : ''}`}
-              onClick={onToggle}
+              onClick={() => isOpen && onToggle?.()}
               end={
                 item.path === '/admin'       ||
                 item.path === '/doctor'      ||

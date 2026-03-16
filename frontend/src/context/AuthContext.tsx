@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface User {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   role: 'admin' | 'receptionist' | 'doctor' | 'lab' | 'pharmacist' | 'manager' | 'patient';
@@ -11,9 +11,12 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (userData: User, token: string) => void;
+  login: (userData: ProxyObject | User, token: string) => void;
   logout: () => void;
 }
+
+// Add ProxyObject type for flexibility
+type ProxyObject = any;
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
