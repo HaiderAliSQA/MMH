@@ -24,7 +24,7 @@ app.use(cors({
     'https://mmh-frontend-qojj0oefb-haider-alis-projects-9f8f6426.vercel.app'
   ],
   credentials: true,
-  methods: ['GET','POST','PUT','DELETE','PATCH','OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }))
 
@@ -47,7 +47,7 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   await connectDB(); // wait for DB first
-  
+
   app.listen(PORT, () => {
     console.log(`🏥 MMH Server running on port ${PORT}`);
   });
