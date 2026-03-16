@@ -122,11 +122,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </button>
         </form>
 
-        <div className="mmh-login-hint">
+        {/* <div className="mmh-login-hint">
           Default credentials: <span className="mmh-login-hint-code">admin@mmh.pk</span>
           {' / '}
           <span className="mmh-login-hint-code">mmh1234</span>
-        </div>
+        </div> */}
       </div>
     </div>
   );
