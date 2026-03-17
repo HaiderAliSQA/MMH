@@ -3,18 +3,20 @@ import mongoose from 'mongoose';
 const connectDB = async (): Promise<void> => {
   try {
     const uri = process.env.MONGO_URI;
-    if (!uri) throw new Error('MONGO_URI not found in .env');
-    
+    if (!uri) {
+      throw new Error('MONGO_URI not set in environment');
+    }
+
     await mongoose.connect(uri, {
       dbName: 'mmh_hospital',
     });
-    
-    console.log('✅ MongoDB Connected:', 
-      mongoose.connection.host);
-    console.log('📦 Database: mmh_hospital');
-    
+
+    console.log(`✅ MongoDB Connected: ${mongoose.connection.host}`);
+    console.log(`📦 Database: ${mongoose.connection.name}`);
+    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+
   } catch (error) {
-    console.error('❌ MongoDB Connection Failed:', error);
+    console.error('❌ MongoDB connection failed:', error);
     process.exit(1);
   }
 };

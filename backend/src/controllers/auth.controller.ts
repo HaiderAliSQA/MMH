@@ -8,34 +8,46 @@ const generateToken = (id: string, role: string) => {
   });
 };
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required' });
+    res.status(400).json({ message: 'Email and password are required' });
+    return;
   }
 
   const user = await User.findOne({ email });
   if (!user) {
-    return res.status(401).json({ message: 'Invalid credentials' });
+    res.status(401).json({ message: 'Invalid email or password' });
+    return;
+  }
+
+  // Check if account is active
+  if (user.isActive === false) {
+    res.status(403).json({
+      message: 'Your account has been deactivated. Please contact administrator.'
+    });
+    return;
   }
 
   const isMatch = await user.comparePassword(password);
   if (!isMatch) {
-    return res.status(401).json({ message: 'Invalid credentials' });
+    res.status(401).json({ message: 'Invalid email or password' });
+    return;
   }
 
   const token = generateToken(user.id, user.role);
-  
-  // Return user without password
-  const userData = {
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    phone: user.phone,
-  };
 
-  res.status(200).json({ token, user: userData });
+  res.status(200).json({
+    token,
+    user: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      isActive: user.isActive,
+    }
+  });
 };
 
 export const getMe = async (req: Request, res: Response) => {
