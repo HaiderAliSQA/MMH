@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../api';
 import '../../styles/mmh.css';
+import DispensingSlip, { printSlip } from '../../components/DispensingSlip';
 
 interface Medicine {
   _id: string;
   name: string;
   generic: string;
   category: string;
+  unit: string;
   quantity: number;
   minQty: number;
   price: number;
@@ -36,6 +38,13 @@ const PharmacyPage: React.FC = () => {
   // Dispense State
   const [selectedPatientId, setSelectedPatientId] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [stockErrors, setStockErrors] = useState<string[]>([]);
+  const [dispenseRecord, setDispenseRecord] = useState<any>(null);
+  
+  // Add Medicine Form State
+  const [selectedMedId, setSelectedMedId] = useState('');
+  const [selectedQty, setSelectedQty] = useState(1);
+  const [dispenseNotes, setDispenseNotes] = useState('');
   
   // Inventory State
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,34 +91,41 @@ const PharmacyPage: React.FC = () => {
   };
 
   // --- Dispense Logic ---
-  const addToCart = (medId: string) => {
-    const med = medicines.find(m => m._id === medId);
+  const addToCart = () => {
+    if (!selectedMedId) return;
+    const med = medicines.find(m => m._id === selectedMedId);
     if (!med) return;
 
-    const existing = cart.find(c => c.medicineId === medId);
+    if (selectedQty < 1 || selectedQty > med.quantity) {
+      alert("Invalid quantity. Max available: " + med.quantity);
+      return;
+    }
+
+    const existing = cart.find(c => c.medicineId === selectedMedId);
     if (existing) {
-      setCart(cart.map(c => c.medicineId === medId ? { ...c, qty: c.qty + 1, total: (c.qty + 1) * c.price } : c));
+      if (existing.qty + selectedQty > med.quantity) {
+        alert("Cannot exceed available stock. Max available: " + med.quantity);
+        return;
+      }
+      setCart(cart.map(c => c.medicineId === selectedMedId ? { ...c, qty: c.qty + selectedQty, total: (c.qty + selectedQty) * c.price } : c));
     } else {
       setCart([...cart, { 
-        medicineId: medId, 
+        medicineId: selectedMedId, 
         name: med.name, 
-        qty: 1, 
+        qty: selectedQty, 
         price: med.price, 
-        total: med.price 
+        total: med.price * selectedQty 
       }]);
     }
+
+    setSelectedMedId('');
+    setSelectedQty(1);
+    setStockErrors([]);
   };
 
   const removeFromCart = (index: number) => {
     setCart(cart.filter((_, i) => i !== index));
-  };
-
-  const updateCartQty = (index: number, qty: number) => {
-    if (qty < 1) return;
-    const newCart = [...cart];
-    newCart[index].qty = qty;
-    newCart[index].total = qty * newCart[index].price;
-    setCart(newCart);
+    setStockErrors([]);
   };
 
   const runningTotal = useMemo(() => cart.reduce((sum, item) => sum + item.total, 0), [cart]);
@@ -119,23 +135,34 @@ const PharmacyPage: React.FC = () => {
     if (cart.length === 0) return alert("Cart is empty");
 
     setLoading(true);
+    setStockErrors([]);
     try {
-      await api.post('/dispense', {
-        patientId: selectedPatientId,
-        items: cart,
-        totalAmount: runningTotal
+      const res = await api.post('/dispense', {
+        patient: selectedPatientId,
+        items: cart.map(c => ({ medicine: c.medicineId, quantity: c.qty })),
+        totalAmount: runningTotal,
+        notes: dispenseNotes
       });
-      alert("Medicines dispensed successfully!");
+      
+      setDispenseRecord(res.data.data);
       setCart([]);
       setSelectedPatientId('');
+      setDispenseNotes('');
       fetchData(); // Refresh stock
-    } catch (error) {
+    } catch (error: any) {
       console.error("Dispense error:", error);
-      alert("Failed to dispense medicines.");
+      if (error.response?.data?.errors) {
+        setStockErrors(error.response.data.errors);
+      } else {
+        alert(error.response?.data?.message || "Failed to dispense medicines.");
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  const selectedPatient = patients.find(p => p._id === selectedPatientId);
+  const selectedMedicine = medicines.find(m => m._id === selectedMedId);
 
   // --- Inventory Logic ---
   const inventoryStats = useMemo(() => {
@@ -220,126 +247,230 @@ const PharmacyPage: React.FC = () => {
 
       {activeTab === 'dispense' ? (
         <div className="mmh-tab-content">
+          {stockErrors.length > 0 && (
+            <div className="mmh-alert mmh-alert-warning" style={{ background: 'rgba(244,63,94,0.1)', borderColor: 'rgba(244,63,94,0.3)', color: '#fb7185', marginBottom: '24px' }}>
+              <div style={{fontWeight:800, marginBottom:8}}>⚠️ Stock Problem:</div>
+              {stockErrors.map((err, i) => (
+                <div key={i} style={{ fontSize:'13px', padding:'5px 0', borderBottom:'1px solid rgba(244,63,94,0.15)', display:'flex', alignItems:'center', gap:'8px' }}>
+                  <span>❌</span>
+                  <span>{err}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="mmh-form-grid" style={{ gridTemplateColumns: 'minmax(0, 1fr) 400px', gap: '24px', alignItems: 'start' }}>
             
-            {/* Dispense Controls */}
-            <div className="mmh-card">
-              <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-sky)' }} />
-              <div className="mmh-card-header">
-                <div className="mmh-card-title">Dispense Information</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Patient Selection Card */}
+              <div className="mmh-card">
+                <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-violet)' }} />
+                <div className="mmh-card-header">
+                  <div className="mmh-card-title">STEP 1 — Select Patient</div>
+                </div>
+                <div className="mmh-card-body">
+                  <div className="mmh-field">
+                    <div className="mmh-search-wrap">
+                      <span className="mmh-search-icon">🔍</span>
+                      <select 
+                        className="mmh-input-select"
+                        style={{ paddingLeft: '42px' }}
+                        value={selectedPatientId}
+                        onChange={(e) => setSelectedPatientId(e.target.value)}
+                      >
+                        <option value="">-- Choose Patient (MR Number / Name) --</option>
+                        {patients.map(p => (
+                          <option key={p._id} value={p._id}>{p.mrNumber} - {p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {selectedPatient && (
+                    <div style={{ marginTop: '16px', padding: '16px', background: '#111d35', borderRadius: '12px', border: '1px solid #1e3050', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                      <div className="mmh-sidebar-avatar" style={{ background: 'var(--mmh-violet)' }}>
+                        {selectedPatient.name.charAt(0)}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '15px', fontWeight: 800, color: 'white' }}>{selectedPatient.name}</div>
+                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                          <span style={{ color: '#0ea5e9', fontWeight: 600, fontFamily: 'JetBrains Mono' }}>{selectedPatient.mrNumber}</span>
+                          {' • '}
+                          <span>Patient</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="mmh-card-body">
-                <div className="mmh-field">
-                  <label className="mmh-label">Select Patient</label>
-                  <select 
-                    className="mmh-input-select"
-                    value={selectedPatientId}
-                    onChange={(e) => setSelectedPatientId(e.target.value)}
-                  >
-                    <option value="">-- Choose Patient (MR Number / Name) --</option>
-                    {patients.map(p => (
-                      <option key={p._id} value={p._id}>{p.mrNumber} - {p.name}</option>
-                    ))}
-                  </select>
+
+              {/* Add Medicine Card */}
+              <div className="mmh-card">
+                <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-sky)' }} />
+                <div className="mmh-card-header">
+                  <div className="mmh-card-title">STEP 2 — Add Medicines</div>
                 </div>
+                <div className="mmh-card-body">
+                  <div className="mmh-field">
+                    <label className="mmh-label">Select Medicine</label>
+                    <select 
+                      className="mmh-input-select"
+                      value={selectedMedId}
+                      onChange={(e) => {
+                        setSelectedMedId(e.target.value);
+                        setSelectedQty(1);
+                      }}
+                    >
+                      <option value="">-- Search Medicines --</option>
+                      {medicines.filter(m => m.quantity > 0).map(m => (
+                        <option key={m._id} value={m._id}>{m.name} ({m.quantity} available) - PKR {m.price}</option>
+                      ))}
+                    </select>
+                    {selectedMedicine && (
+                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
+                        Stock: <strong style={{ color: 'white' }}>{selectedMedicine.quantity} {selectedMedicine.unit}s</strong> available
+                      </div>
+                    )}
+                  </div>
 
-                <div className="mmh-divider" style={{ margin: '20px 0' }} />
+                  {selectedMedicine && (
+                    <>
+                      <div className="mmh-form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '20px' }}>
+                        <div className="mmh-field">
+                          <label className="mmh-label">
+                            Quantity
+                            <span style={{color:'#64748b', marginLeft:8, fontWeight:400, textTransform:'none'}}>
+                              (Max: {selectedMedicine.quantity})
+                            </span>
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            max={selectedMedicine.quantity}
+                            className="mmh-input"
+                            value={selectedQty}
+                            onChange={(e) => setSelectedQty(parseInt(e.target.value) || 0)}
+                            style={{
+                              borderColor: selectedQty > selectedMedicine.quantity ? '#f43f5e' : undefined,
+                              fontFamily: 'JetBrains Mono, monospace',
+                              fontSize: '16px',
+                            }}
+                          />
+                          <div className="mmh-stock-usage-bar">
+                            <div className="mmh-stock-usage-fill" style={{
+                              width: `${Math.min(100, (selectedQty / Math.max(1, selectedMedicine.quantity)) * 100)}%`,
+                              background: selectedQty > selectedMedicine.quantity
+                                ? '#f43f5e'
+                                : selectedQty > selectedMedicine.quantity * 0.8
+                                  ? '#f59e0b' : '#0ea5e9'
+                            }}/>
+                          </div>
+                          {selectedQty > selectedMedicine.quantity && (
+                            <span className="mmh-field-error" style={{ color: '#fb7185', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                              ⚠️ Max available: {selectedMedicine.quantity} {selectedMedicine.unit}s
+                            </span>
+                          )}
+                        </div>
+                        <div className="mmh-field">
+                          <label className="mmh-label">Subtotal Estimate</label>
+                          <div style={{ padding: '12px 16px', background: '#111d35', borderRadius: '12px', border: '1px solid #1e3050' }}>
+                            <div style={{ fontSize: '12px', color: '#64748b' }}>PKR {selectedMedicine.price} / {selectedMedicine.unit}</div>
+                            <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--mmh-green)', fontFamily: 'JetBrains Mono, monospace', marginTop: '2px' }}>
+                              PKR {selectedMedicine.price * (selectedQty || 0)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
-                <div className="mmh-field">
-                  <label className="mmh-label">Add Medicine to Cart</label>
-                  <select 
-                    className="mmh-input-select"
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        addToCart(e.target.value);
-                        e.target.value = '';
-                      }
-                    }}
-                  >
-                    <option value="">-- Search Medicines --</option>
-                    {medicines.filter(m => m.quantity > 0).map(m => (
-                      <option key={m._id} value={m._id}>{m.name} ({m.quantity} available) - PKR {m.price}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="mmh-table-scroll" style={{ marginTop: '20px' }}>
-                  <table className="mmh-table">
-                    <thead>
-                      <tr>
-                        <th>Medicine</th>
-                        <th style={{ width: '80px' }}>Qty</th>
-                        <th>Price</th>
-                        <th>Total</th>
-                        <th style={{ width: '60px' }}></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {cart.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="mmh-empty">Cart is empty</td>
-                        </tr>
-                      ) : (
-                        cart.map((item, index) => (
-                          <tr key={item.medicineId}>
-                            <td className="mmh-td-name">{item.name}</td>
-                            <td>
-                              <input 
-                                type="number" 
-                                className="mmh-input-sm" 
-                                value={item.qty} 
-                                onChange={(e) => updateCartQty(index, parseInt(e.target.value) || 0)}
-                                style={{ width: '60px', textAlign: 'center' }}
-                              />
-                            </td>
-                            <td>{item.price}</td>
-                            <td style={{ fontWeight: 700 }}>{item.total}</td>
-                            <td>
-                              <button 
-                                className="mmh-btn mmh-btn-danger mmh-btn-xs"
-                                onClick={() => removeFromCart(index)}
-                              >
-                                🗑️
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                      <button 
+                        className="mmh-btn mmh-btn-primary" 
+                        style={{ width: '100%', marginTop: '20px' }}
+                        disabled={!selectedQty || selectedQty < 1 || selectedQty > selectedMedicine.quantity}
+                        onClick={addToCart}
+                      >
+                        + Add to Cart
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Receipt Summary */}
+            {/* Receipt Summary / Cart */}
             <div className="mmh-card">
               <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-green)' }} />
               <div className="mmh-card-header">
-                <div className="mmh-card-title">Dispense Summary</div>
+                <div className="mmh-card-title">🛒 Medicines Cart</div>
               </div>
               <div className="mmh-card-body">
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <span style={{ color: 'var(--mmh-muted)' }}>Subtotal</span>
-                  <span style={{ color: 'white' }}>PKR {runningTotal}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <span style={{ color: 'var(--mmh-muted)' }}>Taxes</span>
-                  <span style={{ color: 'white' }}>PKR 0</span>
-                </div>
-                <div className="mmh-divider" style={{ margin: '12px 0' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '18px', fontWeight: 600, color: 'white' }}>Total Payable</span>
-                  <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--mmh-green)' }}>PKR {runningTotal}</span>
-                </div>
+                {cart.length === 0 ? (
+                  <div className="mmh-empty" style={{ padding: '40px 0' }}>
+                    <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.5 }}>🛒</div>
+                    <div>Cart is empty</div>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Add medicines to proceed</div>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '4px', margin: '0 -4px 16px', padding: '0 4px' }}>
+                      {cart.map((item, index) => {
+                        const med = medicines.find(m => m._id === item.medicineId);
+                        const unit = med?.unit || 'Item';
+                        return (
+                          <div key={item.medicineId} className="mmh-cart-item">
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div className="mmh-cart-item-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
+                              <div className="mmh-cart-item-detail">
+                                {item.qty} {unit}s × PKR {item.price}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <div className="mmh-cart-item-price">PKR {item.total}</div>
+                              <button 
+                                className="mmh-cart-remove"
+                                onClick={() => removeFromCart(index)}
+                                title="Remove"
+                              >✕</button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
 
-                <button 
-                  className="mmh-btn mmh-btn-primary" 
-                  style={{ width: '100%', marginTop: '24px', height: '50px', fontSize: '16px' }}
-                  disabled={loading || cart.length === 0 || !selectedPatientId}
-                  onClick={handleDispense}
-                >
-                  {loading ? 'Processing...' : 'Confirm Dispense'}
-                </button>
+                    <div className="mmh-field" style={{ marginBottom: '16px' }}>
+                      <label className="mmh-label">Additional Notes (Optional)</label>
+                      <input 
+                        className="mmh-input" 
+                        placeholder="e.g. Take after meal..."
+                        value={dispenseNotes}
+                        onChange={e => setDispenseNotes(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="mmh-cart-total">
+                      <span className="mmh-cart-total-label">TOTAL</span>
+                      <span className="mmh-cart-total-amount">PKR {runningTotal}</span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                      <button 
+                        className="mmh-btn mmh-btn-ghost" 
+                        style={{ flex: 1 }}
+                        disabled={loading}
+                        onClick={() => setCart([])}
+                      >
+                        Clear Cart
+                      </button>
+                      <button 
+                        className="mmh-btn mmh-btn-green" 
+                        style={{ flex: 2 }}
+                        disabled={loading || !selectedPatientId}
+                        onClick={handleDispense}
+                      >
+                        {loading ? 'Processing...' : '✅ Confirm Dispense'}
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -518,6 +649,29 @@ const PharmacyPage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dispense Slip Modal */}
+      {dispenseRecord && (
+        <div className="mmh-overlay">
+          <div className="mmh-modal mmh-modal-sm" style={{ padding: '0', animation: 'mmh-scale-in 0.3s ease' }}>
+            <div style={{ padding: '20px', background: 'var(--mmh-green)', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '22px 22px 0 0' }}>
+              <h2 style={{ fontSize: '16px', fontWeight: 800, margin: 0 }}>✅ Dispensed Successfully!</h2>
+              <button 
+                className="mmh-modal-close" 
+                style={{ color: 'white', opacity: 0.8, fontSize: '24px', border: 'none', background: 'transparent', cursor: 'pointer' }} 
+                onClick={() => setDispenseRecord(null)}
+              >×</button>
+            </div>
+            <div style={{ background: '#f8fafc', padding: '20px', maxHeight: '60vh', overflowY: 'auto' }}>
+              <DispensingSlip dispense={dispenseRecord} />
+            </div>
+            <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #e2e8f0', background: 'white' }}>
+              <button type="button" className="mmh-btn mmh-btn-ghost" style={{ color: '#64748b', borderColor: '#cbd5e1' }} onClick={() => setDispenseRecord(null)}>Close</button>
+              <button type="button" className="mmh-btn mmh-btn-primary" onClick={printSlip}>🖨️ Print Slip</button>
             </div>
           </div>
         </div>

@@ -56,6 +56,10 @@ input, select, textarea { font-family: inherit; }
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0);    }
 }
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
 
 /* ═══ APP LAYOUT ══════════════════════════════════════ */
 .mmh-app {
@@ -2024,3 +2028,216 @@ input[type="time"].mmh-input { color-scheme: dark; }
   .mmh-test-grid { grid-template-columns: repeat(2, 1fr); }
   .mmh-payment-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ═══ DISPENSING CART UI ══════════════════════════════ */
+.mmh-cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #111d35;
+  border: 1px solid #1e3050;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  transition: all 0.15s;
+}
+.mmh-cart-item:hover {
+  border-color: #2a4070;
+}
+.mmh-cart-item-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+}
+.mmh-cart-item-detail {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 3px;
+}
+.mmh-cart-item-price {
+  font-size: 14px;
+  font-weight: 800;
+  color: #34d399;
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+  margin-left: 16px;
+}
+.mmh-cart-remove {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(244,63,94,0.1);
+  border: 1px solid rgba(244,63,94,0.25);
+  color: #fb7185;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.15s;
+  margin-left: 10px;
+  flex-shrink: 0;
+}
+.mmh-cart-remove:hover {
+  background: rgba(244,63,94,0.2);
+}
+.mmh-cart-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: rgba(16,185,129,0.08);
+  border: 2px solid rgba(16,185,129,0.25);
+  border-radius: 14px;
+  margin-top: 12px;
+}
+.mmh-cart-total-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #34d399;
+}
+.mmh-cart-total-amount {
+  font-size: 24px;
+  font-weight: 900;
+  color: #34d399;
+  font-family: 'JetBrains Mono', monospace;
+}
+.mmh-stock-usage-bar {
+  height: 4px;
+  background: #1e3050;
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.mmh-stock-usage-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s;
+  background: #0ea5e9;
+}
+
+/* ═══ PRINTABLE DISPENSE SLIP ═════════════════════════ */
+.mmh-slip-dispense {
+  background: white;
+  color: #0f172a;
+  padding: 24px;
+  width: 350px;
+  margin: 0 auto;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.mmh-slip-dispense-header {
+  text-align: center;
+  background: #064e3b;
+  color: white;
+  padding: 16px;
+  border-radius: 10px 10px 0 0;
+  margin: -24px -24px 18px;
+}
+.mmh-slip-dispense-title {
+  font-size: 17px;
+  font-weight: 900;
+  font-style: italic;
+}
+.mmh-slip-dispense-sub {
+  font-size: 11px;
+  opacity: 0.75;
+  margin-top: 3px;
+}
+.mmh-slip-section-title {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #064e3b;
+  margin: 14px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid #d1fae5;
+}
+.mmh-slip-info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 4px 0;
+}
+.mmh-slip-info-label {
+  color: #94a3b8;
+  min-width: 80px;
+}
+.mmh-slip-info-value {
+  font-weight: 700;
+  color: #0f172a;
+  text-align: right;
+}
+.mmh-slip-medicine-item {
+  padding: 8px 0;
+  border-bottom: 1px dashed #e2e8f0;
+}
+.mmh-slip-medicine-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.mmh-slip-medicine-detail {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 3px;
+  display: flex;
+  justify-content: space-between;
+}
+.mmh-slip-medicine-price {
+  font-weight: 700;
+  color: #064e3b;
+}
+.mmh-slip-total-box {
+  background: #f0fdf4;
+  border: 2px solid #064e3b;
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 14px 0;
+}
+.mmh-slip-total-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #064e3b;
+}
+.mmh-slip-total-amount {
+  font-size: 22px;
+  font-weight: 900;
+  color: #064e3b;
+  font-family: 'JetBrains Mono', monospace;
+}
+.mmh-slip-footer {
+  text-align: center;
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* ═══ LOGIN WARNING / RETRY STATES ══════════════════ */
+.mmh-login-warning {
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 11px;
+  padding: 10px 16px;
+  color: #fbbf24;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  text-align: center;
+}
+.mmh-spinner-sm {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(245,158,11,0.3);
+  border-top-color: #fbbf24;
+  border-radius: 50%;
+  animation: mmh-spin 0.65s linear infinite;
+  flex-shrink: 0;
+  display: inline-block;
+}
+

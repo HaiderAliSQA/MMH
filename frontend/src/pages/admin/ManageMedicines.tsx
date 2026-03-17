@@ -80,12 +80,12 @@ const ManageMedicines: React.FC = () => {
 
   return (
     <div style={{ animation: 'mmh-fade-in 0.3s ease' }}>
-      {/* <div className="mmh-page-header">
+      <div className="mmh-page-header">
         <div>
           <h1 className="mmh-page-title">Pharmacy Inventory</h1>
           <p className="mmh-page-subtitle">Track stock levels, expiry dates and medicine categories</p>
         </div>
-        <button 
+        <button
           className="mmh-btn mmh-btn-green"
           onClick={() => {
             setEditingMed(null);
@@ -95,7 +95,7 @@ const ManageMedicines: React.FC = () => {
         >
           + Add New Medicine
         </button>
-      </div> */}
+      </div>
 
       <div className="mmh-stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '20px' }}>
         <div className="mmh-stat-card" style={{ padding: '16px' }}>
