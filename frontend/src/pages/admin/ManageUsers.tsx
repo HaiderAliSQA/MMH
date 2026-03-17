@@ -1,30 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../api';
 import '../../styles/mmh.css';
 
-interface DoctorInfo {
-  department: string;
-  fee: number;
-  timing: string;
-  days: string[];
-  roomNo: string;
-}
-
-interface User {
+interface UserRecord {
   _id: string;
   name: string;
   email: string;
   role: string;
-  active: boolean;
-  doctorInfo?: DoctorInfo;
+  phone?: string;
+  isActive: boolean;
+  department?: string;
+  specialization?: string;
+  createdAt?: string;
+}
+
+interface DoctorInfo {
+  department: string;
+  specialization: string;
+  qualification: string;
+  fee: number;
+  opdTiming: string;
+  opdDays: string[];
 }
 
 type FormData = {
   name: string;
   email: string;
-  password: string;
   role: string;
-  active: boolean;
+  phone: string;
+  isActive: boolean;
   doctorInfo: DoctorInfo;
 };
 
@@ -45,31 +49,56 @@ const ROLE_FILTERS = [
   { id: 'receptionist', label: 'Reception'  },
   { id: 'lab',          label: 'Laboratory' },
   { id: 'pharmacist',   label: 'Pharmacy'   },
+  { id: 'manager',      label: 'Manager'    },
   { id: 'patient',      label: 'Patients'   },
 ];
 
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+const getDepartmentLabel = (user: UserRecord): string => {
+  if (user.department) return user.department;
+  const map: Record<string, string> = {
+    admin:        'Administration',
+    receptionist: 'Reception',
+    lab:          'Laboratory',
+    pharmacist:   'Pharmacy',
+    manager:      'Management',
+    patient:      'Patient',
+    doctor:       'Medical',
+  };
+  return map[user.role] || 'General';
+};
+
 const emptyForm = (): FormData => ({
-  name: '',
-  email: '',
-  password: '',
-  role: 'receptionist',
-  active: true,
-  doctorInfo: { department: '', fee: 0, timing: '', days: [], roomNo: '' },
+  name:     '',
+  email:    '',
+  role:     'receptionist',
+  phone:    '',
+  isActive: true,
+  doctorInfo: {
+    department:     '',
+    specialization: '',
+    qualification:  '',
+    fee:            500,
+    opdTiming:      '9:00 AM - 2:00 PM',
+    opdDays:        [],
+  },
 });
 
 const ManageUsers: React.FC = () => {
-  const [users, setUsers]           = useState<User[]>([]);
-  const [loading, setLoading]       = useState(true);
-  const [search, setSearch]         = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [modalOpen, setModalOpen]   = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [formData, setFormData]     = useState<FormData>(emptyForm());
-  const [showPass, setShowPass]     = useState(false);
-  const [saving, setSaving]         = useState(false);
-  const [saveError, setSaveError]   = useState('');
+  const [users, setUsers]               = useState<UserRecord[]>([]);
+  const [loading, setLoading]           = useState(true);
+  const [search, setSearch]             = useState('');
+  const [roleFilter, setRoleFilter]     = useState('all');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [modalOpen, setModalOpen]       = useState(false);
+  const [editingUser, setEditingUser]   = useState<UserRecord | null>(null);
+  const [formData, setFormData]         = useState<FormData>(emptyForm());
+  const [saving, setSaving]             = useState(false);
+  const [saveError, setSaveError]       = useState('');
+  const [successMsg, setSuccessMsg]     = useState('');
+  const [defaultPwd, setDefaultPwd]     = useState('');
+  const [toggling, setToggling]         = useState<string | null>(null);
 
   useEffect(() => { fetchUsers(); }, []);
 
@@ -77,7 +106,8 @@ const ManageUsers: React.FC = () => {
     setLoading(true);
     try {
       const res = await api.get('/users');
-      setUsers(res.data);
+      // Handle both old array response and new { data: [...] } format
+      setUsers(Array.isArray(res.data) ? res.data : (res.data?.data || []));
     } catch (err) {
       console.error(err);
     } finally {
@@ -85,20 +115,12 @@ const ManageUsers: React.FC = () => {
     }
   };
 
-  const generatePassword = () => {
-    const pass =
-      Math.random().toString(36).slice(-6).toUpperCase() +
-      'MMH' +
-      Math.floor(Math.random() * 100);
-    setFormData(f => ({ ...f, password: pass }));
-  };
-
   const toggleDay = (day: string) => {
     setFormData(f => {
-      const days = f.doctorInfo.days.includes(day)
-        ? f.doctorInfo.days.filter(d => d !== day)
-        : [...f.doctorInfo.days, day];
-      return { ...f, doctorInfo: { ...f.doctorInfo, days } };
+      const days = f.doctorInfo.opdDays.includes(day)
+        ? f.doctorInfo.opdDays.filter(d => d !== day)
+        : [...f.doctorInfo.opdDays, day];
+      return { ...f, doctorInfo: { ...f.doctorInfo, opdDays: days } };
     });
   };
 
@@ -106,20 +128,31 @@ const ManageUsers: React.FC = () => {
     setEditingUser(null);
     setFormData(emptyForm());
     setSaveError('');
+    setSuccessMsg('');
+    setDefaultPwd('');
     setModalOpen(true);
   };
 
-  const openEdit = (u: User) => {
+  const openEdit = (u: UserRecord) => {
     setEditingUser(u);
     setFormData({
-      name: u.name,
-      email: u.email,
-      password: '',
-      role: u.role,
-      active: u.active,
-      doctorInfo: u.doctorInfo || { department: '', fee: 0, timing: '', days: [], roomNo: '' },
+      name:     u.name,
+      email:    u.email,
+      role:     u.role,
+      phone:    u.phone || '',
+      isActive: u.isActive,
+      doctorInfo: {
+        department:     u.department || '',
+        specialization: u.specialization || '',
+        qualification:  '',
+        fee:            0,
+        opdTiming:      '9:00 AM - 2:00 PM',
+        opdDays:        [],
+      },
     });
     setSaveError('');
+    setSuccessMsg('');
+    setDefaultPwd('');
     setModalOpen(true);
   };
 
@@ -127,14 +160,34 @@ const ManageUsers: React.FC = () => {
     e.preventDefault();
     setSaving(true);
     setSaveError('');
+    setSuccessMsg('');
+    setDefaultPwd('');
+
     try {
       if (editingUser) {
-        await api.put(`/users/${editingUser._id}`, formData);
+        await api.put(`/users/${editingUser._id}`, {
+          name:     formData.name,
+          phone:    formData.phone,
+          role:     formData.role,
+          isActive: formData.isActive,
+          ...(formData.role === 'doctor' ? formData.doctorInfo : {}),
+        });
+        setModalOpen(false);
+        fetchUsers();
       } else {
-        await api.post('/users/register', formData);
+        const res = await api.post('/users/register', {
+          name:  formData.name,
+          email: formData.email,
+          role:  formData.role,
+          phone: formData.phone,
+          ...(formData.role === 'doctor' ? formData.doctorInfo : {}),
+        });
+        setModalOpen(false);
+        // Show success with default password after a moment
+        setSuccessMsg(`User "${formData.name}" created successfully!`);
+        setDefaultPwd(res.data?.defaultPassword || 'mmh1234');
+        fetchUsers();
       }
-      setModalOpen(false);
-      fetchUsers();
     } catch (err: any) {
       setSaveError(err.response?.data?.message || 'Error saving user. Please try again.');
     } finally {
@@ -142,28 +195,78 @@ const ManageUsers: React.FC = () => {
     }
   };
 
-  const toggleStatus = async (u: User) => {
+  // Optimistic toggle
+  const handleToggle = async (userId: string, currentStatus: boolean) => {
+    if (toggling) return;
+    setToggling(userId);
     try {
-      await api.put(`/users/${u._id}`, { active: !u.active });
-      fetchUsers();
+      // Optimistic update immediately
+      setUsers(prev => prev.map(u =>
+        u._id === userId ? { ...u, isActive: !currentStatus } : u
+      ));
+      await api.put(`/users/${userId}`, { isActive: !currentStatus });
     } catch {
-      alert('Error updating status');
+      // Revert on error
+      setUsers(prev => prev.map(u =>
+        u._id === userId ? { ...u, isActive: currentStatus } : u
+      ));
+      alert('Failed to update status. Please try again.');
+    } finally {
+      setToggling(null);
     }
   };
 
-  const filtered = users.filter(u => {
+  const filtered = useMemo(() => users.filter(u => {
     const matchSearch =
+      !search ||
       u.name.toLowerCase().includes(search.toLowerCase()) ||
       u.email.toLowerCase().includes(search.toLowerCase());
+
     const matchRole = roleFilter === 'all' || u.role === roleFilter;
-    return matchSearch && matchRole;
-  });
+
+    const matchStatus =
+      !statusFilter ||
+      (statusFilter === 'active' && u.isActive) ||
+      (statusFilter === 'inactive' && !u.isActive);
+
+    return matchSearch && matchRole && matchStatus;
+  }), [users, search, roleFilter, statusFilter]);
 
   const countOf = (role: string) =>
     role === 'all' ? users.length : users.filter(u => u.role === role).length;
 
   return (
     <div style={{ animation: 'mmh-fade-in 0.3s ease' }}>
+      {/* Success banner after creation */}
+      {successMsg && (
+        <div className="mmh-banner-success" style={{ marginBottom: '20px' }}>
+          ✅ {successMsg}
+          {defaultPwd && (
+            <div style={{
+              marginTop: '10px',
+              padding: '10px 16px',
+              background: 'rgba(16,185,129,0.1)',
+              borderRadius: '10px',
+              fontFamily: 'JetBrains Mono, monospace',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '8px',
+            }}>
+              <span>Default Password: <strong>{defaultPwd}</strong></span>
+              <button 
+                className="mmh-btn mmh-btn-ghost mmh-btn-xs"
+                onClick={() => setSuccessMsg('')}
+              >Dismiss</button>
+            </div>
+          )}
+          <div style={{ fontSize: '11px', marginTop: '6px', color: '#34d399' }}>
+            User can change password from Settings
+          </div>
+        </div>
+      )}
+
       {/* Page header */}
       <div className="mmh-page-header">
         <div>
@@ -193,15 +296,31 @@ const ManageUsers: React.FC = () => {
       <div className="mmh-table-card">
         <div className="mmh-table-card-top" />
         <div className="mmh-table-card-header">
-          <div className="mmh-search-wrap" style={{ maxWidth: '400px' }}>
-            <span className="mmh-search-icon">🔍</span>
-            <input
-              className="mmh-search-input"
-              placeholder="Filter by name or email…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', flex: 1 }}>
+            {/* Search */}
+            <div className="mmh-search-wrap" style={{ maxWidth: '320px', flex: 1 }}>
+              <span className="mmh-search-icon">🔍</span>
+              <input
+                className="mmh-search-input"
+                placeholder="Filter by name or email…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+
+            {/* Status filter */}
+            <select
+              className="mmh-input-select"
+              style={{ width: '160px', colorScheme: 'dark' }}
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+            >
+              <option value="">All Status</option>
+              <option value="active">🟢 Active</option>
+              <option value="inactive">🔴 Inactive</option>
+            </select>
           </div>
+
           <button
             className="mmh-btn mmh-btn-ghost mmh-btn-sm"
             onClick={fetchUsers}
@@ -258,24 +377,23 @@ const ManageUsers: React.FC = () => {
                     </span>
                   </td>
                   <td>
-                    {u.role === 'doctor' ? (
-                      <div>
-                        <div style={{ color: 'white', fontSize: '12px', fontWeight: 600 }}>
-                          {u.doctorInfo?.department || '—'}
-                        </div>
-                        <div style={{ color: 'var(--mmh-muted)', fontSize: '10px' }}>
-                          Room {u.doctorInfo?.roomNo || '—'}
-                        </div>
+                    <div>
+                      <div style={{ color: 'white', fontSize: '12px', fontWeight: 600 }}>
+                        {getDepartmentLabel(u)}
                       </div>
-                    ) : (
-                      <span style={{ color: 'var(--mmh-muted)' }}>Staff</span>
-                    )}
+                      {u.specialization && (
+                        <div style={{ color: 'var(--mmh-muted)', fontSize: '10px' }}>
+                          {u.specialization}
+                        </div>
+                      )}
+                    </div>
                   </td>
                   <td>
                     <button
-                      className={`mmh-toggle-inline ${u.active ? 'on' : 'off'}`}
-                      onClick={() => toggleStatus(u)}
-                      title={u.active ? 'Deactivate account' : 'Activate account'}
+                      className={`mmh-toggle-inline ${u.isActive ? 'on' : 'off'}`}
+                      onClick={() => handleToggle(u._id, u.isActive)}
+                      disabled={toggling === u._id}
+                      title={u.isActive ? 'Deactivate account' : 'Activate account'}
                     >
                       <div className="mmh-toggle-dot-sm" />
                     </button>
@@ -306,10 +424,11 @@ const ManageUsers: React.FC = () => {
                   {editingUser ? 'Update Member Profile' : 'Register New Member'}
                 </div>
                 <div className="mmh-modal-subtitle">
-                  Configure system access and department settings
+                  {editingUser
+                    ? 'Edit role, status, and department settings'
+                    : 'New user will be created with default password: mmh1234'}
                 </div>
               </div>
-              {/* Close button — always visible, flex item in header row */}
               <button
                 type="button"
                 className="mmh-modal-close"
@@ -324,6 +443,21 @@ const ManageUsers: React.FC = () => {
             <div className="mmh-modal-body">
               {saveError && (
                 <div className="mmh-banner-error">⚠️ {saveError}</div>
+              )}
+
+              {!editingUser && (
+                <div style={{
+                  marginBottom: '16px',
+                  padding: '10px 16px',
+                  background: 'rgba(16,185,129,0.08)',
+                  border: '1px solid rgba(16,185,129,0.2)',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  color: '#34d399',
+                }}>
+                  🔑 Default password will be set to: <strong style={{ fontFamily: 'JetBrains Mono, monospace' }}>mmh1234</strong>
+                  <span style={{ color: '#64748b', marginLeft: '8px', fontWeight: 400 }}>(user can change from Settings)</span>
+                </div>
               )}
 
               <div className="mmh-form-grid">
@@ -350,6 +484,7 @@ const ManageUsers: React.FC = () => {
                     type="email"
                     className="mmh-input"
                     required
+                    disabled={!!editingUser}
                     placeholder="e.g. doctor@mmh.pk"
                     value={formData.email}
                     onChange={e => setFormData(f => ({ ...f, email: e.target.value }))}
@@ -376,54 +511,31 @@ const ManageUsers: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Active status (for edit) */}
+                {/* Phone */}
+                <div className="mmh-field">
+                  <label className="mmh-label">Phone</label>
+                  <input
+                    className="mmh-input"
+                    placeholder="e.g. 0300-1234567"
+                    value={formData.phone}
+                    onChange={e => setFormData(f => ({ ...f, phone: e.target.value }))}
+                  />
+                </div>
+
+                {/* Account status (edit only) */}
                 {editingUser && (
                   <div className="mmh-field">
                     <label className="mmh-label">Account Status</label>
                     <select
                       className="mmh-input-select"
-                      value={formData.active ? 'active' : 'inactive'}
+                      value={formData.isActive ? 'active' : 'inactive'}
                       onChange={e =>
-                        setFormData(f => ({ ...f, active: e.target.value === 'active' }))
+                        setFormData(f => ({ ...f, isActive: e.target.value === 'active' }))
                       }
                     >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
+                      <option value="active">🟢 Active</option>
+                      <option value="inactive">🔴 Inactive</option>
                     </select>
-                  </div>
-                )}
-
-                {/* Password (create only) */}
-                {!editingUser && (
-                  <div className="mmh-field" style={{ gridColumn: '1 / -1' }}>
-                    <label className="mmh-label">
-                      Security Password <span className="mmh-required">*</span>
-                    </label>
-                    <div className="mmh-pass-row">
-                      <input
-                        className="mmh-input"
-                        type={showPass ? 'text' : 'password'}
-                        required
-                        placeholder="Min. 8 characters"
-                        value={formData.password}
-                        onChange={e => setFormData(f => ({ ...f, password: e.target.value }))}
-                      />
-                      <button
-                        type="button"
-                        className="mmh-btn-icon-sm"
-                        onClick={() => setShowPass(v => !v)}
-                        title={showPass ? 'Hide' : 'Show'}
-                      >
-                        {showPass ? '🙈' : '👁️'}
-                      </button>
-                      <button
-                        type="button"
-                        className="mmh-btn-auto"
-                        onClick={generatePassword}
-                      >
-                        AUTO
-                      </button>
-                    </div>
                   </div>
                 )}
 
@@ -452,6 +564,21 @@ const ManageUsers: React.FC = () => {
                     </div>
 
                     <div className="mmh-field">
+                      <label className="mmh-label">Specialization</label>
+                      <input
+                        className="mmh-input"
+                        placeholder="e.g. Interventional Cardiology"
+                        value={formData.doctorInfo.specialization}
+                        onChange={e =>
+                          setFormData(f => ({
+                            ...f,
+                            doctorInfo: { ...f.doctorInfo, specialization: e.target.value },
+                          }))
+                        }
+                      />
+                    </div>
+
+                    <div className="mmh-field">
                       <label className="mmh-label">Consultation Fee (PKR)</label>
                       <input
                         type="number"
@@ -461,10 +588,7 @@ const ManageUsers: React.FC = () => {
                         onChange={e =>
                           setFormData(f => ({
                             ...f,
-                            doctorInfo: {
-                              ...f.doctorInfo,
-                              fee: parseInt(e.target.value) || 0,
-                            },
+                            doctorInfo: { ...f.doctorInfo, fee: parseInt(e.target.value) || 0 },
                           }))
                         }
                       />
@@ -475,26 +599,11 @@ const ManageUsers: React.FC = () => {
                       <input
                         className="mmh-input"
                         placeholder="e.g. 09:00 – 14:00"
-                        value={formData.doctorInfo.timing}
+                        value={formData.doctorInfo.opdTiming}
                         onChange={e =>
                           setFormData(f => ({
                             ...f,
-                            doctorInfo: { ...f.doctorInfo, timing: e.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-
-                    <div className="mmh-field">
-                      <label className="mmh-label">OPD Room No.</label>
-                      <input
-                        className="mmh-input"
-                        placeholder="e.g. 12A"
-                        value={formData.doctorInfo.roomNo}
-                        onChange={e =>
-                          setFormData(f => ({
-                            ...f,
-                            doctorInfo: { ...f.doctorInfo, roomNo: e.target.value },
+                            doctorInfo: { ...f.doctorInfo, opdTiming: e.target.value },
                           }))
                         }
                       />
@@ -507,7 +616,7 @@ const ManageUsers: React.FC = () => {
                           <button
                             key={day}
                             type="button"
-                            className={`mmh-day-btn${formData.doctorInfo.days.includes(day) ? ' selected' : ''}`}
+                            className={`mmh-day-btn${formData.doctorInfo.opdDays.includes(day) ? ' selected' : ''}`}
                             onClick={() => toggleDay(day)}
                           >
                             {day}
