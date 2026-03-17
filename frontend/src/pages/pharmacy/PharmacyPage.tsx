@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import api from '../../api';
 import '../../styles/mmh.css';
 import DispensingSlip, { printSlip } from '../../components/DispensingSlip';
@@ -18,6 +18,9 @@ interface Patient {
   _id: string;
   name: string;
   mrNumber: string;
+  age?: number;
+  gender?: string;
+  phone?: string;
 }
 
 interface CartItem {
@@ -32,15 +35,20 @@ const PharmacyPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dispense' | 'inventory'>('dispense');
   const [loading, setLoading] = useState(false);
   const [medicines, setMedicines] = useState<Medicine[]>([]);
-  const [patients, setPatients] = useState<Patient[]>([]);
   const [dispenseHistory, setDispenseHistory] = useState<any[]>([]);
 
-  // Dispense State
-  const [selectedPatientId, setSelectedPatientId] = useState('');
+  // Dispense State — patient live search
+  const [patientSearch,   setPatientSearch]   = useState('');
+  const [patientResults,  setPatientResults]  = useState<Patient[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [patientLoading,  setPatientLoading]  = useState(false);
+  const patientTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const patientWrapRef  = useRef<HTMLDivElement>(null);
+
   const [cart, setCart] = useState<CartItem[]>([]);
   const [stockErrors, setStockErrors] = useState<string[]>([]);
   const [dispenseRecord, setDispenseRecord] = useState<any>(null);
-  
+
   // Add Medicine Form State
   const [selectedMedId, setSelectedMedId] = useState('');
   const [selectedQty, setSelectedQty] = useState(1);
@@ -67,27 +75,59 @@ const PharmacyPage: React.FC = () => {
     fetchData();
   }, []);
 
+  // Close patient dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (patientWrapRef.current && !patientWrapRef.current.contains(e.target as Node)) {
+        setPatientResults([]);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [medsRes, patRes] = await Promise.all([
-        api.get('/medicines'),
-        api.get('/patients')
-      ]);
+      const medsRes = await api.get('/medicines');
       setMedicines(medsRes.data || []);
-      setPatients(patRes.data || []);
-      
-      // Mocking dispense history for now as per requirement
-      // In a real app we'd fetch this from GET /api/dispense
       setDispenseHistory([
         { id: '1', patient: 'Ali Khan', medicines: 'Panadol (2), Amoxil (1)', total: 450, time: '10:30 AM', status: 'Completed' },
         { id: '2', patient: 'Sara Bibi', medicines: 'Brufen (1)', total: 120, time: '11:15 AM', status: 'Completed' }
       ]);
     } catch (error) {
-      console.error("Pharmacy Fetch Error:", error);
+      console.error('Pharmacy Fetch Error:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePatientSearch = (q: string) => {
+    setPatientSearch(q);
+    setSelectedPatient(null);
+    clearTimeout(patientTimerRef.current);
+    if (q.length < 2) { setPatientResults([]); return; }
+    patientTimerRef.current = setTimeout(async () => {
+      setPatientLoading(true);
+      try {
+        const r = await api.get(`/patients/search?q=${encodeURIComponent(q)}`);
+        const data = r.data?.data ?? r.data ?? [];
+        setPatientResults(Array.isArray(data) ? data : []);
+      } catch { setPatientResults([]); }
+      finally { setPatientLoading(false); }
+    }, 300);
+  };
+
+  const selectPatient = (p: Patient) => {
+    setSelectedPatient(p);
+    setPatientSearch('');
+    setPatientResults([]);
+  };
+
+  const clearPatient = () => {
+    setSelectedPatient(null);
+    setPatientSearch('');
+    setPatientResults([]);
   };
 
   // --- Dispense Logic ---
@@ -131,37 +171,36 @@ const PharmacyPage: React.FC = () => {
   const runningTotal = useMemo(() => cart.reduce((sum, item) => sum + item.total, 0), [cart]);
 
   const handleDispense = async () => {
-    if (!selectedPatientId) return alert("Please select a patient");
-    if (cart.length === 0) return alert("Cart is empty");
+    if (!selectedPatient) return alert('Please select a patient');
+    if (cart.length === 0) return alert('Cart is empty');
 
     setLoading(true);
     setStockErrors([]);
     try {
       const res = await api.post('/dispense', {
-        patient: selectedPatientId,
+        patient: selectedPatient._id,
         items: cart.map(c => ({ medicine: c.medicineId, quantity: c.qty })),
         totalAmount: runningTotal,
         notes: dispenseNotes
       });
-      
+
       setDispenseRecord(res.data.data);
       setCart([]);
-      setSelectedPatientId('');
+      clearPatient();
       setDispenseNotes('');
-      fetchData(); // Refresh stock
+      fetchData();
     } catch (error: any) {
-      console.error("Dispense error:", error);
+      console.error('Dispense error:', error);
       if (error.response?.data?.errors) {
         setStockErrors(error.response.data.errors);
       } else {
-        alert(error.response?.data?.message || "Failed to dispense medicines.");
+        alert(error.response?.data?.message || 'Failed to dispense medicines.');
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const selectedPatient = patients.find(p => p._id === selectedPatientId);
   const selectedMedicine = medicines.find(m => m._id === selectedMedId);
 
   // --- Inventory Logic ---
@@ -262,45 +301,66 @@ const PharmacyPage: React.FC = () => {
           <div className="mmh-form-grid" style={{ gridTemplateColumns: 'minmax(0, 1fr) 400px', gap: '24px', alignItems: 'start' }}>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {/* Patient Selection Card */}
-              <div className="mmh-card">
+              {/* Patient Selection Card — live search */}
+              <div className="mmh-card" style={{ overflow: 'visible' }}>
                 <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-violet)' }} />
                 <div className="mmh-card-header">
                   <div className="mmh-card-title">STEP 1 — Select Patient</div>
                 </div>
                 <div className="mmh-card-body">
                   <div className="mmh-field">
-                    <div className="mmh-search-wrap">
-                      <span className="mmh-search-icon">🔍</span>
-                      <select 
-                        className="mmh-input-select"
-                        style={{ paddingLeft: '42px' }}
-                        value={selectedPatientId}
-                        onChange={(e) => setSelectedPatientId(e.target.value)}
-                      >
-                        <option value="">-- Choose Patient (MR Number / Name) --</option>
-                        {patients.map(p => (
-                          <option key={p._id} value={p._id}>{p.mrNumber} - {p.name}</option>
+                    <label className="mmh-label">Search Patient <span className="mmh-required">*</span></label>
+
+                    {!selectedPatient ? (
+                      <div className="mmh-patient-search-wrap" ref={patientWrapRef}>
+                        <input
+                          className="mmh-input"
+                          placeholder="Search by name or MR number e.g. MMH-2026-00157"
+                          value={patientSearch}
+                          onChange={e => handlePatientSearch(e.target.value)}
+                          autoComplete="off"
+                        />
+                        {(patientResults.length > 0 || patientLoading) ? (
+                          <div className="mmh-patient-dropdown" style={{ zIndex: 99999 }}>
+                            {patientLoading
+                              ? <div style={{ padding: '12px 16px', color: '#64748b', fontSize: 12 }}>Searching…</div>
+                              : patientResults.map(p => (
+                                <div
+                                  key={p._id}
+                                  className="mmh-patient-dropdown-item"
+                                  onMouseDown={e => { e.preventDefault(); selectPatient(p); }}
+                                >
+                                  <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg,#0ea5e9,#0284c7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 900, color: 'white', flexShrink: 0 }}>
+                                    {p.name.charAt(0).toUpperCase()}
+                                  </div>
+                                  <span className="mmh-dropdown-mr">{p.mrNumber}</span>
+                                  <span className="mmh-dropdown-name">{p.name}</span>
+                                  <span className="mmh-dropdown-meta">{p.age}y | {p.gender}</span>
+                                </div>
+                              ))
+                            }
+                          </div>
+                        ) : (patientSearch.length >= 2 && !patientLoading && (
+                          <div className="mmh-patient-dropdown" style={{ zIndex: 99999, padding: '18px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+                            No patient found for "{patientSearch}"
+                          </div>
                         ))}
-                      </select>
-                    </div>
-                  </div>
-                  
-                  {selectedPatient && (
-                    <div style={{ marginTop: '16px', padding: '16px', background: '#111d35', borderRadius: '12px', border: '1px solid #1e3050', display: 'flex', gap: '16px', alignItems: 'center' }}>
-                      <div className="mmh-sidebar-avatar" style={{ background: 'var(--mmh-violet)' }}>
-                        {selectedPatient.name.charAt(0)}
                       </div>
-                      <div>
-                        <div style={{ fontSize: '15px', fontWeight: 800, color: 'white' }}>{selectedPatient.name}</div>
-                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-                          <span style={{ color: '#0ea5e9', fontWeight: 600, fontFamily: 'JetBrains Mono' }}>{selectedPatient.mrNumber}</span>
-                          {' • '}
-                          <span>Patient</span>
+                    ) : (
+                      <div className="mmh-selected-patient-card">
+                        <div className="mmh-selected-patient-avatar">{selectedPatient.name.charAt(0)}</div>
+                        <div>
+                          <div className="mmh-selected-patient-name">{selectedPatient.name}</div>
+                          <div className="mmh-selected-patient-mr">{selectedPatient.mrNumber}</div>
+                          <div className="mmh-selected-patient-meta">
+                            {selectedPatient.age}y | {selectedPatient.gender}
+                            {selectedPatient.phone && ` | ${selectedPatient.phone}`}
+                          </div>
                         </div>
+                        <button className="mmh-selected-patient-clear" type="button" onClick={clearPatient} title="Change patient">×</button>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -463,7 +523,7 @@ const PharmacyPage: React.FC = () => {
                       <button 
                         className="mmh-btn mmh-btn-green" 
                         style={{ flex: 2 }}
-                        disabled={loading || !selectedPatientId}
+                        disabled={loading || !selectedPatient}
                         onClick={handleDispense}
                       >
                         {loading ? 'Processing...' : '✅ Confirm Dispense'}

@@ -2241,3 +2241,378 @@ input[type="time"].mmh-input { color-scheme: dark; }
   display: inline-block;
 }
 
+
+/* === GRADIENT VARIABLES (added) === */
+:root {
+  --mmh-sky-gradient:   linear-gradient(135deg,#0ea5e9,#38bdf8);
+  --mmh-green-gradient: linear-gradient(135deg,#10b981,#34d399);
+  --mmh-amber-gradient: linear-gradient(135deg,#f59e0b,#fbbf24);
+  --mmh-rose-gradient:  linear-gradient(135deg,#f43f5e,#fb7185);
+}
+
+/* === PATIENT SEARCH DROPDOWN === */
+.mmh-patient-search-wrap { position: relative; }
+.mmh-search-dropdown {
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: #0f1e38; border: 1.5px solid #2a4070; border-top: none;
+  border-radius: 0 0 12px 12px; max-height: 240px; overflow-y: auto;
+  z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.mmh-search-result-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+  cursor: pointer; transition: background 0.15s;
+  border-bottom: 1px solid rgba(30,48,80,0.5);
+}
+.mmh-search-result-item:last-child { border-bottom: none; }
+.mmh-search-result-item:hover { background: rgba(14,165,233,0.08); }
+.mmh-search-result-mr {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-weight: 700; color: #0ea5e9; white-space: nowrap; min-width: 130px;
+}
+.mmh-search-result-name { font-size: 13px; font-weight: 700; color: white; flex: 1; }
+.mmh-search-result-meta { font-size: 11px; color: #64748b; white-space: nowrap; }
+
+/* === SELECTED PATIENT CARD === */
+.mmh-selected-patient-card {
+  display: flex; align-items: center; gap: 14px; padding: 14px 18px;
+  background: rgba(14,165,233,0.06); border: 1.5px solid rgba(14,165,233,0.2);
+  border-radius: 14px; margin-top: 8px;
+}
+.mmh-selected-patient-avatar {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: linear-gradient(135deg,#0ea5e9,#0284c7);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 900; color: white; flex-shrink: 0;
+}
+.mmh-selected-patient-name { font-size: 15px; font-weight: 800; color: white; }
+.mmh-selected-patient-mr {
+  font-size: 12px; font-weight: 700; color: #0ea5e9;
+  font-family: 'JetBrains Mono', monospace; margin-top: 3px;
+}
+.mmh-selected-patient-meta { font-size: 12px; color: #64748b; margin-top: 2px; }
+.mmh-selected-patient-clear {
+  margin-left: auto; background: rgba(244,63,94,0.1);
+  border: 1px solid rgba(244,63,94,0.25); color: #fb7185;
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; font-size: 14px; transition: background 0.15s;
+}
+.mmh-selected-patient-clear:hover { background: rgba(244,63,94,0.2); }
+
+/* === INPUT HINT & FIELD ERROR === */
+.mmh-input-hint { font-size: 11px; color: #475569; margin-top: 4px; }
+.mmh-field-error { font-size: 11px; color: #fb7185; margin-top: 4px; display: block; }
+
+/* === OPD SLIP (white background, black text) === */
+.mmh-opd-slip {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  width: 320px;
+  margin: 0 auto;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.mmh-opd-slip-header {
+  background: #0c3b6b !important;
+  color: #ffffff !important;
+  padding: 18px 20px;
+  text-align: center;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.mmh-opd-slip-hospital { font-size: 17px; font-weight: 900; font-style: italic; }
+.mmh-opd-slip-city { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+.mmh-opd-slip-divider-text { font-size: 10px; opacity: 0.7; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.15em; }
+.mmh-opd-slip-mr-box {
+  background: #f0f6ff !important;
+  color: #0c3b6b !important;
+  text-align: center;
+  padding: 18px;
+  border-bottom: 1px dashed #cbd5e1;
+}
+.mmh-opd-slip-mr-label { font-size: 10px; color: #64748b !important; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px; }
+.mmh-opd-slip-mr-number {
+  font-size: 26px;
+  font-weight: 900;
+  color: #0c3b6b !important;
+  font-family: 'JetBrains Mono', monospace;
+  border: 2px dashed #0c3b6b;
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 8px;
+  background: white !important;
+  letter-spacing: 0.05em;
+}
+.mmh-opd-slip-body { background: #ffffff !important; padding: 16px 20px; }
+.mmh-opd-slip-section { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #e2e8f0; }
+.mmh-opd-slip-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.mmh-opd-slip-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px dotted #e2e8f0; color: #0f172a !important; }
+.mmh-opd-slip-label { color: #64748b !important; min-width: 70px; font-weight: 500; }
+.mmh-opd-slip-value { font-weight: 700; color: #0f172a !important; text-align: right; }
+.mmh-opd-slip-section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #0c3b6b !important; margin: 12px 0 6px; padding-bottom: 4px; border-bottom: 1.5px solid #dbeafe; }
+.mmh-opd-slip-footer { background: #f8fafc !important; color: #64748b !important; padding: 10px 16px; text-align: center; font-size: 10px; border-top: 1px solid #e2e8f0; }
+@media print {
+  .no-print { display: none !important; }
+  .mmh-opd-slip, .mmh-opd-slip * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .mmh-opd-slip-header { background: #0c3b6b !important; color: white !important; }
+  .mmh-opd-slip-body { background: white !important; }
+}
+
+/* ═══ PATIENT DROPDOWN (z-index:9999) ════════════════ */
+.mmh-patient-dropdown {
+  position: absolute !important;
+  top: calc(100% + 2px) !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: #0f1e38 !important;
+  border: 1.5px solid #2a4070 !important;
+  border-radius: 12px !important;
+  max-height: 260px !important;
+  overflow-y: auto !important;
+  z-index: 9999 !important;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.6) !important;
+}
+.mmh-patient-dropdown-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 11px 16px !important;
+  cursor: pointer !important;
+  border-bottom: 1px solid rgba(30,48,80,0.5) !important;
+  transition: background 0.12s !important;
+}
+.mmh-patient-dropdown-item:hover {
+  background: rgba(14,165,233,0.1) !important;
+}
+.mmh-patient-dropdown-item:last-child {
+  border-bottom: none !important;
+}
+.mmh-dropdown-mr {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #0ea5e9 !important;
+  white-space: nowrap !important;
+  min-width: 130px !important;
+}
+.mmh-dropdown-name {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: white !important;
+  flex: 1 !important;
+}
+.mmh-dropdown-meta {
+  font-size: 11px !important;
+  color: #64748b !important;
+  white-space: nowrap !important;
+}
+
+/* ═══ TEST CARDS (Lab Request) ═══════════════════════ */
+.mmh-test-card {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  background: #111d35;
+  border: 2px solid #1e3050;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  gap: 6px;
+  user-select: none;
+}
+.mmh-test-card:hover {
+  border-color: rgba(14,165,233,0.4);
+  transform: translateY(-1px);
+}
+.mmh-test-card.selected {
+  border-color: #0ea5e9;
+  background: rgba(14,165,233,0.08);
+}
+.mmh-test-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mmh-test-card-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 2px solid #2a4070;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+  background: transparent;
+  transition: all 0.15s;
+  color: transparent;
+}
+.mmh-test-card.selected .mmh-test-card-check {
+  background: #0ea5e9;
+  border-color: #0ea5e9;
+  color: white;
+}
+.mmh-test-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #cbd5e1;
+  flex: 1;
+}
+.mmh-test-card.selected .mmh-test-card-name {
+  color: white;
+}
+.mmh-test-card-price {
+  font-size: 12px;
+  font-weight: 700;
+  color: #10b981;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ═══ STATUS FILTER PILLS ════════════════════════════ */
+.mmh-status-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.mmh-status-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 20px;
+  border: 1.5px solid #1e3050;
+  background: #0f1e38;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.mmh-status-filter-btn:hover {
+  border-color: #2a4070;
+  color: #94a3b8;
+}
+.mmh-status-filter-btn.active-all {
+  background: #0ea5e9;
+  border-color: #0ea5e9;
+  color: white;
+}
+.mmh-status-filter-btn.active-pending {
+  background: rgba(245,158,11,0.15);
+  border-color: #f59e0b;
+  color: #fbbf24;
+}
+.mmh-status-filter-btn.active-processing {
+  background: rgba(14,165,233,0.15);
+  border-color: #0ea5e9;
+  color: #38bdf8;
+}
+.mmh-status-filter-btn.active-done {
+  background: rgba(16,185,129,0.15);
+  border-color: #10b981;
+  color: #34d399;
+}
+.mmh-status-count {
+  background: rgba(255,255,255,0.2);
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* ═══ LAB REQUEST CARDS GRID ═════════════════════════ */
+.mmh-lab-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 1100px) {
+  .mmh-lab-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 700px) {
+  .mmh-lab-grid { grid-template-columns: 1fr; }
+}
+.mmh-lab-card {
+  background: #0f1e38;
+  border: 1px solid #1e3050;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s;
+}
+.mmh-lab-card:hover { transform: translateY(-2px); }
+.mmh-lab-card-bar { height: 3px; width: 100%; flex-shrink: 0; }
+.mmh-lab-card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.mmh-lab-card-footer { padding: 12px 16px; border-top: 1px solid #1e3050; display: flex; gap: 8px; }
+.mmh-test-price-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  background: rgba(139,92,246,0.1);
+  border: 1px solid rgba(139,92,246,0.25);
+  border-radius: 8px;
+  font-size: 11px;
+  color: #a78bfa;
+  font-weight: 600;
+  margin: 2px;
+}
+.mmh-test-price-tag span {
+  font-family: 'JetBrains Mono', monospace;
+  color: #10b981;
+  font-weight: 700;
+}
+
+/* ═══ RESULTS ENTRY MODAL ════════════════════════════ */
+.mmh-results-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 16px;
+}
+.mmh-results-modal {
+  background: #0f1e38;
+  border: 1.5px solid #2a4070;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: mmh-scale-in 0.2s ease;
+}
+.mmh-results-modal-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid #1e3050;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.mmh-results-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 22px;
+}
+.mmh-results-modal-footer {
+  padding: 14px 22px;
+  border-top: 1px solid #1e3050;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* ═══ TAB CONTENT ════════════════════════════════════ */
+.mmh-tab-content { padding: 28px; overflow-y: auto; flex: 1; }

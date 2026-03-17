@@ -8,11 +8,17 @@ export interface ILabResult {
   flag: 'Normal' | 'High' | 'Low' | 'Critical';
 }
 
+export interface ITestDetail {
+  name: string;
+  price: number;
+}
+
 export interface ILabRequest extends Document {
   labId: string;
   patient: mongoose.Types.ObjectId;
-  doctor: mongoose.Types.ObjectId;
+  doctor?: mongoose.Types.ObjectId;
   tests: string[];
+  testDetails: ITestDetail[];
   isUrgent: boolean;
   status: 'Pending' | 'Processing' | 'Done';
   results: ILabResult[];
@@ -34,12 +40,18 @@ const ResultSchema = new Schema<ILabResult>({
   },
 });
 
+const TestDetailSchema = new Schema<ITestDetail>({
+  name: { type: String, required: true },
+  price: { type: Number, default: 0 },
+});
+
 const LabRequestSchema = new Schema<ILabRequest>(
   {
     labId: { type: String, required: true, unique: true },
     patient: { type: Schema.Types.ObjectId, ref: 'Patient', required: true },
-    doctor: { type: Schema.Types.ObjectId, ref: 'Doctor', required: true },
+    doctor: { type: Schema.Types.ObjectId, ref: 'User', required: false },
     tests: [{ type: String }],
+    testDetails: [TestDetailSchema],
     isUrgent: { type: Boolean, default: false },
     status: {
       type: String,

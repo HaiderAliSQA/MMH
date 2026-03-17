@@ -8,9 +8,10 @@ export const getPatients = async (req: Request, res: Response) => {
 
   if (search) {
     query.$or = [
-      { name: { $regex: search, $options: 'i' } },
+      { name:     { $regex: search, $options: 'i' } },
       { mrNumber: { $regex: search, $options: 'i' } },
-      { cnic: { $regex: search, $options: 'i' } },
+      { cnic:     { $regex: search, $options: 'i' } },
+      { phone:    { $regex: String(search).replace(/\D/g, ''), $options: 'i' } },
     ];
   }
 
@@ -21,16 +22,22 @@ export const getPatients = async (req: Request, res: Response) => {
   const patients = await Patient.find(query)
     .populate('createdBy', 'name')
     .sort({ createdAt: -1 });
-    
+
   res.status(200).json(patients);
 };
 
-export const createPatient = async (req: Request, res: Response) => {
-  // Auto-generate MR number: MMH-{year}-{5digits}
+// Auto-generate MR number: MMH-{year}-{5digits}
+const generateMRNumber = async (): Promise<string> => {
   const year = new Date().getFullYear();
-  const count = await Patient.countDocuments({ mrNumber: new RegExp(`^MMH-${year}-`) });
-  const paddedCount = String(count + 1).padStart(5, '0');
-  const mrNumber = `MMH-${year}-${paddedCount}`;
+  const count = await Patient.countDocuments({
+    mrNumber: { $regex: `^MMH-${year}-` },
+  });
+  const serial = String(count + 1).padStart(5, '0');
+  return `MMH-${year}-${serial}`;
+};
+
+export const createPatient = async (req: Request, res: Response) => {
+  const mrNumber = await generateMRNumber();
 
   const patient = new Patient({
     ...req.body,
@@ -41,7 +48,7 @@ export const createPatient = async (req: Request, res: Response) => {
 
   await patient.save();
 
-  // If visit-related data is present, create an OpdVisit
+  // If doctorId is provided, create an OpdVisit with a token
   if (req.body.doctorId) {
     const start = new Date();
     start.setHours(0, 0, 0, 0);
@@ -49,17 +56,21 @@ export const createPatient = async (req: Request, res: Response) => {
     const tokenNumber = String(count + 1).padStart(4, '0');
 
     const visit = new OpdVisit({
-      patient: patient._id,
-      doctor: req.body.doctorId,
-      tokenNumber, // Use auto-generated or req.body.token
-      status: 'Waiting',
+      patient:     patient._id,
+      doctor:      req.body.doctorId,
+      tokenNumber,
+      status:      'Waiting',
       // @ts-ignore
-      createdBy: req.user?.id,
+      createdBy:   req.user?.id,
     });
     await visit.save();
   }
 
-  res.status(201).json(patient);
+  res.status(201).json({
+    success: true,
+    data: patient,
+    mrNumber: patient.mrNumber,
+  });
 };
 
 export const updatePatient = async (req: Request, res: Response) => {
@@ -74,15 +85,33 @@ export const updatePatient = async (req: Request, res: Response) => {
 
 export const searchPatients = async (req: Request, res: Response) => {
   const { q } = req.query;
-  if (!q) return res.status(200).json([]);
 
-  const patients = await Patient.find({
-    $or: [
-      { name: { $regex: q, $options: 'i' } },
-      { mrNumber: { $regex: q, $options: 'i' } },
-      { cnic: { $regex: q, $options: 'i' } },
-    ],
-  } as any).limit(10);
+  if (!q || String(q).length < 2) {
+    res.json({ success: true, data: [], total: 0 });
+    return;
+  }
 
-  res.status(200).json(patients);
+  const searchTerm = String(q);
+  const digitsOnly = searchTerm.replace(/\D/g, '');
+
+  const orClauses: any[] = [
+    { mrNumber: { $regex: searchTerm, $options: 'i' } },
+    { name:     { $regex: searchTerm, $options: 'i' } },
+  ];
+
+  if (digitsOnly.length > 0) {
+    orClauses.push({ phone: { $regex: digitsOnly, $options: 'i' } });
+    orClauses.push({ cnic:  { $regex: digitsOnly, $options: 'i' } });
+  }
+
+  const patients = await Patient.find({ $or: orClauses })
+    .select('name mrNumber age gender phone cnic status')
+    .limit(10)
+    .sort({ createdAt: -1 });
+
+  res.json({
+    success: true,
+    data: patients,
+    total: patients.length,
+  });
 };

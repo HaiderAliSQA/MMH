@@ -187,7 +187,8 @@ export const updateUser = async (req: any, res: Response): Promise<void> => {
   if (role === 'doctor' || user.role === 'doctor') {
     await Doctor.findOneAndUpdate(
       { user: id },
-      { isActive: activeValue ?? user.isActive }
+      { isActive: activeValue ?? user.isActive },
+      { returnDocument: 'after' }
     );
   }
 

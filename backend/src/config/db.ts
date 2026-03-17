@@ -15,8 +15,16 @@ const connectDB = async (): Promise<void> => {
     console.log(`📦 Database: ${mongoose.connection.name}`);
     console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
 
-  } catch (error) {
-    console.error('❌ MongoDB connection failed:', error);
+  } catch (error: any) {
+    if (error.code === 'ENOTFOUND') {
+      console.error('\n❌ DNS RESOLUTION ERROR: Could not find MongoDB Atlas host.');
+      console.error('👉 TROUBLESHOOTING:');
+      console.error('   1. Check your internet connection.');
+      console.error('   2. Try changing your DNS (e.g. to Google 8.8.8.8 or Cloudflare 1.1.1.1).');
+      console.error('   3. Ensure your IP address is whitelisted in MongoDB Atlas.\n');
+    } else {
+      console.error('❌ MongoDB connection failed:', error.message || error);
+    }
     process.exit(1);
   }
 };

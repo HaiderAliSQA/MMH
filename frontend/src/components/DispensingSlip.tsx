@@ -232,7 +232,7 @@ const DispensingSlip: React.FC<DispensingSlipProps> = ({ dispense }) => {
           <span className="mmh-slip-total-amount">PKR {dispense.totalAmount}</span>
         </div>
 
-        {/* <div className="mmh-slip-info-row" style={{ marginTop: '12px' }}>
+        <div className="mmh-slip-info-row" style={{ marginTop: '12px' }}>
           <span className="mmh-slip-info-label">Dispensed by:</span>
           <span className="mmh-slip-info-value">{dispense.dispensedBy?.name} ({dispense.dispensedBy?.role})</span>
         </div>
@@ -244,9 +244,9 @@ const DispensingSlip: React.FC<DispensingSlipProps> = ({ dispense }) => {
         )}
 
         <div className="mmh-slip-footer">
-          Please keep this slip safe<br/>
+          Please keep this slip safe<br />
           MMH Pharmacy · Chiniot
-        </div> */}
+        </div>
       </div>
     </div>
   );

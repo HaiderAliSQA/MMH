@@ -5,8 +5,8 @@ export interface IPatient extends Document {
   name: string;
   age: number;
   gender: 'Male' | 'Female' | 'Other';
-  cnic: string;
-  phone?: string;
+  cnic?: string;
+  phone: string;
   address?: string;
   bloodGroup?: string;
   status: 'OPD' | 'Admitted' | 'Discharged' | 'Waiting';
@@ -15,13 +15,13 @@ export interface IPatient extends Document {
 
 const PatientSchema = new Schema<IPatient>(
   {
-    mrNumber: { type: String, required: true, unique: true },
-    name: { type: String, required: true },
-    age: { type: Number, required: true },
-    gender: { type: String, enum: ['Male', 'Female', 'Other'] },
-    cnic: { type: String, required: true },
-    phone: { type: String },
-    address: { type: String },
+    mrNumber:   { type: String, required: true, unique: true },
+    name:       { type: String, required: true },
+    age:        { type: Number, required: true },
+    gender:     { type: String, enum: ['Male', 'Female', 'Other'] },
+    cnic:       { type: String, required: false },       // OPTIONAL — no CNIC needed
+    phone:      { type: String, required: true },        // REQUIRED — 11-digit number
+    address:    { type: String },
     bloodGroup: { type: String },
     status: {
       type: String,
