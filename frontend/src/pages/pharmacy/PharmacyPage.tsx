@@ -38,12 +38,12 @@ const PharmacyPage: React.FC = () => {
   const [dispenseHistory, setDispenseHistory] = useState<any[]>([]);
 
   // Dispense State — patient live search
-  const [patientSearch,   setPatientSearch]   = useState('');
-  const [patientResults,  setPatientResults]  = useState<Patient[]>([]);
+  const [patientSearch, setPatientSearch] = useState('');
+  const [patientResults, setPatientResults] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [patientLoading,  setPatientLoading]  = useState(false);
+  const [patientLoading, setPatientLoading] = useState(false);
   const patientTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const patientWrapRef  = useRef<HTMLDivElement>(null);
+  const patientWrapRef = useRef<HTMLDivElement>(null);
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [stockErrors, setStockErrors] = useState<string[]>([]);
@@ -53,7 +53,7 @@ const PharmacyPage: React.FC = () => {
   const [selectedMedId, setSelectedMedId] = useState('');
   const [selectedQty, setSelectedQty] = useState(1);
   const [dispenseNotes, setDispenseNotes] = useState('');
-  
+
   // Inventory State
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -149,12 +149,12 @@ const PharmacyPage: React.FC = () => {
       }
       setCart(cart.map(c => c.medicineId === selectedMedId ? { ...c, qty: c.qty + selectedQty, total: (c.qty + selectedQty) * c.price } : c));
     } else {
-      setCart([...cart, { 
-        medicineId: selectedMedId, 
-        name: med.name, 
-        qty: selectedQty, 
-        price: med.price, 
-        total: med.price * selectedQty 
+      setCart([...cart, {
+        medicineId: selectedMedId,
+        name: med.name,
+        qty: selectedQty,
+        price: med.price,
+        total: med.price * selectedQty
       }]);
     }
 
@@ -217,10 +217,10 @@ const PharmacyPage: React.FC = () => {
     return medicines.filter(m => {
       const name = m.name || '';
       const generic = m.generic || '';
-      const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            generic.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        generic.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = categoryFilter === 'All' || m.category === categoryFilter;
-      
+
       const minQty = m.minQty || 0;
       let matchesStock = true;
       if (stockFilter === 'In Stock') matchesStock = m.quantity > 0;
@@ -269,13 +269,13 @@ const PharmacyPage: React.FC = () => {
 
       <div className="mmh-admin-tabs-wrap" style={{ marginBottom: '24px' }}>
         <div className="mmh-admin-tabs">
-          <button 
+          <button
             className={`mmh-admin-tab ${activeTab === 'dispense' ? 'active' : ''}`}
             onClick={() => setActiveTab('dispense')}
           >
             <span>💊</span> Dispense
           </button>
-          <button 
+          <button
             className={`mmh-admin-tab ${activeTab === 'inventory' ? 'active' : ''}`}
             onClick={() => setActiveTab('inventory')}
           >
@@ -288,9 +288,9 @@ const PharmacyPage: React.FC = () => {
         <div className="mmh-tab-content">
           {stockErrors.length > 0 && (
             <div className="mmh-alert mmh-alert-warning" style={{ background: 'rgba(244,63,94,0.1)', borderColor: 'rgba(244,63,94,0.3)', color: '#fb7185', marginBottom: '24px' }}>
-              <div style={{fontWeight:800, marginBottom:8}}>⚠️ Stock Problem:</div>
+              <div style={{ fontWeight: 800, marginBottom: 8 }}>⚠️ Stock Problem:</div>
               {stockErrors.map((err, i) => (
-                <div key={i} style={{ fontSize:'13px', padding:'5px 0', borderBottom:'1px solid rgba(244,63,94,0.15)', display:'flex', alignItems:'center', gap:'8px' }}>
+                <div key={i} style={{ fontSize: '13px', padding: '5px 0', borderBottom: '1px solid rgba(244,63,94,0.15)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span>❌</span>
                   <span>{err}</span>
                 </div>
@@ -299,7 +299,7 @@ const PharmacyPage: React.FC = () => {
           )}
 
           <div className="mmh-form-grid" style={{ gridTemplateColumns: 'minmax(0, 1fr) 400px', gap: '24px', alignItems: 'start' }}>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {/* Patient Selection Card — live search */}
               <div className="mmh-card" style={{ overflow: 'visible' }}>
@@ -373,7 +373,7 @@ const PharmacyPage: React.FC = () => {
                 <div className="mmh-card-body">
                   <div className="mmh-field">
                     <label className="mmh-label">Select Medicine</label>
-                    <select 
+                    <select
                       className="mmh-input-select"
                       value={selectedMedId}
                       onChange={(e) => {
@@ -383,7 +383,7 @@ const PharmacyPage: React.FC = () => {
                     >
                       <option value="">-- Search Medicines --</option>
                       {medicines.filter(m => m.quantity > 0).map(m => (
-                        <option key={m._id} value={m._id}>{m.name} ({m.quantity} available) - PKR {m.price}</option>
+                        <option key={m._id} value={m._id}>{m.name} ({m.quantity} available)  {m.price}</option>
                       ))}
                     </select>
                     {selectedMedicine && (
@@ -399,7 +399,7 @@ const PharmacyPage: React.FC = () => {
                         <div className="mmh-field">
                           <label className="mmh-label">
                             Quantity
-                            <span style={{color:'#64748b', marginLeft:8, fontWeight:400, textTransform:'none'}}>
+                            <span style={{ color: '#64748b', marginLeft: 8, fontWeight: 400, textTransform: 'none' }}>
                               (Max: {selectedMedicine.quantity})
                             </span>
                           </label>
@@ -423,7 +423,7 @@ const PharmacyPage: React.FC = () => {
                                 ? '#f43f5e'
                                 : selectedQty > selectedMedicine.quantity * 0.8
                                   ? '#f59e0b' : '#0ea5e9'
-                            }}/>
+                            }} />
                           </div>
                           {selectedQty > selectedMedicine.quantity && (
                             <span className="mmh-field-error" style={{ color: '#fb7185', fontSize: '11px', marginTop: '4px', display: 'block' }}>
@@ -442,8 +442,8 @@ const PharmacyPage: React.FC = () => {
                         </div>
                       </div>
 
-                      <button 
-                        className="mmh-btn mmh-btn-primary" 
+                      <button
+                        className="mmh-btn mmh-btn-primary"
                         style={{ width: '100%', marginTop: '20px' }}
                         disabled={!selectedQty || selectedQty < 1 || selectedQty > selectedMedicine.quantity}
                         onClick={addToCart}
@@ -485,7 +485,7 @@ const PharmacyPage: React.FC = () => {
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center' }}>
                               <div className="mmh-cart-item-price">PKR {item.total}</div>
-                              <button 
+                              <button
                                 className="mmh-cart-remove"
                                 onClick={() => removeFromCart(index)}
                                 title="Remove"
@@ -498,8 +498,8 @@ const PharmacyPage: React.FC = () => {
 
                     <div className="mmh-field" style={{ marginBottom: '16px' }}>
                       <label className="mmh-label">Additional Notes (Optional)</label>
-                      <input 
-                        className="mmh-input" 
+                      <input
+                        className="mmh-input"
                         placeholder="e.g. Take after meal..."
                         value={dispenseNotes}
                         onChange={e => setDispenseNotes(e.target.value)}
@@ -512,16 +512,16 @@ const PharmacyPage: React.FC = () => {
                     </div>
 
                     <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
-                      <button 
-                        className="mmh-btn mmh-btn-ghost" 
+                      <button
+                        className="mmh-btn mmh-btn-ghost"
                         style={{ flex: 1 }}
                         disabled={loading}
                         onClick={() => setCart([])}
                       >
                         Clear Cart
                       </button>
-                      <button 
-                        className="mmh-btn mmh-btn-green" 
+                      <button
+                        className="mmh-btn mmh-btn-green"
                         style={{ flex: 2 }}
                         disabled={loading || !selectedPatient}
                         onClick={handleDispense}
@@ -613,10 +613,10 @@ const PharmacyPage: React.FC = () => {
               <div className="mmh-form-grid" style={{ gridTemplateColumns: '1fr 200px 200px auto', gap: '16px', alignItems: 'end' }}>
                 <div className="mmh-field">
                   <label className="mmh-label">Search Medicine Name / Generic</label>
-                  <input 
-                    type="text" 
-                    className="mmh-input" 
-                    placeholder="E.g Panadol, Paracetamol..." 
+                  <input
+                    type="text"
+                    className="mmh-input"
+                    placeholder="E.g Panadol, Paracetamol..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -636,8 +636,8 @@ const PharmacyPage: React.FC = () => {
                     <option value="Out of Stock">Out of Stock</option>
                   </select>
                 </div>
-                <button 
-                  className="mmh-btn mmh-btn-primary" 
+                <button
+                  className="mmh-btn mmh-btn-primary"
                   style={{ height: '46px' }}
                   onClick={() => setShowAddModal(true)}
                 >
@@ -672,7 +672,7 @@ const PharmacyPage: React.FC = () => {
                         const minQty = m.minQty || 1; // Prevent division by zero
                         const stockPct = (m.quantity / (minQty * 3)) * 100;
                         const progressColor = m.quantity === 0 ? 'var(--mmh-rose)' : m.quantity <= (m.minQty || 0) ? 'var(--mmh-amber)' : 'var(--mmh-green)';
-                        
+
                         return (
                           <tr key={m._id}>
                             <td>{idx + 1}</td>
@@ -683,9 +683,9 @@ const PharmacyPage: React.FC = () => {
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                 <div style={{ fontWeight: 700 }}>{m.quantity} Units (Min: {m.minQty || 0})</div>
                                 <div className="mmh-ward-bar-wrap" style={{ height: '6px', width: '120px' }}>
-                                  <div 
-                                    className="mmh-ward-bar-fill" 
-                                    style={{ width: `${Math.min(100, stockPct)}%`, background: progressColor }} 
+                                  <div
+                                    className="mmh-ward-bar-fill"
+                                    style={{ width: `${Math.min(100, stockPct)}%`, background: progressColor }}
                                   />
                                 </div>
                               </div>
@@ -720,9 +720,9 @@ const PharmacyPage: React.FC = () => {
           <div className="mmh-modal mmh-modal-sm" style={{ padding: '0', animation: 'mmh-scale-in 0.3s ease' }}>
             <div style={{ padding: '20px', background: 'var(--mmh-green)', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '22px 22px 0 0' }}>
               <h2 style={{ fontSize: '16px', fontWeight: 800, margin: 0 }}>✅ Dispensed Successfully!</h2>
-              <button 
-                className="mmh-modal-close" 
-                style={{ color: 'white', opacity: 0.8, fontSize: '24px', border: 'none', background: 'transparent', cursor: 'pointer' }} 
+              <button
+                className="mmh-modal-close"
+                style={{ color: 'white', opacity: 0.8, fontSize: '24px', border: 'none', background: 'transparent', cursor: 'pointer' }}
                 onClick={() => setDispenseRecord(null)}
               >×</button>
             </div>
@@ -750,42 +750,42 @@ const PharmacyPage: React.FC = () => {
                 <div className="mmh-form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
                   <div className="mmh-field">
                     <label className="mmh-label">Medicine Name</label>
-                    <input 
-                      type="text" 
-                      className="mmh-input" 
-                      placeholder="e.g. Panadol 500mg" 
+                    <input
+                      type="text"
+                      className="mmh-input"
+                      placeholder="e.g. Panadol 500mg"
                       required
                       value={newMed.name}
-                      onChange={e => setNewMed({...newMed, name: e.target.value})}
+                      onChange={e => setNewMed({ ...newMed, name: e.target.value })}
                     />
                   </div>
                   <div className="mmh-field">
                     <label className="mmh-label">Generic Name</label>
-                    <input 
-                      type="text" 
-                      className="mmh-input" 
-                      placeholder="e.g. Paracetamol" 
+                    <input
+                      type="text"
+                      className="mmh-input"
+                      placeholder="e.g. Paracetamol"
                       value={newMed.generic}
-                      onChange={e => setNewMed({...newMed, generic: e.target.value})}
+                      onChange={e => setNewMed({ ...newMed, generic: e.target.value })}
                     />
                   </div>
                   <div className="mmh-field">
                     <label className="mmh-label">Category</label>
-                    <input 
-                      type="text" 
-                      className="mmh-input" 
-                      placeholder="e.g. Antibiotic" 
+                    <input
+                      type="text"
+                      className="mmh-input"
+                      placeholder="e.g. Antibiotic"
                       required
                       value={newMed.category}
-                      onChange={e => setNewMed({...newMed, category: e.target.value})}
+                      onChange={e => setNewMed({ ...newMed, category: e.target.value })}
                     />
                   </div>
                   <div className="mmh-field">
                     <label className="mmh-label">Unit</label>
-                    <select 
+                    <select
                       className="mmh-input-select"
                       value={newMed.unit}
-                      onChange={e => setNewMed({...newMed, unit: e.target.value})}
+                      onChange={e => setNewMed({ ...newMed, unit: e.target.value })}
                     >
                       <option value="Tablet">Tablet</option>
                       <option value="Capsule">Capsule</option>
@@ -796,35 +796,35 @@ const PharmacyPage: React.FC = () => {
                   </div>
                   <div className="mmh-field">
                     <label className="mmh-label">Opening Stock (Qty)</label>
-                    <input 
-                      type="number" 
-                      className="mmh-input" 
+                    <input
+                      type="number"
+                      className="mmh-input"
                       required
                       min="0"
                       value={newMed.quantity}
-                      onChange={e => setNewMed({...newMed, quantity: parseInt(e.target.value) || 0})}
+                      onChange={e => setNewMed({ ...newMed, quantity: parseInt(e.target.value) || 0 })}
                     />
                   </div>
                   <div className="mmh-field">
                     <label className="mmh-label">Min. Stock Alert</label>
-                    <input 
-                      type="number" 
-                      className="mmh-input" 
+                    <input
+                      type="number"
+                      className="mmh-input"
                       required
                       min="1"
                       value={newMed.minQuantity}
-                      onChange={e => setNewMed({...newMed, minQuantity: parseInt(e.target.value) || 0})}
+                      onChange={e => setNewMed({ ...newMed, minQuantity: parseInt(e.target.value) || 0 })}
                     />
                   </div>
                   <div className="mmh-field">
                     <label className="mmh-label">Price Per Unit (PKR)</label>
-                    <input 
-                      type="number" 
-                      className="mmh-input" 
+                    <input
+                      type="number"
+                      className="mmh-input"
                       required
                       min="0"
                       value={newMed.pricePerUnit}
-                      onChange={e => setNewMed({...newMed, pricePerUnit: parseFloat(e.target.value) || 0})}
+                      onChange={e => setNewMed({ ...newMed, pricePerUnit: parseFloat(e.target.value) || 0 })}
                     />
                   </div>
                 </div>
