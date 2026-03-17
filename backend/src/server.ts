@@ -36,12 +36,24 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
+// Health check — responds immediately, used by keep-alive ping
 app.get('/health', (req, res) => {
-  res.json({
+  res.status(200).json({
     success: true,
-    message: '🏥 MMH API Running',
-    timestamp: new Date().toISOString()
+    status: 'online',
+    message: '🏥 MMH Server is running',
+    hospital: 'Majida Memorial Hospital, Chiniot',
+    timestamp: new Date().toISOString(),
+    uptime: Math.floor(process.uptime()) + ' seconds',
+  });
+});
+
+// Also add /api/health as backup
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    status: 'online',
+    timestamp: new Date().toISOString(),
   });
 });
 

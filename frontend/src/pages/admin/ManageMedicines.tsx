@@ -71,8 +71,8 @@ const ManageMedicines: React.FC = () => {
     }
   };
 
-  const filtered = meds.filter(m => 
-    m.name.toLowerCase().includes(search.toLowerCase()) || 
+  const filtered = meds.filter(m =>
+    m.name.toLowerCase().includes(search.toLowerCase()) ||
     m.category.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -80,7 +80,7 @@ const ManageMedicines: React.FC = () => {
 
   return (
     <div style={{ animation: 'mmh-fade-in 0.3s ease' }}>
-      <div className="mmh-page-header">
+      {/* <div className="mmh-page-header">
         <div>
           <h1 className="mmh-page-title">Pharmacy Inventory</h1>
           <p className="mmh-page-subtitle">Track stock levels, expiry dates and medicine categories</p>
@@ -95,21 +95,21 @@ const ManageMedicines: React.FC = () => {
         >
           + Add New Medicine
         </button>
-      </div>
+      </div> */}
 
       <div className="mmh-stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '20px' }}>
-         <div className="mmh-stat-card" style={{ padding: '16px' }}>
-            <div className="mmh-stat-label">Total SKUs</div>
-            <div className="mmh-stat-value" style={{ fontSize: '24px' }}>{meds.length}</div>
-         </div>
-         <div className="mmh-stat-card" style={{ padding: '16px' }}>
-            <div className="mmh-stat-label">Low Stock</div>
-            <div className="mmh-stat-value" style={{ fontSize: '24px', color: 'var(--mmh-rose)' }}>{meds.filter(m => m.quantity < m.reorderLevel).length}</div>
-         </div>
-         <div className="mmh-stat-card" style={{ padding: '16px' }}>
-            <div className="mmh-stat-label">Expiring Soon</div>
-            <div className="mmh-stat-value" style={{ fontSize: '24px', color: 'var(--mmh-amber)' }}>0</div>
-         </div>
+        <div className="mmh-stat-card" style={{ padding: '16px' }}>
+          <div className="mmh-stat-label">Total SKUs</div>
+          <div className="mmh-stat-value" style={{ fontSize: '24px' }}>{meds.length}</div>
+        </div>
+        <div className="mmh-stat-card" style={{ padding: '16px' }}>
+          <div className="mmh-stat-label">Low Stock</div>
+          <div className="mmh-stat-value" style={{ fontSize: '24px', color: 'var(--mmh-rose)' }}>{meds.filter(m => m.quantity < m.reorderLevel).length}</div>
+        </div>
+        <div className="mmh-stat-card" style={{ padding: '16px' }}>
+          <div className="mmh-stat-label">Expiring Soon</div>
+          <div className="mmh-stat-value" style={{ fontSize: '24px', color: 'var(--mmh-amber)' }}>0</div>
+        </div>
       </div>
 
       <div className="mmh-table-card">
@@ -117,9 +117,9 @@ const ManageMedicines: React.FC = () => {
         <div className="mmh-table-card-header">
           <div className="mmh-search-wrap" style={{ maxWidth: '400px' }}>
             <span className="mmh-search-icon">🔍</span>
-            <input 
-              className="mmh-search-input" 
-              placeholder="Search medicine name..." 
+            <input
+              className="mmh-search-input"
+              placeholder="Search medicine name..."
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -153,19 +153,19 @@ const ManageMedicines: React.FC = () => {
                   <td style={{ fontFamily: 'JetBrains Mono', fontWeight: 700 }}>{m.price.toFixed(2)}</td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                       <span style={{ fontWeight: 800, color: m.quantity < m.reorderLevel ? 'var(--mmh-rose)' : 'white' }}>{m.quantity}</span>
-                       <span style={{ fontSize: '10px', color: 'var(--mmh-muted)' }}>{m.unit}</span>
+                      <span style={{ fontWeight: 800, color: m.quantity < m.reorderLevel ? 'var(--mmh-rose)' : 'white' }}>{m.quantity}</span>
+                      <span style={{ fontSize: '10px', color: 'var(--mmh-muted)' }}>{m.unit}</span>
                     </div>
                   </td>
                   <td>{m.expiry ? new Date(m.expiry).toLocaleDateString() : 'N/A'}</td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                       <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" onClick={() => {
-                          setEditingMed(m);
-                          setFormData({ ...m, expiry: m.expiry?.split('T')[0] || '' });
-                          setModalOpen(true);
-                       }}>✏️</button>
-                       <button className="mmh-btn mmh-btn-danger mmh-btn-xs" onClick={() => deleteMed(m._id)}>🗑️</button>
+                      <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" onClick={() => {
+                        setEditingMed(m);
+                        setFormData({ ...m, expiry: m.expiry?.split('T')[0] || '' });
+                        setModalOpen(true);
+                      }}>✏️</button>
+                      <button className="mmh-btn mmh-btn-danger mmh-btn-xs" onClick={() => deleteMed(m._id)}>🗑️</button>
                     </div>
                   </td>
                 </tr>
@@ -185,40 +185,40 @@ const ManageMedicines: React.FC = () => {
             <div className="mmh-modal-body">
               <div className="mmh-field" style={{ marginBottom: '14px' }}>
                 <label className="mmh-label">Name</label>
-                <input className="mmh-input" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                <input className="mmh-input" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
               </div>
               <div className="mmh-form-grid">
                 <div className="mmh-field">
                   <label className="mmh-label">Category</label>
-                  <select className="mmh-input-select" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+                  <select className="mmh-input-select" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}>
                     {categories.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div className="mmh-field">
                   <label className="mmh-label">Unit</label>
-                  <input className="mmh-input" value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} />
+                  <input className="mmh-input" value={formData.unit} onChange={e => setFormData({ ...formData, unit: e.target.value })} />
                 </div>
                 <div className="mmh-field">
                   <label className="mmh-label">Price</label>
-                  <input type="number" className="mmh-input" value={formData.price} onChange={e => setFormData({...formData, price: parseFloat(e.target.value) || 0})} />
+                  <input type="number" className="mmh-input" value={formData.price} onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })} />
                 </div>
                 <div className="mmh-field">
                   <label className="mmh-label">Quantity</label>
-                  <input type="number" className="mmh-input" value={formData.quantity} onChange={e => setFormData({...formData, quantity: parseInt(e.target.value) || 0})} />
+                  <input type="number" className="mmh-input" value={formData.quantity} onChange={e => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })} />
                 </div>
                 <div className="mmh-field">
                   <label className="mmh-label">Expiry Date</label>
-                  <input type="date" className="mmh-input" value={formData.expiry} onChange={e => setFormData({...formData, expiry: e.target.value})} />
+                  <input type="date" className="mmh-input" value={formData.expiry} onChange={e => setFormData({ ...formData, expiry: e.target.value })} />
                 </div>
                 <div className="mmh-field">
                   <label className="mmh-label">Reorder Level</label>
-                  <input type="number" className="mmh-input" value={formData.reorderLevel} onChange={e => setFormData({...formData, reorderLevel: parseInt(e.target.value) || 20})} />
+                  <input type="number" className="mmh-input" value={formData.reorderLevel} onChange={e => setFormData({ ...formData, reorderLevel: parseInt(e.target.value) || 20 })} />
                 </div>
               </div>
             </div>
             <div className="mmh-modal-footer">
-               <button type="button" className="mmh-btn mmh-btn-ghost" onClick={() => setModalOpen(false)}>Cancel</button>
-               <button type="submit" className="mmh-btn mmh-btn-green">{editingMed ? 'Update' : 'Add'}</button>
+              <button type="button" className="mmh-btn mmh-btn-ghost" onClick={() => setModalOpen(false)}>Cancel</button>
+              <button type="submit" className="mmh-btn mmh-btn-green">{editingMed ? 'Update' : 'Add'}</button>
             </div>
           </form>
         </div>

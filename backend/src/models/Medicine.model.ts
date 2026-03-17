@@ -11,6 +11,7 @@ export interface IMedicine extends Document {
   expiryDate?: Date;
   manufacturer?: string;
   isActive: boolean;
+  hasStock: (requested: number) => boolean;
 }
 
 const MedicineSchema = new Schema<IMedicine>(
@@ -19,7 +20,12 @@ const MedicineSchema = new Schema<IMedicine>(
     generic: { type: String },
     category: { type: String, required: true },
     unit: { type: String, default: 'Tablet' },
-    quantity: { type: Number, required: true, min: 0 },
+    quantity: { 
+      type: Number, 
+      required: true, 
+      min: [0, 'Stock cannot go below 0'],
+      default: 0 
+    },
     minQuantity: { type: Number, default: 20 },
     pricePerUnit: { type: Number, required: true },
     expiryDate: { type: Date },
@@ -28,5 +34,9 @@ const MedicineSchema = new Schema<IMedicine>(
   },
   { timestamps: true }
 );
+
+MedicineSchema.methods.hasStock = function(requested: number): boolean {
+  return this.quantity >= requested;
+};
 
 export default mongoose.model<IMedicine>('Medicine', MedicineSchema);

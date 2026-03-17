@@ -23,40 +23,100 @@ export const updateMedicine = async (req: Request, res: Response) => {
   res.status(200).json(medicine);
 };
 
-export const dispenseMedicine = async (req: Request, res: Response) => {
-  const { patient, items, totalAmount, notes } = req.body;
+export const dispenseMedicine = async (req: any, res: Response): Promise<void> => {
+  const { patient, items, notes } = req.body;
 
-  // Validate stock for each item
+  // STEP 1 — Validate ALL stock BEFORE dispensing
+  const stockErrors: string[] = [];
+
   for (const item of items) {
-    const med = await Medicine.findById(item.medicine);
-    if (!med) {
-      return res.status(400).json({ message: `Medicine ${item.medicineName} not found` });
+    // using medicine lookup
+    const medicineId = item.medicine || item.medicineId;
+    const medicine = await Medicine.findById(medicineId);
+
+    if (!medicine) {
+      res.status(404).json({
+        success: false,
+        message: `Medicine not found: ${medicineId}`
+      });
+      return;
     }
-    if (med.quantity < item.quantity) {
-      return res.status(400).json({ message: `Insufficient stock for ${med.name}. Available: ${med.quantity}` });
+
+    if (!medicine.isActive) {
+      res.status(400).json({
+        success: false,
+        message: `Medicine is inactive: ${medicine.name}`
+      });
+      return;
+    }
+
+    if (medicine.quantity === 0) {
+      stockErrors.push(
+        `${medicine.name}: Out of stock (0 remaining)`
+      );
+    } else if (medicine.quantity < item.quantity) {
+      stockErrors.push(
+        `${medicine.name}: Only ${medicine.quantity} ` +
+        `${medicine.unit}(s) available, ` +
+        `you requested ${item.quantity}`
+      );
     }
   }
 
-  // Create Dispense record
-  const dispense = new Dispense({
+  if (stockErrors.length > 0) {
+    res.status(400).json({
+      success: false,
+      message: 'Insufficient stock for some medicines',
+      errors: stockErrors
+    });
+    return;
+  }
+
+  // STEP 2 — Dispense and reduce stock
+  let totalAmount = 0;
+  const dispenseItems = [];
+
+  for (const item of items) {
+    const medicineId = item.medicine || item.medicineId;
+    const medicine = await Medicine.findById(medicineId);
+    if (!medicine) continue;
+
+    const totalPrice = medicine.pricePerUnit * item.quantity;
+    totalAmount += totalPrice;
+
+    dispenseItems.push({
+      medicine: medicine._id,
+      medicineName: medicine.name,
+      quantity: item.quantity,
+      unit: medicine.unit,
+      pricePerUnit: medicine.pricePerUnit,
+      totalPrice,
+    });
+
+    await Medicine.findByIdAndUpdate(
+      medicine._id,
+      { $inc: { quantity: -item.quantity } }
+    );
+  }
+
+  // STEP 3 — Save dispense record
+  const dispense = await Dispense.create({
     patient,
-    items,
+    items: dispenseItems,
     totalAmount,
+    dispensedBy: req.user?.id || req.body.dispensedBy,
     notes,
-    // @ts-ignore
-    dispensedBy: req.user?.id,
   });
 
-  await dispense.save();
+  const populated = await Dispense.findById(dispense._id)
+    .populate('patient', 'name mrNumber age gender phone cnic')
+    .populate('dispensedBy', 'name role');
 
-  // Reduce stock
-  const updatePromises = items.map((item: any) => 
-    Medicine.findByIdAndUpdate(item.medicine, { $inc: { quantity: -item.quantity } })
-  );
-
-  await Promise.all(updatePromises);
-
-  res.status(201).json(dispense);
+  res.status(201).json({
+    success: true,
+    message: `Dispensed successfully! Total: PKR ${totalAmount}`,
+    data: populated,
+  });
 };
 
 export const deleteMedicine = async (req: Request, res: Response) => {
