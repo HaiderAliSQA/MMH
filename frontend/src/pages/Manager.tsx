@@ -51,7 +51,7 @@ const Manager: React.FC<ManagerProps> = ({ onLogout }) => {
         <button className={`mmh-admin-tab ${activeTab === 'my-leave' ? 'active' : ''}`} onClick={() => setSearchParams({ tab: 'my-leave' })}>🏖️ My Leave</button>
       </div>
 
-      {activeTab === 'my-leave' && <MyLeaveTab />}
+      {activeTab === 'my-leave' && <MyLeaveTab userRole={user.role} />}
 
       {activeTab === 'records' && <PatientRecords />}
 

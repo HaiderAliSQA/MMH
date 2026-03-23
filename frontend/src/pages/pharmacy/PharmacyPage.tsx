@@ -293,7 +293,7 @@ const PharmacyPage: React.FC = () => {
         </div>
       </div>
 
-      {activeTab === 'my-leave' && <MyLeaveTab />}
+      {activeTab === 'my-leave' && <MyLeaveTab userRole={user.role} />}
 
       {activeTab === 'dispense' && (
         <div className="mmh-tab-content">

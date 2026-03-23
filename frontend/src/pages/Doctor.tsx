@@ -43,7 +43,7 @@ const Doctor: React.FC<DoctorProps> = ({ user }) => {
 
             {tab === 'records' && <PatientRecords />}
             
-            {tab === 'my-leave' && <MyLeaveTab />}
+            {tab === 'my-leave' && <MyLeaveTab userRole={user.role} />}
 
             {tab === 'assigned' && (
                 <div className="mmh-table-card" style={{ animation: 'mmh-fade-in 0.3s ease' }}>

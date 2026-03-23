@@ -143,5 +143,11 @@ export const hrAPI = {
   // My Portal
   getMyLeaves:   () => api.get('/hr/leaves/my'),
   getMyBalance:  () => api.get('/hr/employees/my-balance'),
+  cancelLeave:   (id: string) => api.put(`/hr/leaves/${id}/cancel`),
 }
 
+export const notificationAPI = {
+  getAll: () => api.get('/notifications'),
+  markRead: (id: string) => api.put(`/notifications/${id}/read`),
+  markAllRead: () => api.put('/notifications/read-all'),
+}

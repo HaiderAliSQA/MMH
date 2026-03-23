@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { hrAPI } from '../../api';
+import { useSearchParams } from 'react-router-dom';
 import '../../styles/mmh.css';
 import EmployeesTab from './hr/EmployeesTab';
 import AttendanceTab from './hr/AttendanceTab';
@@ -16,7 +17,8 @@ const TABS = [
 ];
 
 const HRPage: React.FC = () => {
-  const [tab, setTab] = useState('employees');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get('tab') || 'employees';
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,7 +48,7 @@ const HRPage: React.FC = () => {
           <button
             key={t.key}
             className={`mmh-page-tab${tab === t.key ? ' active' : ''}`}
-            onClick={() => setTab(t.key)}
+            onClick={() => setSearchParams({ tab: t.key })}
           >
             <span>{t.icon}</span>{t.label}
           </button>

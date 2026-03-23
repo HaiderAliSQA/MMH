@@ -26,7 +26,11 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
   const [rejectReason, setRejectReason] = useState('');
   const [banner, setBanner] = useState<{type:string;msg:string}|null>(null);
 
-  useEffect(() => { loadLeaves(); }, []);
+  useEffect(() => {
+    loadLeaves();
+    const interval = setInterval(loadLeaves, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const loadLeaves = async () => {
     setLoading(true);

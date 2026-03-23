@@ -1,13 +1,16 @@
+
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import Employee, { generateEmployeeId } from '../models/Employee.model';
 import Shift from '../models/Shift.model';
 import Attendance from '../models/Attendance.model';
+import Patient from '../models/Patient.model';
 import LeaveRequest from '../models/LeaveRequest.model';
+import { Notification } from '../models/Notification.model';
 import Payroll from '../models/Payroll.model';
 
 interface AuthRequest extends Request {
-  user?: { id: string; role: string };
+  user?: { id: string; role: string; name?: string };
 }
 
 // ─── Helper: get working days in a month (excludes Sundays) ───
@@ -416,18 +419,48 @@ export const getLeaves = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const applyLeave = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { employee, leaveType, fromDate, toDate, reason, needsSubstitute, substituteEmployee } =
-    req.body;
+  let employeeId = req.body.employee;
+  let employeeDoc = await Employee.findOne({ user: req.user?.id });
+
+  if (!employeeDoc) {
+    employeeDoc = await Employee.create({
+      user: req.user?.id,
+      name: req.user?.name || req.user?.role,
+      employeeId: `EMP-${Math.floor(Math.random() * 10000)}`,
+      role: req.user?.role,
+      department: 'General',
+      annualLeaveBalance: 24,
+      sickLeaveBalance: 10,
+      emergencyLeaveBalance: 3,
+      designation: 'Staff',
+      phone: '-',
+      joiningDate: new Date()
+    });
+  }
+  employeeId = employeeDoc._id;
+
+  const { leaveType, fromDate, toDate, reason, needsSubstitute, substituteEmployee, totalDays } = req.body;
 
   const leave = await LeaveRequest.create({
-    employee,
+    employee: employeeId,
     leaveType,
     fromDate: new Date(fromDate),
     toDate: new Date(toDate),
+    totalDays: totalDays || 0,
     reason,
     needsSubstitute: needsSubstitute || false,
     substituteEmployee: substituteEmployee || undefined,
     substituteStatus: needsSubstitute ? 'Pending' : 'Not Required',
+  });
+
+  await Notification.create({
+    type: 'leave_request',
+    title: 'New Leave Request',
+    message: `${employeeDoc.name} (${employeeDoc.role}) has applied for ${leaveType} from ${leave.fromDate.toISOString().split('T')[0]} to ${leave.toDate.toISOString().split('T')[0]}`,
+    forRole: 'admin',
+    fromUser: req.user?.id,
+    relatedId: leave._id,
+    isRead: false,
   });
 
   const populated = await LeaveRequest.findById(leave._id)
@@ -461,16 +494,28 @@ export const approveLeave = async (req: AuthRequest, res: Response): Promise<voi
   await leave.save();
 
   // Deduct from leave balance
-  const employee = await Employee.findById(leave.employee);
+  const employee = await Employee.findById(leave.employee).populate('user');
   if (employee && leave.totalDays) {
-    if (leave.leaveType === 'Annual') {
+    if (leave.leaveType === 'Annual Leave') {
       employee.annualLeaveBalance = Math.max(0, employee.annualLeaveBalance - leave.totalDays);
-    } else if (leave.leaveType === 'Sick') {
+    } else if (leave.leaveType === 'Sick Leave') {
       employee.sickLeaveBalance = Math.max(0, employee.sickLeaveBalance - leave.totalDays);
-    } else if (leave.leaveType === 'Emergency') {
+    } else if (leave.leaveType === 'Emergency Leave') {
       employee.emergencyLeaveBalance = Math.max(0, employee.emergencyLeaveBalance - leave.totalDays);
     }
     await employee.save();
+  }
+
+  if (employee && (employee as any).user) {
+    await Notification.create({
+      type: 'leave_approved',
+      title: 'Leave Approved',
+      message: `Your ${leave.leaveType} from ${(leave.fromDate as Date).toISOString().split('T')[0]} to ${(leave.toDate as Date).toISOString().split('T')[0]} has been approved.`,
+      forUser: (employee as any).user,
+      fromUser: req.user?.id,
+      relatedId: leave._id,
+      isRead: false
+    });
   }
 
   const populated = await LeaveRequest.findById(leave._id)
@@ -497,11 +542,39 @@ export const rejectLeave = async (req: AuthRequest, res: Response): Promise<void
   leave.approvedBy = new mongoose.Types.ObjectId(req.user?.id);
   await leave.save();
 
+  const employee = await Employee.findById(leave.employee).populate('user');
+  if (employee && (employee as any).user) {
+    await Notification.create({
+      type: 'leave_rejected',
+      title: 'Leave Rejected',
+      message: `Your ${leave.leaveType} from ${(leave.fromDate as Date).toISOString().split('T')[0]} to ${(leave.toDate as Date).toISOString().split('T')[0]} was rejected. Reason: ${leave.rejectedReason}`,
+      forUser: (employee as any).user,
+      fromUser: req.user?.id,
+      relatedId: leave._id,
+      isRead: false
+    });
+  }
+
   const populated = await LeaveRequest.findById(leave._id)
     .populate({ path: 'employee', select: 'name employeeId role department' })
     .populate({ path: 'substituteEmployee', select: 'name employeeId' });
 
   res.status(200).json({ success: true, data: populated });
+};
+
+export const cancelLeave = async (req: AuthRequest, res: Response): Promise<void> => {
+  const leave = await LeaveRequest.findById(req.params.id);
+  if (!leave) {
+    res.status(404).json({ success: false, message: 'Leave request not found' });
+    return;
+  }
+  if (leave.status !== 'Pending') {
+    res.status(400).json({ success: false, message: 'Cannot cancel a leave that is not pending' });
+    return;
+  }
+  leave.status = 'Cancelled';
+  await leave.save();
+  res.status(200).json({ success: true, message: 'Leave request cancelled' });
 };
 
 export const substituteResponse = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -669,11 +742,13 @@ export const getMyBalance = async (req: AuthRequest, res: Response): Promise<voi
     'annualLeaveBalance sickLeaveBalance emergencyLeaveBalance name employeeId department role'
   );
   if (!employee) {
-    res.json({ success: true, data: {
-      annualLeaveBalance: 24,
-      sickLeaveBalance: 10,
-      emergencyLeaveBalance: 3,
-    }});
+    res.json({
+      success: true, data: {
+        annualLeaveBalance: 24,
+        sickLeaveBalance: 10,
+        emergencyLeaveBalance: 3,
+      }
+    });
     return;
   }
   res.json({ success: true, data: employee });

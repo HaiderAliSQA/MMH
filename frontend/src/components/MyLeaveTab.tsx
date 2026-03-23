@@ -12,7 +12,6 @@ interface Employee {
   annualLeaveBalance: number;
   sickLeaveBalance?: number;
   emergencyLeaveBalance?: number;
-  user?: { _id: string; email: string };
 }
 
 interface LeaveRecord {
@@ -30,15 +29,15 @@ interface LeaveRecord {
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const LEAVE_TYPES: { value: string; label: string; icon: string }[] = [
-  { value: 'Annual',    label: 'Annual Leave',    icon: '📅' },
-  { value: 'Sick',      label: 'Sick Leave',      icon: '🤒' },
-  { value: 'Emergency', label: 'Emergency Leave', icon: '🚨' },
+const LEAVE_TYPES = [
+  { value: 'Annual Leave',    label: 'Annual Leave',    icon: '📅' },
+  { value: 'Sick Leave',      label: 'Sick Leave',      icon: '🤒' },
+  { value: 'Emergency Leave', label: 'Emergency Leave', icon: '🚨' },
   { value: 'Maternity', label: 'Maternity Leave', icon: '👶' },
-  { value: 'Unpaid',    label: 'Unpaid Leave',    icon: '📝' },
+  { value: 'Unpaid Leave',    label: 'Unpaid Leave',    icon: '📝' },
 ];
 
-const STATUS_OPTS: { value: string; label: string; icon: string }[] = [
+const STATUS_OPTS = [
   { value: '',          label: 'All Statuses', icon: '📋' },
   { value: 'Pending',   label: 'Pending',      icon: '⏳' },
   { value: 'Approved',  label: 'Approved',     icon: '✅' },
@@ -49,11 +48,6 @@ const STATUS_OPTS: { value: string; label: string; icon: string }[] = [
 const STATUS_BADGE: Record<string, string> = {
   Pending: 'mmh-badge-amber', Approved: 'mmh-badge-green',
   Rejected: 'mmh-badge-rose', Cancelled: 'mmh-badge-gray',
-};
-
-const LHC_CLASS: Record<string, string> = {
-  Pending: 'mmh-lhc-pending', Approved: 'mmh-lhc-approved',
-  Rejected: 'mmh-lhc-rejected', Cancelled: 'mmh-lhc-cancelled',
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -85,7 +79,7 @@ const fmtDate = (d: string): string => {
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
-const MyLeaveTab: React.FC = () => {
+const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [leaves, setLeaves] = useState<LeaveRecord[]>([]);
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
@@ -103,7 +97,6 @@ const MyLeaveTab: React.FC = () => {
   const [needsSubstitute, setNeedsSubstitute] = useState(false);
   const [substituteId, setSubstituteId] = useState('');
 
-  // Today's date string for min date
   const todayStr = new Date().toISOString().split('T')[0];
 
   useEffect(() => { loadData(); }, []);
@@ -111,25 +104,19 @@ const MyLeaveTab: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const user = JSON.parse(
-        localStorage.getItem('mmh_user') || localStorage.getItem('user') || '{}'
-      );
-      const empRes = await hrAPI.getEmployees();
-      const emps: Employee[] = empRes.data || [];
-      setAllEmployees(emps);
+      // 1. Get my leave balance
+      const balanceRes = await hrAPI.getMyBalance();
+      setEmployee(balanceRes.data.data || balanceRes.data);
 
-      const myEmp = emps.find(
-        (e) => e.user?._id === user._id || e.user?.email === user.email
-      );
-      if (myEmp) {
-        setEmployee(myEmp);
-        const leavesRes = await hrAPI.getLeaves();
-        const allLeaves: LeaveRecord[] = leavesRes.data || [];
-        const myLeaves = allLeaves.filter(
-          (l: any) => l.employee?._id === myEmp._id || l.employee === myEmp._id
-        );
-        setLeaves(myLeaves);
-      }
+      // 2. Get my leaves
+      const leavesRes = await hrAPI.getMyLeaves();
+      setLeaves(leavesRes.data.data || leavesRes.data || []);
+
+      // 3. Get all employees (only needed if doctor/substitute is needed)
+      // Since we don't know the role reliably upfront, just get doctors if they might need it,
+      // or just load all employees.
+      const empRes = await hrAPI.getEmployees();
+      setAllEmployees(empRes.data || []);
     } catch (err) {
       console.error('Failed to load leave data:', err);
     } finally {
@@ -139,7 +126,7 @@ const MyLeaveTab: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!employee || !leaveType || !fromDate || !toDate || !reason.trim()) {
+    if (!leaveType || !fromDate || !toDate || !reason.trim()) {
       setBanner({ type: 'error', msg: 'Please fill all required fields' });
       return;
     }
@@ -156,7 +143,6 @@ const MyLeaveTab: React.FC = () => {
     setBanner(null);
     try {
       await hrAPI.applyLeave({
-        employee: employee._id,
         leaveType,
         fromDate,
         toDate,
@@ -180,19 +166,28 @@ const MyLeaveTab: React.FC = () => {
     }
   };
 
-  const workingDays = calcWorkingDays(fromDate, toDate);
+  const handleCancel = async (id: string) => {
+    if (!window.confirm('Are you sure you want to cancel this leave request?')) return;
+    try {
+      await hrAPI.cancelLeave(id);
+      await loadData();
+      setBanner({ type: 'success', msg: 'Leave request cancelled successfully' });
+    } catch (err: any) {
+      setBanner({ type: 'error', msg: err.response?.data?.message || 'Failed to cancel leave request' });
+    }
+  };
+
+  const workingDays = Math.max(0, calcWorkingDays(fromDate, toDate));
 
   // Leave balance data
-  const annual    = employee?.annualLeaveBalance ?? 0;
+  const annual    = employee?.annualLeaveBalance ?? 24;
   const sick      = employee?.sickLeaveBalance ?? 10;
   const emergency = employee?.emergencyLeaveBalance ?? 3;
-  const usedDays  = leaves
-    .filter((l) => l.status === 'Approved')
-    .reduce((s, l) => s + (l.totalDays || 0), 0);
 
-  // Substitute options (exclude self)
+  const activeRole = userRole || employee?.role;
+  // Substitute options (doctors only, exclude self)
   const substituteOpts = allEmployees
-    .filter((e) => e._id !== employee?._id)
+    .filter((e) => e._id !== employee?._id && e.role === 'doctor')
     .map((e) => ({ value: e._id, label: `${e.name} — ${e.employeeId}`, sub: e.department }));
 
   // Filtered history
@@ -212,23 +207,13 @@ const MyLeaveTab: React.FC = () => {
     );
   }
 
-  if (!employee) {
-    return (
-      <div className="mmh-empty">
-        <div className="mmh-empty-icon">🏖️</div>
-        <div className="mmh-empty-text">No Employee Profile Found</div>
-        <div className="mmh-empty-sub">Contact admin to set up your employee profile.</div>
-      </div>
-    );
-  }
-
   return (
     <div style={{ animation: 'mmh-slide-up 0.3s both' }}>
       {/* Header */}
       <div className="mmh-page-header">
         <div>
           <h1 className="mmh-page-title">🏖️ My Leave</h1>
-          <p className="mmh-page-subtitle">{employee.name} · {employee.department} · {employee.employeeId}</p>
+          <p className="mmh-page-subtitle">Track your leave balances and request time off.</p>
         </div>
       </div>
 
@@ -238,232 +223,217 @@ const MyLeaveTab: React.FC = () => {
         </div>
       )}
 
-      {/* ── Leave Balance Stats ── */}
-      <div className="mmh-stats-grid" style={{ marginBottom: 24 }}>
-        {[
-          { label: 'Annual Leave', remaining: annual, total: 24, icon: '📅', accent: 'linear-gradient(90deg,#0ea5e9,#38bdf8)' },
-          { label: 'Sick Leave',   remaining: sick,   total: 10, icon: '🤒', accent: 'linear-gradient(90deg,#10b981,#34d399)' },
-          { label: 'Emergency',    remaining: emergency, total: 3, icon: '🚨', accent: 'linear-gradient(90deg,#f59e0b,#fbbf24)' },
-          { label: 'Used This Year', remaining: usedDays, total: usedDays || 1, icon: '📊', accent: 'linear-gradient(90deg,#8b5cf6,#a78bfa)', noBar: true },
-        ].map((c) => (
-          <div className="mmh-stat-card" key={c.label}>
-            <div className="mmh-stat-accent" style={{ background: c.accent }} />
-            <span className="mmh-stat-icon">{c.icon}</span>
-            <span className="mmh-stat-value" style={{ fontSize: 18 }}>
-              {c.label === 'Used This Year' ? `${c.remaining} days` : `${c.remaining}/${c.total}`}
-            </span>
-            <span className="mmh-stat-label">{c.label}</span>
-            {!c.noBar && (
-              <div className="mmh-leave-bal-track" style={{ marginTop: 8 }}>
-                <div
-                  className={`mmh-leave-bal-fill ${barColor(c.remaining, c.total)}`}
-                  style={{ width: `${Math.min(100, (c.remaining / c.total) * 100)}%` }}
-                />
-              </div>
-            )}
+      {/* ── Leave Balance Row ── */}
+      <div className="mmh-leave-bal-row">
+        <div className="mmh-leave-bal-card">
+          <div className="mmh-lbc-number">{annual}</div>
+          <div className="mmh-lbc-label">Annual Leave</div>
+          <div className="mmh-lbc-bar-track">
+            <div className={`mmh-lbc-bar-fill ${barColor(annual, 24)}`} style={{ width: `${Math.min(100, (annual / 24) * 100)}%` }} />
           </div>
-        ))}
+          <div className="mmh-lbc-remaining">{annual} out of 24 remaining</div>
+        </div>
+
+        <div className="mmh-leave-bal-card">
+          <div className="mmh-lbc-number">{sick}</div>
+          <div className="mmh-lbc-label">Sick Leave</div>
+          <div className="mmh-lbc-bar-track">
+            <div className={`mmh-lbc-bar-fill ${barColor(sick, 10)}`} style={{ width: `${Math.min(100, (sick / 10) * 100)}%` }} />
+          </div>
+          <div className="mmh-lbc-remaining">{sick} out of 10 remaining</div>
+        </div>
+
+        <div className="mmh-leave-bal-card">
+          <div className="mmh-lbc-number">{emergency}</div>
+          <div className="mmh-lbc-label">Emergency Leave</div>
+          <div className="mmh-lbc-bar-track">
+            <div className={`mmh-lbc-bar-fill ${barColor(emergency, 3)}`} style={{ width: `${Math.min(100, (emergency / 3) * 100)}%` }} />
+          </div>
+          <div className="mmh-lbc-remaining">{emergency} out of 3 remaining</div>
+        </div>
       </div>
 
       {/* ── Two-Column Layout ── */}
-      <div className="mmh-hr-two-col">
+      <div className="mmh-leave-2col">
         {/* LEFT — Apply Leave Form */}
-        <div className="mmh-card" style={{ overflow: 'visible' }}>
-          <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg,#0ea5e9,#10b981)' }} />
-          <div className="mmh-card-header">
-            <div className="mmh-card-title">📝 Apply for Leave</div>
-          </div>
-          <div className="mmh-card-body" style={{ overflow: 'visible' }}>
-            <form onSubmit={handleSubmit}>
+        <div className="mmh-leave-form-card">
+          <div className="mmh-leave-card-title">📝 Apply for Leave</div>
+          
+          <form onSubmit={handleSubmit}>
+            <TypeSearch
+              options={LEAVE_TYPES}
+              value={leaveType}
+              onChange={(v) => setLeaveType(v)}
+              placeholder="Type to search leave type..."
+              label="Leave Type"
+              required
+            />
 
-              {/* Leave Type — TypeSearch */}
-              <TypeSearch
-                options={LEAVE_TYPES}
-                value={leaveType}
-                onChange={(v) => setLeaveType(v)}
-                placeholder="Type to search leave type..."
-                label="Leave Type"
-                required
-              />
-
-              {/* From / To dates */}
-              <div className="mmh-form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
-                <div className="mmh-field">
-                  <label className="mmh-label">From Date <span className="mmh-required">*</span></label>
-                  <input
-                    type="date"
-                    className="mmh-input"
-                    min={todayStr}
-                    value={fromDate}
-                    onChange={(e) => { setFromDate(e.target.value); if (toDate && e.target.value > toDate) setToDate(''); }}
-                    required
-                  />
-                </div>
-                <div className="mmh-field">
-                  <label className="mmh-label">To Date <span className="mmh-required">*</span></label>
-                  <input
-                    type="date"
-                    className="mmh-input"
-                    min={fromDate || todayStr}
-                    value={toDate}
-                    onChange={(e) => setToDate(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Duration pill */}
-              {fromDate && toDate && workingDays > 0 && (
-                <div style={{ margin: '12px 0', padding: '10px 14px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 10, fontSize: 13, color: '#34d399', fontWeight: 700 }}>
-                  📅 Duration: {workingDays} working day{workingDays !== 1 ? 's' : ''}
-                </div>
-              )}
-
-              {/* Reason */}
-              <div className="mmh-field" style={{ marginTop: 16 }}>
-                <label className="mmh-label">Reason <span className="mmh-required">*</span></label>
-                <textarea
-                  className="mmh-textarea"
-                  placeholder="Describe reason for leave..."
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  required
-                  rows={3}
-                />
-              </div>
-
-              {/* Needs Substitute toggle */}
-              <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 10 }}>
+            <div className="mmh-form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+              <div className="mmh-field">
+                <label className="mmh-label">From Date <span className="mmh-required">*</span></label>
                 <input
-                  id="needsSub"
-                  type="checkbox"
-                  checked={needsSubstitute}
-                  onChange={(e) => { setNeedsSubstitute(e.target.checked); if (!e.target.checked) setSubstituteId(''); }}
-                  style={{ width: 16, height: 16, accentColor: '#8b5cf6', cursor: 'pointer' }}
+                  type="date"
+                  className="mmh-input"
+                  min={todayStr}
+                  value={fromDate}
+                  onChange={(e) => { setFromDate(e.target.value); if (toDate && e.target.value > toDate) setToDate(''); }}
+                  required
                 />
-                <label htmlFor="needsSub" style={{ fontSize: 13, color: '#a78bfa', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>
-                  🔄 I need a substitute employee during my absence
-                </label>
               </div>
+              <div className="mmh-field">
+                <label className="mmh-label">To Date <span className="mmh-required">*</span></label>
+                <input
+                  type="date"
+                  className="mmh-input"
+                  min={fromDate || todayStr}
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
 
-              {/* Substitute selection — TypeSearch */}
-              {needsSubstitute && (
-                <div style={{ marginTop: 12, overflow: 'visible' }}>
-                  <TypeSearch
-                    options={substituteOpts}
-                    value={substituteId}
-                    onChange={(v) => setSubstituteId(v)}
-                    placeholder="Search substitute employee..."
-                    label="Substitute Employee"
-                    required={needsSubstitute}
+            {fromDate && toDate && workingDays > 0 && (
+              <div className="mmh-duration-box" style={{ marginTop: '16px' }}>
+                📅 Duration: {workingDays} working day{workingDays !== 1 ? 's' : ''} (excludes Sundays)
+              </div>
+            )}
+
+            <div className="mmh-field" style={{ marginTop: 16 }}>
+              <label className="mmh-label">Reason <span className="mmh-required">*</span></label>
+              <textarea
+                className="mmh-textarea"
+                placeholder="Describe reason for leave..."
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                required
+                rows={3}
+              />
+            </div>
+
+            {/* Sub logic only for doctors */}
+            {activeRole === 'doctor' && (
+              <>
+                <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 10 }}>
+                  <input
+                    id="needsSub"
+                    type="checkbox"
+                    checked={needsSubstitute}
+                    onChange={(e) => { setNeedsSubstitute(e.target.checked); if (!e.target.checked) setSubstituteId(''); }}
+                    style={{ width: 16, height: 16, accentColor: '#8b5cf6', cursor: 'pointer' }}
                   />
-                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 6, paddingLeft: 2 }}>
-                    ℹ️ Admin will notify the substitute and confirm acceptance.
-                  </div>
+                  <label htmlFor="needsSub" style={{ fontSize: 13, color: '#a78bfa', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>
+                    🔄 I need a substitute doctor
+                  </label>
                 </div>
-              )}
 
-              <button
-                type="submit"
-                className="mmh-btn mmh-btn-primary"
-                style={{ width: '100%', marginTop: 20 }}
-                disabled={submitLoading}
-              >
-                {submitLoading ? '⏳ Submitting...' : '📤 Submit Leave Request'}
-              </button>
-            </form>
-          </div>
+                {needsSubstitute && (
+                  <div style={{ marginTop: 12, overflow: 'visible' }}>
+                    <TypeSearch
+                      options={substituteOpts}
+                      value={substituteId}
+                      onChange={(v) => setSubstituteId(v)}
+                      placeholder="Search substitute doctor..."
+                      label="Substitute Doctor"
+                      required={needsSubstitute}
+                    />
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 6, paddingLeft: 2 }}>
+                      ℹ️ Admin will notify the substitute and confirm acceptance.
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            <button
+              type="submit"
+              className="mmh-btn mmh-btn-primary mmh-btn-full"
+              style={{ marginTop: 20 }}
+              disabled={submitLoading}
+            >
+              {submitLoading ? '⏳ Submitting...' : '📤 Submit Leave Request'}
+            </button>
+          </form>
         </div>
 
         {/* RIGHT — Leave History */}
-        <div className="mmh-card">
-          <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg,#8b5cf6,#a78bfa)' }} />
-          <div className="mmh-card-header">
-            <div className="mmh-card-title">📋 Leave History</div>
-            <div style={{ fontSize: 12, color: '#64748b' }}>{leaves.length} request{leaves.length !== 1 ? 's' : ''}</div>
+        <div className="mmh-leave-hist-card">
+          <div className="mmh-leave-card-title" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>📋 Leave History</span>
+            <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>{leaves.length} requests</span>
           </div>
-          <div className="mmh-card-body" style={{ overflow: 'visible' }}>
-            {/* Filters */}
-            <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap', overflow: 'visible' }}>
-              <div style={{ flex: 1, minWidth: 140 }}>
-                <input
-                  className="mmh-input"
-                  placeholder="🔍 Search by type or reason..."
-                  value={searchFilter}
-                  onChange={(e) => setSearchFilter(e.target.value)}
-                />
-              </div>
-              <div style={{ width: 165, overflow: 'visible' }}>
-                <TypeSearch
-                  options={STATUS_OPTS}
-                  value={statusFilter}
-                  onChange={(v) => setStatusFilter(v)}
-                  placeholder="Filter status..."
-                />
-              </div>
+
+          <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap', overflow: 'visible' }}>
+            <div style={{ flex: 1, minWidth: 140 }}>
+              <input
+                className="mmh-input"
+                placeholder="🔍 Search..."
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+              />
             </div>
+            <div style={{ width: 140, overflow: 'visible' }}>
+              <TypeSearch
+                options={STATUS_OPTS}
+                value={statusFilter}
+                onChange={(v) => setStatusFilter(v)}
+                placeholder="Filter status..."
+              />
+            </div>
+          </div>
 
-            {/* Leave Cards */}
-            <div style={{ maxHeight: 440, overflowY: 'auto', overflowX: 'visible' }}>
-              {filteredLeaves.length === 0 ? (
-                <div className="mmh-empty" style={{ padding: '30px 0' }}>
-                  <div className="mmh-empty-icon">📃</div>
-                  <div className="mmh-empty-text">No leave requests found</div>
-                </div>
-              ) : (
-                filteredLeaves.map((l) => (
-                  <div key={l._id} className={`mmh-leave-history-card ${LHC_CLASS[l.status] || ''}`}>
-                    {/* Top row — type + status + dates */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 6 }}>
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                        <span className="mmh-badge mmh-badge-sky">{l.leaveType}</span>
-                        <span className={`mmh-badge ${STATUS_BADGE[l.status] || 'mmh-badge-gray'}`}>{l.status}</span>
-                      </div>
-                      <span style={{ fontSize: 11, color: '#64748b' }}>
-                        {fmtDate(l.fromDate)} → {fmtDate(l.toDate)}
-                      </span>
+          <div>
+            {filteredLeaves.length === 0 ? (
+              <div className="mmh-empty" style={{ padding: '30px 0' }}>
+                <div className="mmh-empty-icon">📃</div>
+                <div className="mmh-empty-text">No leave requests found</div>
+              </div>
+            ) : (
+              filteredLeaves.map((l) => (
+                <div key={l._id} className={`mmh-lhc mmh-lhc-${l.status?.toLowerCase() || 'pending'}`}>
+                  <div className="mmh-lhc-top">
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <span className="mmh-badge mmh-badge-sky">{l.leaveType}</span>
+                      <span className={`mmh-badge ${STATUS_BADGE[l.status] || 'mmh-badge-gray'}`}>{l.status}</span>
                     </div>
-
-                    {/* Duration + reason */}
-                    <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 4 }}>
-                      <strong style={{ color: '#cbd5e1' }}>
-                        {l.totalDays || calcWorkingDays(l.fromDate, l.toDate)} day{(l.totalDays || 1) !== 1 ? 's' : ''}
-                      </strong>
-                      {l.reason && ` · ${l.reason.slice(0, 70)}${l.reason.length > 70 ? '...' : ''}`}
-                    </div>
-
-                    {/* Substitute info */}
-                    {l.needsSubstitute && (
-                      <div style={{ fontSize: 11, marginTop: 6, color: '#a78bfa', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span>🔄 Substitute:</span>
-                        <span style={{ fontWeight: 700 }}>{l.substituteEmployee?.name || 'Requested'}</span>
-                        {l.substituteStatus && (
-                          <span style={{ color: l.substituteStatus === 'Accepted' ? '#34d399' : l.substituteStatus === 'Declined' ? '#fb7185' : '#fbbf24' }}>
-                            — {l.substituteStatus}
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Rejection reason */}
-                    {l.status === 'Rejected' && l.rejectedReason && (
-                      <div style={{ fontSize: 11, color: '#fb7185', marginTop: 6, padding: '6px 10px', background: 'rgba(244,63,94,0.06)', borderRadius: 6 }}>
-                        ❌ Reason: {l.rejectedReason}
-                      </div>
-                    )}
-
-                    {/* Cancel — pending only */}
-                    {l.status === 'Pending' && (
-                      <div style={{ marginTop: 10, textAlign: 'right' }}>
-                        <span style={{ fontSize: 10, color: '#64748b', fontStyle: 'italic' }}>
-                          Awaiting admin review
-                        </span>
-                      </div>
-                    )}
                   </div>
-                ))
-              )}
-            </div>
+                  
+                  <div className="mmh-lhc-dates">
+                    {fmtDate(l.fromDate)} → {fmtDate(l.toDate)} 
+                    <strong style={{ marginLeft: 6 }}>({l.totalDays || calcWorkingDays(l.fromDate, l.toDate)}d)</strong>
+                  </div>
+                  
+                  {l.reason && <div className="mmh-lhc-reason">{l.reason}</div>}
+
+                  {l.needsSubstitute && l.substituteEmployee && (
+                    <div className="mmh-lhc-substitute">
+                      🔄 Sub: {l.substituteEmployee.name}
+                      {l.substituteStatus && (
+                        <span style={{ color: l.substituteStatus === 'Accepted' ? '#34d399' : l.substituteStatus === 'Declined' ? '#fb7185' : '#fbbf24' }}>
+                          ({l.substituteStatus})
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {l.status === 'Rejected' && l.rejectedReason && (
+                    <div className="mmh-lhc-reject-reason">
+                      ❌ {l.rejectedReason}
+                    </div>
+                  )}
+
+                  {l.status === 'Pending' && (
+                    <button 
+                      className="mmh-lhc-cancel-btn"
+                      onClick={() => handleCancel(l._id)}
+                    >
+                      Cancel Leave
+                    </button>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

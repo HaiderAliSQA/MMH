@@ -12,10 +12,11 @@ import {
   getEmployees, createEmployee, updateEmployee,
   getShifts, saveShift, getEmployeeShifts,
   getAttendance, getAttendanceRange, markAttendance, bulkAttendance, getAttendanceSummary,
-  getLeaves, applyLeave, approveLeave, rejectLeave, substituteResponse,
+  getLeaves, applyLeave, approveLeave, rejectLeave, substituteResponse, cancelLeave,
   getPayroll, generateAllPayroll, generateOnePayroll, markPaid, getPayrollSlip,
   getMyLeaves, getMyBalance,
 } from '../controllers/hr.controller';
+import { getNotifications, markRead, markAllRead } from '../controllers/notification.controller';
 
 const router = Router();
 
@@ -90,6 +91,7 @@ router.get('/hr/leaves', protect, authorize('admin', 'manager'), getLeaves);
 router.post('/hr/leaves', protect, applyLeave);
 router.put('/hr/leaves/:id/approve', protect, authorize('admin'), approveLeave);
 router.put('/hr/leaves/:id/reject', protect, authorize('admin'), rejectLeave);
+router.put('/hr/leaves/:id/cancel', protect, cancelLeave);
 router.put('/hr/leaves/:id/substitute-response', protect, substituteResponse);
 
 // Payroll
@@ -102,5 +104,10 @@ router.get('/hr/payroll/slip/:id', protect, getPayrollSlip);
 // My Portal endpoints (for any logged-in employee)
 router.get('/hr/leaves/my', protect, getMyLeaves);
 router.get('/hr/employees/my-balance', protect, getMyBalance);
+
+// Notification endpoints
+router.get('/notifications', protect, getNotifications);
+router.put('/notifications/read-all', protect, markAllRead);
+router.put('/notifications/:id/read', protect, markRead);
 
 export default router;
