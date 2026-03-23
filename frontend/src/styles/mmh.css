@@ -2616,3 +2616,205 @@ input[type="time"].mmh-input { color-scheme: dark; }
 
 /* ═══ TAB CONTENT ════════════════════════════════════ */
 .mmh-tab-content { padding: 28px; overflow-y: auto; flex: 1; }
+
+/* ═══ HR MODULE — SHIFT BADGES ═══════════════════════ */
+.mmh-shift-M { display:inline-flex;align-items:center;justify-content:center;width:32px;height:26px;border-radius:6px;font-size:11px;font-weight:700;background:rgba(14,165,233,0.12);color:#38bdf8;cursor:pointer;border:1px solid rgba(14,165,233,0.25);transition:all 0.15s; }
+.mmh-shift-E { display:inline-flex;align-items:center;justify-content:center;width:32px;height:26px;border-radius:6px;font-size:11px;font-weight:700;background:rgba(245,158,11,0.12);color:#fbbf24;cursor:pointer;border:1px solid rgba(245,158,11,0.25);transition:all 0.15s; }
+.mmh-shift-N { display:inline-flex;align-items:center;justify-content:center;width:32px;height:26px;border-radius:6px;font-size:11px;font-weight:700;background:rgba(139,92,246,0.12);color:#a78bfa;cursor:pointer;border:1px solid rgba(139,92,246,0.25);transition:all 0.15s; }
+.mmh-shift-off { display:inline-flex;align-items:center;justify-content:center;width:32px;height:26px;border-radius:6px;font-size:11px;font-weight:700;background:rgba(100,116,139,0.08);color:#475569;cursor:pointer;border:1px solid rgba(100,116,139,0.2);transition:all 0.15s; }
+.mmh-shift-M:hover,.mmh-shift-E:hover,.mmh-shift-N:hover { transform:scale(1.08); }
+
+/* ═══ HR MODULE — ATTENDANCE DOTS ════════════════════ */
+.mmh-att { display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:11px;font-weight:700; }
+.mmh-att-P { background:rgba(16,185,129,0.12);color:#34d399;border:1px solid rgba(16,185,129,0.3); }
+.mmh-att-A { background:rgba(244,63,94,0.12);color:#fb7185;border:1px solid rgba(244,63,94,0.3); }
+.mmh-att-L { background:rgba(245,158,11,0.12);color:#fbbf24;border:1px solid rgba(245,158,11,0.3); }
+.mmh-att-H { background:rgba(14,165,233,0.12);color:#38bdf8;border:1px solid rgba(14,165,233,0.3); }
+.mmh-att-S { background:rgba(6,182,212,0.12);color:#22d3ee;border:1px solid rgba(6,182,212,0.3); }
+.mmh-att-Leave { background:rgba(139,92,246,0.12);color:#a78bfa;border:1px solid rgba(139,92,246,0.3); }
+
+/* ═══ HR MODULE — LEAVE CARDS ════════════════════════ */
+.mmh-leave-card { background:#0f1e38;border:1px solid #1e3050;border-radius:14px;padding:16px;margin-bottom:10px;transition:border-color 0.15s; }
+.mmh-leave-card-pending { border-left:3px solid #f59e0b; }
+.mmh-leave-card-approved { border-left:3px solid #10b981; }
+.mmh-leave-card-rejected { border-left:3px solid #f43f5e; }
+.mmh-leave-card:hover { border-color:#2a4070; }
+
+/* ═══ HR MODULE — LEAVE BALANCE BARS ════════════════ */
+.mmh-leave-bar-wrap { margin-bottom:12px; }
+.mmh-leave-bar-label { display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px; }
+.mmh-leave-bar-track { height:6px;background:#111d35;border-radius:3px;overflow:hidden; }
+.mmh-leave-bar-fill { height:100%;border-radius:3px;transition:width 0.4s; }
+
+/* ═══ HR MODULE — PAYROLL ROW / HEADER ══════════════ */
+.mmh-payroll-row { display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.2fr 100px 80px;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(30,48,80,0.4);font-size:13px; }
+.mmh-payroll-header { background:#111d35;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.07em;border-radius:10px 10px 0 0; }
+
+/* ═══ HR MODULE — WEEK NAVIGATOR ════════════════════ */
+.mmh-week-nav { display:flex;align-items:center;gap:12px;margin-bottom:16px; }
+.mmh-week-btn { width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px;border:1.5px solid #1e3050;background:#0f1e38;color:#94a3b8;cursor:pointer;font-size:16px;transition:all 0.15s; }
+.mmh-week-btn:hover { border-color:#0ea5e9;color:white; }
+.mmh-week-label { font-size:14px;font-weight:700;color:white;min-width:200px;text-align:center; }
+
+/* ═══ HR MODULE — STATUS DOT INLINE ═════════════════ */
+.mmh-status-dot { width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0; }
+.mmh-status-dot-green { background:#10b981; }
+.mmh-status-dot-red { background:#f43f5e; }
+.mmh-status-dot-amber { background:#f59e0b; }
+.mmh-status-dot-blue { background:#0ea5e9; }
+.mmh-status-dot-violet { background:#8b5cf6; }
+.mmh-status-dot-gray { background:#64748b; }
+.mmh-status-dot-cyan { background:#06b6d4; }
+
+/* ═══ HR MODULE — TWO COLUMN LAYOUT ═════════════════ */
+.mmh-hr-two-col { display:grid;grid-template-columns:1.4fr 1fr;gap:24px; }
+@media (max-width: 1000px) { .mmh-hr-two-col { grid-template-columns:1fr; } }
+
+/* ═══ HR MODULE — STATS 5-GRID ══════════════════════ */
+.mmh-stats-grid-5 { display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px; }
+@media (max-width: 1100px) { .mmh-stats-grid-5 { grid-template-columns:repeat(3,1fr); } }
+@media (max-width: 700px)  { .mmh-stats-grid-5 { grid-template-columns:repeat(2,1fr); } }
+
+/* ═══ HR MODULE — SHIFT QUICK EDIT DROPDOWN ═════════ */
+.mmh-shift-dropdown { position:absolute;top:100%;left:50%;transform:translateX(-50%);z-index:50;background:#0f1e38;border:1.5px solid #2a4070;border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:3px;box-shadow:0 8px 24px rgba(0,0,0,0.5);animation:mmh-scale-in 0.15s ease;min-width:120px; }
+.mmh-shift-dropdown-item { padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;transition:background 0.1s;white-space:nowrap;border:none;background:transparent;color:#cbd5e1;text-align:left;font-family:inherit; }
+.mmh-shift-dropdown-item:hover { background:rgba(14,165,233,0.12);color:white; }
+
+/* ═══════════════════════════════════════ */
+/* HR MODULE V2 — Type Search Component   */
+/* ═══════════════════════════════════════ */
+.mmh-ts-wrap { position:relative; }
+.mmh-ts-input { width:100%;height:46px;padding:0 16px 0 42px;background:#111d35;border:2px solid #1e3050;border-radius:12px;color:#e2eaf6;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.15s;box-sizing:border-box; }
+.mmh-ts-input:focus { border-color:#0ea5e9; }
+.mmh-ts-input:disabled { opacity:0.5;cursor:not-allowed; }
+.mmh-ts-icon { position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#475569;font-size:14px;pointer-events:none;z-index:1; }
+.mmh-ts-dropdown { position:absolute;top:calc(100% + 4px);left:0;right:0;background:#0f1e38;border:1.5px solid #2a4070;border-radius:12px;max-height:240px;overflow-y:auto;z-index:9999;box-shadow:0 12px 32px rgba(0,0,0,0.6); }
+.mmh-ts-option { display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-bottom:1px solid rgba(30,48,80,0.4);transition:background 0.12s; }
+.mmh-ts-option:hover { background:rgba(14,165,233,0.1); }
+.mmh-ts-option:last-child { border-bottom:none; }
+.mmh-ts-option-label { font-size:13px;font-weight:600;color:white; }
+.mmh-ts-option-sub { font-size:11px;color:#64748b;margin-top:1px; }
+.mmh-ts-empty { padding:16px;text-align:center;color:#475569;font-size:13px; }
+.mmh-ts-selected { display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(14,165,233,0.08);border:1.5px solid rgba(14,165,233,0.2);border-radius:12px; }
+.mmh-ts-selected-label { font-size:13px;font-weight:700;color:white; }
+.mmh-ts-clear { background:none;border:none;color:#64748b;cursor:pointer;font-size:16px;padding:2px 6px;transition:color 0.15s; }
+.mmh-ts-clear:hover { color:#fb7185; }
+
+/* ═══ Leave Balance Progress Bars ═══ */
+.mmh-leave-bal-card { background:#0f1e38;border:1px solid #1e3050;border-radius:14px;padding:16px 20px; }
+.mmh-leave-bal-row { margin-bottom:14px; }
+.mmh-leave-bal-row:last-child { margin-bottom:0; }
+.mmh-leave-bal-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:6px; }
+.mmh-leave-bal-name { font-size:13px;font-weight:600;color:#e2eaf6; }
+.mmh-leave-bal-count { font-size:12px;font-family:'JetBrains Mono',monospace;font-weight:700;color:#64748b; }
+.mmh-leave-bal-track { height:6px;background:#111d35;border-radius:3px;overflow:hidden; }
+.mmh-leave-bal-fill { height:100%;border-radius:3px;transition:width 0.5s ease; }
+.mmh-lbf-green { background:#10b981; }
+.mmh-lbf-amber { background:#f59e0b; }
+.mmh-lbf-red { background:#f43f5e; }
+
+/* ═══ Leave History Cards ═══ */
+.mmh-leave-history-card { background:#111d35;border:1px solid #1e3050;border-left:3px solid #1e3050;border-radius:12px;padding:14px 16px;margin-bottom:10px;transition:border-color 0.15s; }
+.mmh-lhc-pending { border-left-color:#f59e0b; }
+.mmh-lhc-approved { border-left-color:#10b981; }
+.mmh-lhc-rejected { border-left-color:#f43f5e; }
+.mmh-lhc-cancelled { border-left-color:#64748b; }
+
+/* ═══ Attendance Calendar ═══ */
+.mmh-att-cal { display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px; }
+.mmh-att-cal-day { aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:default;border:1px solid transparent; }
+.mmh-att-cal-P { background:rgba(16,185,129,0.15);color:#34d399;border-color:rgba(16,185,129,0.25); }
+.mmh-att-cal-A { background:rgba(244,63,94,0.15);color:#fb7185;border-color:rgba(244,63,94,0.25); }
+.mmh-att-cal-L { background:rgba(245,158,11,0.15);color:#fbbf24;border-color:rgba(245,158,11,0.25); }
+.mmh-att-cal-H { background:rgba(14,165,233,0.15);color:#38bdf8;border-color:rgba(14,165,233,0.25); }
+.mmh-att-cal-O { background:rgba(100,116,139,0.1);color:#475569; }
+.mmh-att-cal-header { font-size:10px;font-weight:700;color:#64748b;text-align:center;padding:4px 0; }
+
+/* ═══ Salary Slip (White BG) ═══ */
+.mmh-salary-slip { background:white;color:#0f172a;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;max-width:480px;margin:0 auto;font-family:'Plus Jakarta Sans',sans-serif; }
+.mmh-slip-pay-header { background:#312e81;color:white;padding:18px 22px;text-align:center; }
+.mmh-slip-pay-hospital { font-size:18px;font-weight:800;font-style:italic; }
+.mmh-slip-pay-sub { font-size:11px;opacity:0.75;margin-top:3px; }
+.mmh-slip-pay-type { font-size:10px;text-transform:uppercase;letter-spacing:0.15em;opacity:0.7;margin-top:5px; }
+.mmh-slip-pay-body { padding:18px 22px;background:white; }
+.mmh-slip-att-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#f8fafc;padding:12px;border-radius:10px;margin-bottom:14px; }
+.mmh-slip-att-item { text-align:center; }
+.mmh-slip-att-num { font-size:20px;font-weight:900;font-family:'JetBrains Mono',monospace;color:#0f172a; }
+.mmh-slip-att-label { font-size:10px;color:#94a3b8;margin-top:2px; }
+.mmh-slip-section-title { font-size:10px;font-weight:800;color:#312e81;text-transform:uppercase;letter-spacing:0.1em;margin:12px 0 8px;padding-bottom:4px;border-bottom:1.5px solid #e0e7ff; }
+.mmh-slip-pay-row { display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px dotted #f1f5f9;color:#0f172a; }
+.mmh-slip-pay-label { color:#64748b; }
+.mmh-slip-pay-val { font-weight:600;color:#0f172a; }
+.mmh-slip-pay-green { font-weight:600;color:#059669; }
+.mmh-slip-pay-red { font-weight:600;color:#dc2626; }
+.mmh-slip-net-box { display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#f0f0ff;border:2px solid #312e81;border-radius:10px;margin-top:12px; }
+.mmh-slip-net-label { font-size:15px;font-weight:800;color:#312e81; }
+.mmh-slip-net-amount { font-size:22px;font-weight:900;font-family:'JetBrains Mono',monospace;color:#312e81; }
+
+/* ═══ Payroll Table ═══ */
+.mmh-payroll-table-row { display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.2fr 100px 90px;gap:8px;align-items:center;padding:13px 16px;border-bottom:1px solid rgba(30,48,80,0.4);font-size:13px;transition:background 0.15s; }
+.mmh-payroll-table-row:hover { background:rgba(255,255,255,0.018); }
+.mmh-payroll-header-row { background:#111d35;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.07em;border-radius:12px 12px 0 0; }
+.mmh-payroll-deduct-popup { position:absolute;background:#0f1e38;border:1.5px solid #2a4070;border-radius:12px;padding:12px 16px;font-size:12px;min-width:220px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5); }
+
+/* ── Missing button variants ── */
+.mmh-btn-rose { background:rgba(244,63,94,0.15);color:#fb7185;border:1.5px solid rgba(244,63,94,0.3); }
+.mmh-btn-rose:hover { background:rgba(244,63,94,0.25);border-color:#fb7185; }
+.mmh-btn-violet { background:rgba(139,92,246,0.15);color:#a78bfa;border:1.5px solid rgba(139,92,246,0.3); }
+.mmh-btn-violet:hover { background:rgba(139,92,246,0.25);border-color:#a78bfa; }
+.mmh-btn-sky { background:rgba(14,165,233,0.15);color:#38bdf8;border:1.5px solid rgba(14,165,233,0.3); }
+.mmh-btn-sky:hover { background:rgba(14,165,233,0.25);border-color:#38bdf8; }
+.mmh-btn-indigo { background:rgba(99,102,241,0.15);color:#818cf8;border:1.5px solid rgba(99,102,241,0.3); }
+.mmh-btn-indigo:hover { background:rgba(99,102,241,0.25);border-color:#818cf8; }
+
+/* ── Salary Slip Display ── */
+.mmh-salary-slip { background:white;border-radius:14px;overflow:hidden;color:#0f172a;max-width:520px;margin:0 auto;box-shadow:0 4px 24px rgba(0,0,0,0.3); }
+.mmh-slip-pay-header { background:#312e81;color:white;padding:20px 24px;text-align:center; }
+.mmh-slip-pay-hospital { font-size:18px;font-weight:900;font-style:italic; }
+.mmh-slip-pay-sub { font-size:11px;opacity:0.75;margin-top:4px; }
+.mmh-slip-pay-type { font-size:10px;text-transform:uppercase;letter-spacing:0.15em;opacity:0.7;margin-top:6px; }
+.mmh-slip-pay-body { padding:20px 24px; }
+.mmh-slip-section-title { font-size:10px;font-weight:800;color:#312e81;text-transform:uppercase;letter-spacing:0.1em;margin:14px 0 8px;padding-bottom:4px;border-bottom:1.5px solid #e0e7ff; }
+.mmh-slip-pay-row { display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px dotted #f1f5f9; }
+.mmh-slip-pay-label { color:#64748b; }
+.mmh-slip-pay-val { font-weight:600;color:#0f172a; }
+.mmh-slip-pay-green { font-weight:600;color:#059669; }
+.mmh-slip-pay-red { font-weight:600;color:#dc2626; }
+.mmh-slip-net-box { display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:#f0f0ff;border:2px solid #312e81;border-radius:10px;margin-top:14px; }
+.mmh-slip-net-label { font-size:15px;font-weight:800;color:#312e81; }
+.mmh-slip-net-amount { font-size:22px;font-weight:900;font-family:'JetBrains Mono',monospace;color:#312e81; }
+
+/* ── Attendance Calendar ── */
+.mmh-att-cal { display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px; }
+.mmh-att-cal-header { font-size:10px;font-weight:700;color:#64748b;text-align:center;padding:4px 0;text-transform:uppercase; }
+.mmh-att-cal-day { display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;padding:6px 2px;min-height:44px;border:1px solid transparent;transition:all 0.15s; }
+.mmh-att-cal-P { background:rgba(52,211,153,0.12);border-color:rgba(52,211,153,0.25);color:#34d399; }
+.mmh-att-cal-A { background:rgba(251,113,133,0.12);border-color:rgba(251,113,133,0.25);color:#fb7185; }
+.mmh-att-cal-L { background:rgba(251,191,36,0.12);border-color:rgba(251,191,36,0.25);color:#fbbf24; }
+.mmh-att-cal-H { background:rgba(56,189,248,0.12);border-color:rgba(56,189,248,0.25);color:#38bdf8; }
+.mmh-att-cal-O { background:rgba(100,116,139,0.08);border-color:rgba(100,116,139,0.15);color:#475569; }
+
+/* ── Leave balance bars ── */
+.mmh-leave-bal-track { height:4px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;margin-top:6px; }
+.mmh-leave-bal-fill { height:100%;border-radius:4px;transition:width 0.4s ease; }
+.mmh-lbf-green { background:linear-gradient(90deg,#10b981,#34d399); }
+.mmh-lbf-amber { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+.mmh-lbf-red { background:linear-gradient(90deg,#f43f5e,#fb7185); }
+
+/* ── Leave History Cards ── */
+.mmh-leave-history-card { background:#0f1e38;border:1.5px solid #1e3050;border-radius:12px;padding:14px 16px;margin-bottom:10px;transition:border-color 0.2s; }
+.mmh-lhc-pending { border-color:rgba(245,158,11,0.35); }
+.mmh-lhc-approved { border-color:rgba(16,185,129,0.35); }
+.mmh-lhc-rejected { border-color:rgba(244,63,94,0.35); }
+.mmh-lhc-cancelled { border-color:rgba(100,116,139,0.25); }
+
+/* ── TypeSearch ── */
+.mmh-ts-wrap { position:relative;overflow:visible; }
+.mmh-ts-input-wrap { position:relative;display:flex;align-items:center; }
+.mmh-ts-clear { position:absolute;right:10px;background:none;border:none;color:#64748b;cursor:pointer;font-size:16px;padding:0;line-height:1;display:flex;align-items:center;justify-content:center;width:20px;height:20px; }
+.mmh-ts-clear:hover { color:#94a3b8; }
+.mmh-ts-dropdown { position:absolute;top:calc(100% + 4px);left:0;right:0;background:#0f1e38;border:1.5px solid #2a4070;border-radius:12px;z-index:9999;box-shadow:0 12px 32px rgba(0,0,0,0.5);max-height:220px;overflow-y:auto; }
+.mmh-ts-opt { padding:10px 14px;cursor:pointer;font-size:13px;color:#cbd5e1;display:flex;align-items:center;gap:10px;transition:background 0.12s; }
+.mmh-ts-opt:hover, .mmh-ts-opt.selected { background:rgba(14,165,233,0.12);color:white; }
+.mmh-ts-empty { padding:12px 16px;color:#475569;font-size:12px;text-align:center; }
+

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import api from '../../api';
 import '../../styles/mmh.css';
 import PatientSearch, { PatientResult } from '../../components/PatientSearch';
+import MyLeaveTab from '../../components/MyLeaveTab';
+import { useSearchParams } from 'react-router-dom';
 
 // ─── Types ──────────────────────────────────────────────────────────
 interface TestDetail {
@@ -115,21 +117,26 @@ const printLabReport = (lab: LabReq) => {
 
 // --- Main Page -------------------------------------------------------
 const LabPage: React.FC = () => {
-  const [tab, setTab] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get('tab') || 'pending';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', width: '100%' }}>
       <div className="mmh-page-tabs">
-        <button className={`mmh-page-tab${tab === 0 ? ' active' : ''}`} onClick={() => setTab(0)}>
+        <button className={`mmh-page-tab${tab === 'pending' ? ' active' : ''}`} onClick={() => setSearchParams({ tab: 'pending' })}>
           <span>⏳</span> Pending Tests
         </button>
-        <button className={`mmh-page-tab${tab === 1 ? ' active' : ''}`} onClick={() => setTab(1)}>
+        <button className={`mmh-page-tab${tab === 'results' ? ' active' : ''}`} onClick={() => setSearchParams({ tab: 'results' })}>
           <span>📝</span> Enter Results
+        </button>
+        <button className={`mmh-page-tab${tab === 'my-leave' ? ' active' : ''}`} onClick={() => setSearchParams({ tab: 'my-leave' })}>
+          <span>🏖️</span> My Leave
         </button>
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: 28, boxSizing: 'border-box' }}>
-        {tab === 0 && <PendingTab />}
-        {tab === 1 && <ResultsTab />}
+        {tab === 'pending' && <PendingTab />}
+        {tab === 'results' && <ResultsTab />}
+        {tab === 'my-leave' && <MyLeaveTab />}
       </div>
     </div>
   );

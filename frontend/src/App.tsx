@@ -10,6 +10,7 @@ import PatientsPage from './pages/admin/PatientsPage';
 import PharmacyPage from './pages/pharmacy/PharmacyPage';
 import ManageUsers from './pages/admin/ManageUsers';
 import ManageWards from './pages/admin/ManageWards';
+import HRPage from './pages/admin/HRPage';
 import Settings from './pages/Settings';
 
 // Original Portal Pages
@@ -72,6 +73,7 @@ function App() {
         <Route path="/payments" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Payments"><PlaceholderPage title="Payments Management" /></MainLayout></ProtectedRoute>} />
         <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Manage Users"><ManageUsers /></MainLayout></ProtectedRoute>} />
         <Route path="/admin/managers" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Manage Managers"><PlaceholderPage title="Managers Management" /></MainLayout></ProtectedRoute>} />
+        <Route path="/hr" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><MainLayout user={user} title="HR Management"><HRPage /></MainLayout></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><MainLayout user={user} title="Account Settings"><Settings /></MainLayout></ProtectedRoute>} />
 
         {/* Receptionist Portal (Restored Legacy UI) */}

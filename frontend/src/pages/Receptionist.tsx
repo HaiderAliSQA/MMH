@@ -22,8 +22,6 @@ const Receptionist: React.FC<ReceptionistProps> = ({ onLogout }) => {
   return (
     <div className="mmh-app">
       <Sidebar 
-        user={user} 
-        onLogout={onLogout} 
         isOpen={sidebarOpen} 
         onToggle={() => setSidebarOpen(!sidebarOpen)} 
       />

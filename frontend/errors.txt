@@ -1,0 +1,6 @@
+src/components/MainLayout.tsx(18,9): error TS2322: Type '{ user: any; isOpen: boolean; onToggle: () => void; }' is not assignable to type 'IntrinsicAttributes & SidebarProps'.
+  Property 'user' does not exist on type 'IntrinsicAttributes & SidebarProps'.
+src/pages/admin/AdminLayout.tsx(40,9): error TS2322: Type '{ user: any; onLogout: (() => void) | undefined; isOpen: boolean; onToggle: () => void; }' is not assignable to type 'IntrinsicAttributes & SidebarProps'.
+  Property 'user' does not exist on type 'IntrinsicAttributes & SidebarProps'.
+src/pages/Receptionist.tsx(25,9): error TS2322: Type '{ user: any; onLogout: (() => void) | undefined; isOpen: boolean; onToggle: () => void; }' is not assignable to type 'IntrinsicAttributes & SidebarProps'.
+  Property 'user' does not exist on type 'IntrinsicAttributes & SidebarProps'.

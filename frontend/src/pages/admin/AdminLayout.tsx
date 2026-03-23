@@ -37,8 +37,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ initialTab = 'dash', onLogout
   return (
     <div className="mmh-app">
       <Sidebar 
-        user={user} 
-        onLogout={onLogout} 
         isOpen={sidebarOpen} 
         onToggle={() => setSidebarOpen(!sidebarOpen)} 
       />

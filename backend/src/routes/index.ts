@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { login, getMe, changePassword } from '../controllers/auth.controller';
-import { protect } from '../middleware/auth.middleware';
+import { protect, authorize } from '../middleware/auth.middleware';
 import { getPatients, createPatient, updatePatient, searchPatients } from '../controllers/patient.controller';
 import { getOpdVisits, createOpdVisit, updateOpdStatus } from '../controllers/opd.controller';
 import { getAdmissions, createAdmission, dischargePatient } from '../controllers/admission.controller';
@@ -8,6 +8,14 @@ import { getLabRequests, createLabRequest, updateLabStatus } from '../controller
 import { getMedicines, createMedicine, updateMedicine, dispenseMedicine } from '../controllers/pharmacy.controller';
 import { getPayments, createPayment } from '../controllers/payment.controller';
 import { getStats, getUsers, createUser, updateUser, getDoctors, createDoctor, getWards, getWardBeds } from '../controllers/admin.controller';
+import {
+  getEmployees, createEmployee, updateEmployee,
+  getShifts, saveShift, getEmployeeShifts,
+  getAttendance, getAttendanceRange, markAttendance, bulkAttendance, getAttendanceSummary,
+  getLeaves, applyLeave, approveLeave, rejectLeave, substituteResponse,
+  getPayroll, generateAllPayroll, generateOnePayroll, markPaid, getPayrollSlip,
+  getMyLeaves, getMyBalance,
+} from '../controllers/hr.controller';
 
 const router = Router();
 
@@ -42,14 +50,13 @@ router.put('/admissions/:id/discharge', dischargePatient);
 // Lab Routes
 router.get('/labs', getLabRequests);
 router.post('/labs', createLabRequest);
-router.put('/labs/:id', updateLabStatus); // Will need to combine logic in controller
+router.put('/labs/:id', updateLabStatus);
 
 // Pharmacy Routes
 router.get('/medicines', getMedicines);
 router.post('/medicines', createMedicine);
 router.put('/medicines/:id', updateMedicine);
 router.post('/dispense', dispenseMedicine);
-// Need delete method
 
 // Payment Routes
 router.get('/payments', getPayments);
@@ -59,5 +66,41 @@ router.post('/payments', createPayment);
 router.get('/admin/stats', getStats);
 router.get('/wards', getWards);
 router.get('/wards/:wardId/beds', getWardBeds);
+
+// ═══ HR MANAGEMENT ROUTES ═══════════════════════════════
+// Employees
+router.get('/hr/employees', protect, authorize('admin', 'manager'), getEmployees);
+router.post('/hr/employees', protect, authorize('admin'), createEmployee);
+router.put('/hr/employees/:id', protect, authorize('admin'), updateEmployee);
+
+// Shifts
+router.get('/hr/shifts', protect, authorize('admin', 'manager'), getShifts);
+router.post('/hr/shifts', protect, authorize('admin'), saveShift);
+router.get('/hr/shifts/employee/:id', protect, getEmployeeShifts);
+
+// Attendance
+router.get('/hr/attendance', protect, authorize('admin', 'manager'), getAttendance);
+router.get('/hr/attendance/range', protect, authorize('admin', 'manager'), getAttendanceRange);
+router.post('/hr/attendance/mark', protect, authorize('admin'), markAttendance);
+router.post('/hr/attendance/bulk', protect, authorize('admin'), bulkAttendance);
+router.get('/hr/attendance/summary', protect, authorize('admin', 'manager'), getAttendanceSummary);
+
+// Leaves
+router.get('/hr/leaves', protect, authorize('admin', 'manager'), getLeaves);
+router.post('/hr/leaves', protect, applyLeave);
+router.put('/hr/leaves/:id/approve', protect, authorize('admin'), approveLeave);
+router.put('/hr/leaves/:id/reject', protect, authorize('admin'), rejectLeave);
+router.put('/hr/leaves/:id/substitute-response', protect, substituteResponse);
+
+// Payroll
+router.get('/hr/payroll', protect, authorize('admin', 'manager'), getPayroll);
+router.post('/hr/payroll/generate', protect, authorize('admin'), generateAllPayroll);
+router.post('/hr/payroll/generate/:id', protect, authorize('admin'), generateOnePayroll);
+router.put('/hr/payroll/:id/mark-paid', protect, authorize('admin'), markPaid);
+router.get('/hr/payroll/slip/:id', protect, getPayrollSlip);
+
+// My Portal endpoints (for any logged-in employee)
+router.get('/hr/leaves/my', protect, getMyLeaves);
+router.get('/hr/employees/my-balance', protect, getMyBalance);
 
 export default router;

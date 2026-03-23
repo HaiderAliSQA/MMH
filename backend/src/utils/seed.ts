@@ -5,6 +5,10 @@ import Doctor from '../models/Doctor.model';
 import Medicine from '../models/Medicine.model';
 import Ward from '../models/Ward.model';
 import Bed from '../models/Bed.model';
+import Employee, { generateEmployeeId } from '../models/Employee.model';
+import Attendance from '../models/Attendance.model';
+import LeaveRequest from '../models/LeaveRequest.model';
+import Payroll from '../models/Payroll.model';
 import connectDB from '../config/db';
 
 dotenv.config();
@@ -19,6 +23,10 @@ const seedDB = async () => {
     await Medicine.deleteMany();
     await Ward.deleteMany();
     await Bed.deleteMany();
+    await Employee.deleteMany();
+    await Attendance.deleteMany();
+    await LeaveRequest.deleteMany();
+    await Payroll.deleteMany();
 
     // Create Users (7)
     const usersData = [
@@ -31,9 +39,6 @@ const seedDB = async () => {
       { name: 'Test Patient',    email: 'patient@mmh.pk',    password: 'mmh1234', role: 'patient' }
     ];
 
-    const users = await User.insertMany(usersData.map(u => new User(u))); // Pre-save hooks aren't triggered by insertMany, but wait, the prompt doesn't say insertMany or save, let's use create which triggers save or map save. Actually, we should just use create to trigger hooks.
-    // wait, I will loop and save so hooks run.
-    await User.deleteMany();
     const createdUsers = [];
     for (const u of usersData) {
       const user = new User(u);
@@ -67,13 +72,9 @@ const seedDB = async () => {
     for (const w of wardsData) {
       const ward = new Ward({ name: w.name, department: w.department, totalBeds: w.totalBeds });
       await ward.save();
-      
       const bedsToCreate = [];
       for (let i = 1; i <= w.totalBeds; i++) {
-        bedsToCreate.push({
-          bedNumber: `${w.prefix}${String(i).padStart(2, '0')}`,
-          ward: ward._id,
-        });
+        bedsToCreate.push({ bedNumber: `${w.prefix}${String(i).padStart(2, '0')}`, ward: ward._id });
       }
       await Bed.insertMany(bedsToCreate);
       totalBedsCreated += bedsToCreate.length;
@@ -96,13 +97,94 @@ const seedDB = async () => {
     ];
     await Medicine.insertMany(medicinesData);
 
+    // ═══ CREATE EMPLOYEE PROFILES ═══
+    const employeeSeedData = [
+      { userEmail: 'admin@mmh.pk', department: 'Administration', designation: 'Hospital Administrator', basicSalary: 120000, houseAllowance: 20000, medicalAllowance: 10000, transportAllowance: 8000, joiningDate: new Date('2020-01-01'), annualLeaveBalance: 24 },
+      { userEmail: 'reception@mmh.pk', department: 'Reception', designation: 'Senior Receptionist', basicSalary: 25000, houseAllowance: 5000, medicalAllowance: 3000, transportAllowance: 2000, joiningDate: new Date('2022-06-01'), annualLeaveBalance: 20 },
+      { userEmail: 'doctor@mmh.pk', department: 'Cardiology', designation: 'Senior Cardiologist', basicSalary: 80000, houseAllowance: 15000, medicalAllowance: 8000, transportAllowance: 5000, joiningDate: new Date('2021-03-15'), annualLeaveBalance: 22 },
+      { userEmail: 'lab@mmh.pk', department: 'Laboratory', designation: 'Lab Technician', basicSalary: 20000, houseAllowance: 4000, medicalAllowance: 2500, transportAllowance: 1500, joiningDate: new Date('2023-01-10'), annualLeaveBalance: 18 },
+      { userEmail: 'pharmacy@mmh.pk', department: 'Pharmacy', designation: 'Senior Pharmacist', basicSalary: 22000, houseAllowance: 4500, medicalAllowance: 3000, transportAllowance: 1500, joiningDate: new Date('2022-09-01'), annualLeaveBalance: 20 },
+      { userEmail: 'manager@mmh.pk', department: 'Management', designation: 'Hospital Manager', basicSalary: 60000, houseAllowance: 12000, medicalAllowance: 6000, transportAllowance: 4000, joiningDate: new Date('2021-07-01'), annualLeaveBalance: 24 },
+    ];
+
+    const createdEmployees: any[] = [];
+    for (const emp of employeeSeedData) {
+      const user = createdUsers.find(u => u.email === emp.userEmail);
+      if (user) {
+        const employeeId = await generateEmployeeId();
+        const employee = await Employee.create({
+          user: user._id, employeeId, name: user.name, role: user.role,
+          department: emp.department, designation: emp.designation,
+          phone: user.phone || '', joiningDate: emp.joiningDate,
+          basicSalary: emp.basicSalary, houseAllowance: emp.houseAllowance,
+          medicalAllowance: emp.medicalAllowance, transportAllowance: emp.transportAllowance,
+          annualLeaveBalance: emp.annualLeaveBalance,
+        });
+        createdEmployees.push(employee);
+      }
+    }
+
+    // ═══ SEED ATTENDANCE — March 2026 ═══
+    const attRecords: any[] = [];
+    const statusPool = ['Present','Present','Present','Present','Late','Present'];
+    for (const emp of createdEmployees) {
+      for (let day = 1; day <= 20; day++) {
+        const d = new Date(2026, 2, day);
+        if (d.getDay() === 0) continue;
+        const st = day === 10 ? 'Absent' : day === 15 ? 'Late' : statusPool[Math.floor(Math.random() * statusPool.length)];
+        attRecords.push({
+          employee: emp._id, date: d, status: st,
+          checkIn: st === 'Present' ? '09:00' : st === 'Late' ? '09:45' : undefined,
+          checkOut: st !== 'Absent' ? '17:00' : undefined,
+          overtimeHours: day === 18 ? 2 : 0,
+        });
+      }
+    }
+    await Attendance.insertMany(attRecords);
+
+    // ═══ SEED LEAVE REQUESTS ═══
+    const leaveData = [
+      { ei: 1, type: 'Annual', from: '2026-03-25', to: '2026-03-27', reason: 'Family wedding in Lahore', status: 'Approved', days: 3 },
+      { ei: 2, type: 'Sick', from: '2026-03-10', to: '2026-03-11', reason: 'Flu and fever', status: 'Approved', days: 2 },
+      { ei: 3, type: 'Emergency', from: '2026-03-20', to: '2026-03-20', reason: 'Family emergency', status: 'Pending', days: 1 },
+      { ei: 4, type: 'Annual', from: '2026-04-01', to: '2026-04-03', reason: 'Personal travel', status: 'Pending', days: 3 },
+      { ei: 5, type: 'Sick', from: '2026-03-05', to: '2026-03-06', reason: 'Doctor appointment', status: 'Rejected', days: 2 },
+      { ei: 0, type: 'Annual', from: '2026-03-15', to: '2026-03-16', reason: 'Personal work', status: 'Approved', days: 2 },
+    ];
+    for (const ld of leaveData) {
+      if (createdEmployees[ld.ei]) {
+        await LeaveRequest.create({
+          employee: createdEmployees[ld.ei]._id, leaveType: ld.type,
+          fromDate: new Date(ld.from), toDate: new Date(ld.to),
+          reason: ld.reason, status: ld.status, totalDays: ld.days,
+          rejectedReason: ld.status === 'Rejected' ? 'Short notice, no coverage' : undefined,
+        });
+      }
+    }
+
+    // ═══ SEED PAYROLL — March 2026 ═══
+    const adminU = createdUsers.find(u => u.email === 'admin@mmh.pk');
+    for (const emp of createdEmployees) {
+      const gross = (emp.basicSalary||0)+(emp.houseAllowance||0)+(emp.medicalAllowance||0)+(emp.transportAllowance||0);
+      const tax = gross > 50000 ? Math.round(gross * 0.05) : 0;
+      const pf = Math.round(emp.basicSalary * 0.03);
+      await Payroll.create({
+        employee: emp._id, month: 3, year: 2026,
+        basicSalary: emp.basicSalary, houseAllowance: emp.houseAllowance,
+        medicalAllowance: emp.medicalAllowance, transportAllowance: emp.transportAllowance,
+        overtimePay: 0, absentDeduction: 0, lateDeduction: 0, halfDayDeduction: 0,
+        eobi: pf, incomeTax: tax, loanDeduction: 0,
+        grossSalary: gross,
+        totalDeductions: tax + pf, netSalary: gross - tax - pf,
+        status: 'Generated', generatedBy: adminU?._id,
+      });
+    }
+
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('✅ MMH Database Seeded!');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('7 Users created');
-    console.log('6 Doctors created');
-    console.log(`6 Wards + ${totalBedsCreated} Beds created`);
-    console.log('12 Medicines created');
+    console.log(`7 Users | 6 Doctors | 6 Wards + ${totalBedsCreated} Beds | 12 Medicines`);
+    console.log(`${createdEmployees.length} Employees | ${attRecords.length} Attendance | ${leaveData.length} Leaves | ${createdEmployees.length} Payroll`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('Login: admin@mmh.pk / mmh1234');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━');

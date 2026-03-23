@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import api from '../../api';
 import '../../styles/mmh.css';
 import DispensingSlip, { printSlip } from '../../components/DispensingSlip';
+import MyLeaveTab from '../../components/MyLeaveTab';
+import { useSearchParams } from 'react-router-dom';
 
 interface Medicine {
   _id: string;
@@ -32,7 +34,8 @@ interface CartItem {
 }
 
 const PharmacyPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dispense' | 'inventory'>('dispense');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'dispense';
   const [loading, setLoading] = useState(false);
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [dispenseHistory, setDispenseHistory] = useState<any[]>([]);
@@ -271,20 +274,28 @@ const PharmacyPage: React.FC = () => {
         <div className="mmh-admin-tabs">
           <button
             className={`mmh-admin-tab ${activeTab === 'dispense' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dispense')}
+            onClick={() => setSearchParams({ tab: 'dispense' })}
           >
             <span>💊</span> Dispense
           </button>
           <button
             className={`mmh-admin-tab ${activeTab === 'inventory' ? 'active' : ''}`}
-            onClick={() => setActiveTab('inventory')}
+            onClick={() => setSearchParams({ tab: 'inventory' })}
           >
             <span>📦</span> Inventory
+          </button>
+          <button
+            className={`mmh-admin-tab ${activeTab === 'my-leave' ? 'active' : ''}`}
+            onClick={() => setSearchParams({ tab: 'my-leave' })}
+          >
+            <span>🏖️</span> My Leave
           </button>
         </div>
       </div>
 
-      {activeTab === 'dispense' ? (
+      {activeTab === 'my-leave' && <MyLeaveTab />}
+
+      {activeTab === 'dispense' && (
         <div className="mmh-tab-content">
           {stockErrors.length > 0 && (
             <div className="mmh-alert mmh-alert-warning" style={{ background: 'rgba(244,63,94,0.1)', borderColor: 'rgba(244,63,94,0.3)', color: '#fb7185', marginBottom: '24px' }}>
@@ -568,7 +579,9 @@ const PharmacyPage: React.FC = () => {
             </div>
           </div>
         </div>
-      ) : (
+      )}
+
+      {activeTab === 'inventory' && (
         <div className="mmh-tab-content">
           {/* Inventory Stats */}
           <div className="mmh-stats-grid">

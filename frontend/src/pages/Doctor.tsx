@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import MainLayout from '../components/MainLayout';
 import PatientRecords from '../components/PatientRecords';
+import MyLeaveTab from '../components/MyLeaveTab';
+import { useSearchParams } from 'react-router-dom';
 import '../styles/mmh.css';
 
 interface DoctorProps {
@@ -9,7 +11,8 @@ interface DoctorProps {
 }
 
 const Doctor: React.FC<DoctorProps> = ({ user }) => {
-    const [tab, setTab] = useState('patients');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const tab = searchParams.get('tab') || 'assigned';
     const [patients, setPatients] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -32,14 +35,17 @@ const Doctor: React.FC<DoctorProps> = ({ user }) => {
     return (
         <MainLayout user={user} title={`Welcome, ${user.name}`} subtitle="Medical Practitioner Portal">
             <div className="mmh-admin-tabs" style={{ marginBottom: '24px' }}>
-                <button className={`mmh-admin-tab ${tab === 'patients' ? 'active' : ''}`} onClick={() => setTab('patients')}>Assigned Patients</button>
-                <button className={`mmh-admin-tab ${tab === 'records' ? 'active' : ''}`} onClick={() => setTab('records')}>Patient Records</button>
-                <button className={`mmh-admin-tab ${tab === 'history' ? 'active' : ''}`} onClick={() => setTab('history')}>Clinical History</button>
+                <button className={`mmh-admin-tab ${tab === 'assigned' ? 'active' : ''}`} onClick={() => setSearchParams({ tab: 'assigned' })}>Assigned Patients</button>
+                <button className={`mmh-admin-tab ${tab === 'records' ? 'active' : ''}`} onClick={() => setSearchParams({ tab: 'records' })}>Patient Records</button>
+                <button className={`mmh-admin-tab ${tab === 'history' ? 'active' : ''}`} onClick={() => setSearchParams({ tab: 'history' })}>Clinical History</button>
+                <button className={`mmh-admin-tab ${tab === 'my-leave' ? 'active' : ''}`} onClick={() => setSearchParams({ tab: 'my-leave' })}>🏖️ My Leave</button>
             </div>
 
             {tab === 'records' && <PatientRecords />}
+            
+            {tab === 'my-leave' && <MyLeaveTab />}
 
-            {tab === 'patients' && (
+            {tab === 'assigned' && (
                 <div className="mmh-table-card" style={{ animation: 'mmh-fade-in 0.3s ease' }}>
                     <div className="mmh-table-card-top" style={{ background: 'var(--mmh-violet)' }} />
                     <div className="mmh-table-card-header">

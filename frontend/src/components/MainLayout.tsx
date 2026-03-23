@@ -3,7 +3,7 @@ import Sidebar from '../components/Sidebar';
 import '../styles/mmh.css';
 
 interface MainLayoutProps {
-  user: any;
+  user?: any;
   children: React.ReactNode;
   title: string;
   subtitle?: string;
@@ -15,7 +15,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, children, title, subtitle
   return (
     <div className="mmh-app">
       <Sidebar 
-        user={user} 
         isOpen={sidebarOpen} 
         onToggle={() => setSidebarOpen(!sidebarOpen)} 
       />

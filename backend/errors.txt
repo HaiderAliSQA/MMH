@@ -1,0 +1,3 @@
+src/utils/seed.ts(175,29): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Object literal may only specify known properties, and 'taxDeduction' does not exist in type '{ employee?: ObjectIdQueryTypeCasting | undefined; month?: number | undefined; year?: number | undefined; totalWorkingDays?: number | undefined; presentDays?: number | undefined; ... 79 more ...; validateSync?: { ...; } | undefined; }'.

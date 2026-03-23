@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import api from '../../api';
 import '../../styles/mmh.css';
 import PatientSearch, { PatientResult as PSPatientResult } from '../../components/PatientSearch';
+import MyLeaveTab from '../../components/MyLeaveTab';
+import { useSearchParams } from 'react-router-dom';
 
 // ─── Types ──────────────────────────────────────────────────────────
 interface PatientResult {
@@ -280,31 +282,34 @@ const PatientSearchField: React.FC<PatientSearchProps> = ({
 
 // ─── Main Page (tab shell) ────────────────────────────────────────────
 const OpdPage: React.FC = () => {
-  const [tab, setTab] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTab = searchParams.get('tab') || 'registration';
 
   const tabs = [
-    { label: 'OPD Registration', icon: '📝' },
-    { label: 'Admission', icon: '🏥' },
-    { label: 'Lab Request', icon: '🔬' },
-    { label: 'Payment', icon: '💳' },
-    { label: "Today's List", icon: '📋' },
+    { id: 'registration', label: 'OPD Registration', icon: '📝' },
+    { id: 'admission', label: 'Admission', icon: '🏥' },
+    { id: 'lab-request', label: 'Lab Request', icon: '🔬' },
+    { id: 'payment', label: 'Payment', icon: '💳' },
+    { id: 'today-list', label: "Today's List", icon: '📋' },
+    { id: 'my-leave', label: 'My Leave', icon: '🏖️' },
   ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', width: '100%' }}>
       <div className="mmh-page-tabs">
-        {tabs.map((t, i) => (
-          <button key={i} className={`mmh-page-tab${tab === i ? ' active' : ''}`} onClick={() => setTab(i)}>
+        {tabs.map((t) => (
+          <button key={t.id} className={`mmh-page-tab${currentTab === t.id ? ' active' : ''}`} onClick={() => setSearchParams({ tab: t.id })}>
             <span>{t.icon}</span>{t.label}
           </button>
         ))}
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px', width: '100%', boxSizing: 'border-box' }}>
-        {tab === 0 && <RegisterTab />}
-        {tab === 1 && <AdmissionTab />}
-        {tab === 2 && <LabRequestTab />}
-        {tab === 3 && <PaymentTab />}
-        {tab === 4 && <TodaysListTab />}
+        {currentTab === 'registration' && <RegisterTab />}
+        {currentTab === 'admission' && <AdmissionTab />}
+        {currentTab === 'lab-request' && <LabRequestTab />}
+        {currentTab === 'payment' && <PaymentTab />}
+        {currentTab === 'today-list' && <TodaysListTab />}
+        {currentTab === 'my-leave' && <MyLeaveTab />}
       </div>
     </div>
   );

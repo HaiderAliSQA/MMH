@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '../components/MainLayout';
 import PatientRecords from '../components/PatientRecords';
+import MyLeaveTab from '../components/MyLeaveTab';
 import api from '../api';
+import { useSearchParams } from 'react-router-dom';
 import '../styles/mmh.css';
 
 interface ManagerProps {
@@ -9,7 +11,8 @@ interface ManagerProps {
 }
 
 const Manager: React.FC<ManagerProps> = ({ onLogout }) => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'dashboard';
   const user = (() => {
     try { return JSON.parse(localStorage.getItem('user') || '{}'); }
     catch { return {}; }
@@ -41,15 +44,18 @@ const Manager: React.FC<ManagerProps> = ({ onLogout }) => {
   }, []);
 
   return (
-    <MainLayout user={user} title="Hospital Manager Operations" subtitle="Operations Control & Analytics Portal">
+    <MainLayout title="Hospital Manager Operations" subtitle="Operations Control & Analytics Portal">
       <div className="mmh-admin-tabs" style={{ marginBottom: '24px' }}>
-        <button className={`mmh-admin-tab ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>Operations Overview</button>
-        <button className={`mmh-admin-tab ${activeTab === 'records' ? 'active' : ''}`} onClick={() => setActiveTab('records')}>Historical Records</button>
+        <button className={`mmh-admin-tab ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setSearchParams({ tab: 'dashboard' })}>Operations Overview</button>
+        <button className={`mmh-admin-tab ${activeTab === 'records' ? 'active' : ''}`} onClick={() => setSearchParams({ tab: 'records' })}>Historical Records</button>
+        <button className={`mmh-admin-tab ${activeTab === 'my-leave' ? 'active' : ''}`} onClick={() => setSearchParams({ tab: 'my-leave' })}>🏖️ My Leave</button>
       </div>
+
+      {activeTab === 'my-leave' && <MyLeaveTab />}
 
       {activeTab === 'records' && <PatientRecords />}
 
-      {activeTab === 'overview' && (
+      {activeTab === 'dashboard' && (
         <div style={{ animation: 'mmh-fade-in 0.3s ease' }}>
           <div className="mmh-stats-grid">
             {[

@@ -107,3 +107,41 @@ export const adminAPI = {
   getBeds:      (wardId: string) =>
     api.get(`/admin/wards/${wardId}/beds`),
 }
+
+export const hrAPI = {
+  // Employees
+  getEmployees:    (params?: object) => api.get('/hr/employees', { params }),
+  createEmployee:  (data: object) => api.post('/hr/employees', data),
+  updateEmployee:  (id: string, data: object) => api.put(`/hr/employees/${id}`, data),
+
+  // Shifts
+  getShifts:          (weekStart: string) => api.get('/hr/shifts', { params: { weekStart } }),
+  saveShift:          (data: object) => api.post('/hr/shifts', data),
+  getEmployeeShifts:  (id: string) => api.get(`/hr/shifts/employee/${id}`),
+
+  // Attendance
+  getAttendance:        (date: string) => api.get('/hr/attendance', { params: { date } }),
+  getAttendanceRange:   (params: object) => api.get('/hr/attendance/range', { params }),
+  markAttendance:       (data: object) => api.post('/hr/attendance/mark', data),
+  bulkAttendance:       (data: object) => api.post('/hr/attendance/bulk', data),
+  getAttendanceSummary: (month: number, year: number) => api.get('/hr/attendance/summary', { params: { month, year } }),
+
+  // Leaves
+  getLeaves:            (params?: object) => api.get('/hr/leaves', { params }),
+  applyLeave:           (data: object) => api.post('/hr/leaves', data),
+  approveLeave:         (id: string) => api.put(`/hr/leaves/${id}/approve`),
+  rejectLeave:          (id: string, reason: string) => api.put(`/hr/leaves/${id}/reject`, { reason }),
+  substituteResponse:   (id: string, response: string) => api.put(`/hr/leaves/${id}/substitute-response`, { response }),
+
+  // Payroll
+  getPayroll:    (month: number, year: number) => api.get('/hr/payroll', { params: { month, year } }),
+  generateAll:   (month: number, year: number) => api.post('/hr/payroll/generate', { month, year }),
+  generateOne:   (id: string, month: number, year: number) => api.post(`/hr/payroll/generate/${id}`, { month, year }),
+  markPaid:      (id: string) => api.put(`/hr/payroll/${id}/mark-paid`),
+  getSlip:       (id: string) => api.get(`/hr/payroll/slip/${id}`),
+
+  // My Portal
+  getMyLeaves:   () => api.get('/hr/leaves/my'),
+  getMyBalance:  () => api.get('/hr/employees/my-balance'),
+}
+
