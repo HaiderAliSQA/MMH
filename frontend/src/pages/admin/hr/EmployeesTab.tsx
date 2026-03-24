@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { hrAPI } from '../../../api';
 import TypeSearch from '../../../components/TypeSearch';
 
@@ -9,6 +10,7 @@ const DEPARTMENTS = [
 ].map(d => ({ value: d, label: d }));
 
 const EmployeesTab: React.FC<{ employees: any[]; reload: () => void }> = ({ employees, reload }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [editModal, setEditModal] = useState<any>(null);
   const [editForm, setEditForm] = useState<any>({});
@@ -33,6 +35,8 @@ const EmployeesTab: React.FC<{ employees: any[]; reload: () => void }> = ({ empl
       name: emp.name || '', department: emp.department || '', designation: emp.designation || '',
       basicSalary: emp.basicSalary || 0, houseAllowance: emp.houseAllowance || 0,
       medicalAllowance: emp.medicalAllowance || 0, transportAllowance: emp.transportAllowance || 0,
+      annualLeaveBalance: emp.annualLeaveBalance ?? 24, sickLeaveBalance: emp.sickLeaveBalance ?? 10,
+      emergencyLeaveBalance: emp.emergencyLeaveBalance ?? 3,
     });
     setEditModal(emp);
   };
@@ -114,6 +118,7 @@ const EmployeesTab: React.FC<{ employees: any[]; reload: () => void }> = ({ empl
                     <td>
                       <div style={{display:'flex',gap:6}}>
                         <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" onClick={()=>openEdit(emp)}>✏️ Edit</button>
+                        <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" style={{color:'#f59e0b'}} onClick={()=>setSearchParams({ tab: 'leave', emp: emp.name })}>🏖️ Leaves</button>
                       </div>
                     </td>
                   </tr>
@@ -142,6 +147,12 @@ const EmployeesTab: React.FC<{ employees: any[]; reload: () => void }> = ({ empl
                 {[{k:'basicSalary',l:'Basic Salary (PKR)'},{k:'houseAllowance',l:'House Allowance'},{k:'medicalAllowance',l:'Medical Allowance'},{k:'transportAllowance',l:'Transport Allowance'}].map(f=>(
                   <div className="mmh-field" key={f.k}><label className="mmh-label">{f.l}</label><input type="number" className="mmh-input" value={editForm[f.k]||0} onChange={e=>setEditForm({...editForm,[f.k]:+e.target.value})} style={{fontFamily:'JetBrains Mono,monospace'}} /></div>
                 ))}
+              </div>
+              <div style={{marginTop:16,fontSize:10,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:8}}>🏖️ Leave Balances (Remaining Days)</div>
+              <div className="mmh-form-grid" style={{gridTemplateColumns:'1fr 1fr 1fr'}}>
+                <div className="mmh-field"><label className="mmh-label">Annual Leave</label><input type="number" className="mmh-input" value={editForm.annualLeaveBalance||0} onChange={e=>setEditForm({...editForm,annualLeaveBalance:+e.target.value})} style={{fontFamily:'JetBrains Mono,monospace'}} /></div>
+                <div className="mmh-field"><label className="mmh-label">Sick Leave</label><input type="number" className="mmh-input" value={editForm.sickLeaveBalance||0} onChange={e=>setEditForm({...editForm,sickLeaveBalance:+e.target.value})} style={{fontFamily:'JetBrains Mono,monospace'}} /></div>
+                <div className="mmh-field"><label className="mmh-label">Emergency</label><input type="number" className="mmh-input" value={editForm.emergencyLeaveBalance||0} onChange={e=>setEditForm({...editForm,emergencyLeaveBalance:+e.target.value})} style={{fontFamily:'JetBrains Mono,monospace'}} /></div>
               </div>
               <div style={{marginTop:14,padding:'12px 16px',background:'#111d35',border:'1px solid #1e3050',borderRadius:10}}>
                 <div style={{fontSize:11,color:'#64748b',marginBottom:6}}>Total Monthly Package</div>

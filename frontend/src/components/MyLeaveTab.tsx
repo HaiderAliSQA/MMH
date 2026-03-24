@@ -33,7 +33,7 @@ const LEAVE_TYPES = [
   { value: 'Annual Leave',    label: 'Annual Leave',    icon: '📅' },
   { value: 'Sick Leave',      label: 'Sick Leave',      icon: '🤒' },
   { value: 'Emergency Leave', label: 'Emergency Leave', icon: '🚨' },
-  { value: 'Maternity', label: 'Maternity Leave', icon: '👶' },
+  { value: 'Maternity Leave', label: 'Maternity Leave', icon: '👶' },
   { value: 'Unpaid Leave',    label: 'Unpaid Leave',    icon: '📝' },
 ];
 
@@ -137,6 +137,23 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
     const days = calcWorkingDays(fromDate, toDate);
     if (days === 0) {
       setBanner({ type: 'error', msg: 'Invalid date range — no working days selected' });
+      return;
+    }
+
+    const annual = employee?.annualLeaveBalance ?? 24;
+    const sick = employee?.sickLeaveBalance ?? 10;
+    const emergency = employee?.emergencyLeaveBalance ?? 3;
+
+    if (leaveType === 'Annual Leave' && days > annual) {
+      setBanner({ type: 'error', msg: `Not enough Annual Leave balance. Remaining: ${annual}` });
+      return;
+    }
+    if (leaveType === 'Sick Leave' && days > sick) {
+      setBanner({ type: 'error', msg: `Not enough Sick Leave balance. Remaining: ${sick}` });
+      return;
+    }
+    if (leaveType === 'Emergency Leave' && days > emergency) {
+      setBanner({ type: 'error', msg: `Not enough Emergency Leave balance. Remaining: ${emergency}` });
       return;
     }
     setSubmitLoading(true);

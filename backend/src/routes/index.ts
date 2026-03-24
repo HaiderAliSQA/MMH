@@ -12,7 +12,7 @@ import {
   getEmployees, createEmployee, updateEmployee,
   getShifts, saveShift, getEmployeeShifts,
   getAttendance, getAttendanceRange, markAttendance, bulkAttendance, getAttendanceSummary,
-  getLeaves, applyLeave, approveLeave, rejectLeave, substituteResponse, cancelLeave,
+  getLeaves, applyLeave, approveLeave, rejectLeave, substituteResponse, cancelLeave, updateLeaveStatus,
   getPayroll, generateAllPayroll, generateOnePayroll, markPaid, getPayrollSlip,
   getMyLeaves, getMyBalance,
 } from '../controllers/hr.controller';
@@ -92,6 +92,7 @@ router.post('/hr/leaves', protect, applyLeave);
 router.put('/hr/leaves/:id/approve', protect, authorize('admin'), approveLeave);
 router.put('/hr/leaves/:id/reject', protect, authorize('admin'), rejectLeave);
 router.put('/hr/leaves/:id/cancel', protect, cancelLeave);
+router.put('/hr/leaves/:id/status', protect, authorize('admin'), updateLeaveStatus);
 router.put('/hr/leaves/:id/substitute-response', protect, substituteResponse);
 
 // Payroll

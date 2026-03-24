@@ -131,6 +131,7 @@ export const hrAPI = {
   applyLeave:           (data: object) => api.post('/hr/leaves', data),
   approveLeave:         (id: string) => api.put(`/hr/leaves/${id}/approve`),
   rejectLeave:          (id: string, reason: string) => api.put(`/hr/leaves/${id}/reject`, { reason }),
+  updateLeaveStatus:    (id: string, status: string, reason?: string) => api.put(`/hr/leaves/${id}/status`, { status, reason }),
   substituteResponse:   (id: string, response: string) => api.put(`/hr/leaves/${id}/substitute-response`, { response }),
 
   // Payroll

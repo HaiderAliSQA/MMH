@@ -441,6 +441,21 @@ export const applyLeave = async (req: AuthRequest, res: Response): Promise<void>
 
   const { leaveType, fromDate, toDate, reason, needsSubstitute, substituteEmployee, totalDays } = req.body;
 
+  if (employeeDoc && totalDays > 0) {
+    if (leaveType === 'Annual Leave' && totalDays > (employeeDoc.annualLeaveBalance || 0)) {
+      res.status(400).json({ success: false, message: `Not enough Annual Leave balance.` });
+      return;
+    }
+    if (leaveType === 'Sick Leave' && totalDays > (employeeDoc.sickLeaveBalance || 0)) {
+      res.status(400).json({ success: false, message: `Not enough Sick Leave balance.` });
+      return;
+    }
+    if (leaveType === 'Emergency Leave' && totalDays > (employeeDoc.emergencyLeaveBalance || 0)) {
+      res.status(400).json({ success: false, message: `Not enough Emergency Leave balance.` });
+      return;
+    }
+  }
+
   const leave = await LeaveRequest.create({
     employee: employeeId,
     leaveType,
@@ -553,6 +568,79 @@ export const rejectLeave = async (req: AuthRequest, res: Response): Promise<void
       relatedId: leave._id,
       isRead: false
     });
+  }
+
+  const populated = await LeaveRequest.findById(leave._id)
+    .populate({ path: 'employee', select: 'name employeeId role department' })
+    .populate({ path: 'substituteEmployee', select: 'name employeeId' });
+
+  res.status(200).json({ success: true, data: populated });
+};
+
+export const updateLeaveStatus = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { status, reason } = req.body;
+  const leave = await LeaveRequest.findById(req.params.id);
+  if (!leave) {
+    res.status(404).json({ success: false, message: 'Leave request not found' });
+    return;
+  }
+
+  if (leave.leaveType === 'Maternity') {
+    leave.leaveType = 'Maternity Leave';
+  }
+
+  const oldStatus = leave.status;
+  if (oldStatus === status) {
+    res.status(200).json({ success: true, message: `Status is already ${status}` });
+    return;
+  }
+
+  const employee = await Employee.findById(leave.employee).populate('user');
+
+  leave.status = status;
+  if (status === 'Rejected') {
+    leave.rejectedReason = reason || '';
+  }
+  if (['Approved', 'Rejected'].includes(status)) {
+    leave.approvedBy = new mongoose.Types.ObjectId(req.user?.id);
+    leave.approvedAt = new Date();
+  }
+  await leave.save(); // Save leave first to ensure validation passes before touching employee balance
+
+  // If changing FROM Approved to something else, restore balance
+  if (oldStatus === 'Approved' && status !== 'Approved') {
+    if (employee && leave.totalDays) {
+      if (leave.leaveType === 'Annual Leave') employee.annualLeaveBalance += leave.totalDays;
+      else if (leave.leaveType === 'Sick Leave') employee.sickLeaveBalance += leave.totalDays;
+      else if (leave.leaveType === 'Emergency Leave') employee.emergencyLeaveBalance += leave.totalDays;
+      await employee.save();
+    }
+  }
+
+  // If changing TO Approved from something else, deduct balance
+  if (oldStatus !== 'Approved' && status === 'Approved') {
+    if (employee && leave.totalDays) {
+      if (leave.leaveType === 'Annual Leave') employee.annualLeaveBalance = Math.max(0, employee.annualLeaveBalance - leave.totalDays);
+      else if (leave.leaveType === 'Sick Leave') employee.sickLeaveBalance = Math.max(0, employee.sickLeaveBalance - leave.totalDays);
+      else if (leave.leaveType === 'Emergency Leave') employee.emergencyLeaveBalance = Math.max(0, employee.emergencyLeaveBalance - leave.totalDays);
+      await employee.save();
+    }
+  }
+
+
+  if (employee && (employee as any).user) {
+    if (['Approved', 'Rejected'].includes(status)) {
+      await Notification.create({
+        type: `leave_${status.toLowerCase()}`,
+        title: `Leave ${status}`,
+        message: `Your ${leave.leaveType} from ${(leave.fromDate as Date).toISOString().split('T')[0]} to ${(leave.toDate as Date).toISOString().split('T')[0]} is now ${status}.${status === 'Rejected' && reason ? ' Reason: ' + reason : ''}`,
+        forRole: employee.role || 'admin',
+        forUser: (employee as any).user._id || (employee as any).user,
+        fromUser: req.user?.id,
+        relatedId: leave._id,
+        isRead: false
+      });
+    }
   }
 
   const populated = await LeaveRequest.findById(leave._id)

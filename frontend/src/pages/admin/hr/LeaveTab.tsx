@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { hrAPI } from '../../../api';
 import TypeSearch from '../../../components/TypeSearch';
 
@@ -17,11 +18,12 @@ const LEAVE_TYPE_OPTS = [
 const fmtDate = (d:string) => d ? new Date(d).toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric'}) : '—';
 
 const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
+  const [searchParams] = useSearchParams();
   const [leaves, setLeaves] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
-  const [empSearch, setEmpSearch] = useState('');
+  const [empSearch, setEmpSearch] = useState(searchParams.get('emp') || '');
   const [rejectModal, setRejectModal] = useState<any>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [banner, setBanner] = useState<{type:string;msg:string}|null>(null);
@@ -38,16 +40,27 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
     catch {} finally { setLoading(false); }
   };
 
-  const handleApprove = async (id: string) => {
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    if (newStatus === 'Rejected') {
+      const l = leaves.find(x => x._id === id);
+      setRejectModal(l);
+      setRejectReason('');
+      return;
+    }
     setBanner(null);
-    try { await hrAPI.approveLeave(id); setBanner({type:'success',msg:'Leave approved!'}); loadLeaves(); }
-    catch (e:any) { setBanner({type:'error',msg:e.response?.data?.message||'Failed'}); }
+    try {
+      await hrAPI.updateLeaveStatus(id, newStatus);
+      setBanner({type:'success', msg: `Leave status updated to ${newStatus}`});
+      loadLeaves();
+    } catch (e: any) {
+      setBanner({type:'error', msg: e.response?.data?.message || 'Failed'});
+    }
   };
 
   const handleReject = async () => {
     if (!rejectModal || !rejectReason.trim()) return;
     setBanner(null);
-    try { await hrAPI.rejectLeave(rejectModal._id, rejectReason); setBanner({type:'success',msg:'Leave rejected'}); setRejectModal(null); setRejectReason(''); loadLeaves(); }
+    try { await hrAPI.updateLeaveStatus(rejectModal._id, 'Rejected', rejectReason); setBanner({type:'success',msg:'Leave rejected'}); setRejectModal(null); setRejectReason(''); loadLeaves(); }
     catch (e:any) { setBanner({type:'error',msg:e.response?.data?.message||'Failed'}); }
   };
 
@@ -201,24 +214,20 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                 </div>
               )}
 
-              {l.status === 'Pending' && (
-                <div style={{ marginTop: 'auto', paddingTop: 16, display: 'flex', gap: 10 }}>
-                  <button 
-                    className="mmh-btn mmh-btn-green mmh-btn-sm" 
-                    style={{ flex: 1, height: 38, fontWeight: 700 }}
-                    onClick={() => handleApprove(l._id)}
-                  >
-                    ✅ Approve
-                  </button>
-                  <button 
-                    className="mmh-btn mmh-btn-rose mmh-btn-sm" 
-                    style={{ flex: 1, height: 38, fontWeight: 700 }}
-                    onClick={() => { setRejectModal(l); setRejectReason(''); }}
-                  >
-                    ❌ Reject
-                  </button>
-                </div>
-              )}
+              <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Update Status:</span>
+                <select 
+                  className="mmh-input-select" 
+                  style={{ width: 140, height: 32, padding: '0 10px', fontSize: 12, borderRadius: 8, background: 'rgba(15,23,42,0.8)' }}
+                  value={l.status}
+                  onChange={(e) => handleStatusChange(l._id, e.target.value)}
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
             </div>
           ))}
         </div>
