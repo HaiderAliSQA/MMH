@@ -69,7 +69,7 @@ const AdminDashboard: React.FC = () => {
   }, []);
 
   const getWardOccupancy = (wardId: string, capacity: number) => {
-    const wardBeds = beds.filter(b => b.wardId === wardId);
+    const wardBeds = beds.filter(b => (b as any).ward === wardId || b.wardId === wardId);
     const occupied = wardBeds.filter(b => b.status === 'Occupied').length;
     const total    = wardBeds.length || capacity;
     return { occupied, total };

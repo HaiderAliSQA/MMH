@@ -33,24 +33,24 @@ type FormData = {
 };
 
 const ROLE_BADGES: Record<string, string> = {
-  admin:        'mmh-badge-rose',
-  doctor:       'mmh-badge-green',
+  admin: 'mmh-badge-rose',
+  doctor: 'mmh-badge-green',
   receptionist: 'mmh-badge-sky',
-  lab:          'mmh-badge-violet',
-  pharmacist:   'mmh-badge-cyan',
-  manager:      'mmh-badge-amber',
-  patient:      'mmh-badge-gray',
+  lab: 'mmh-badge-violet',
+  pharmacist: 'mmh-badge-cyan',
+  manager: 'mmh-badge-amber',
+  patient: 'mmh-badge-gray',
 };
 
 const ROLE_FILTERS = [
-  { id: 'all',          label: 'All Users'  },
-  { id: 'admin',        label: 'Admins'     },
-  { id: 'doctor',       label: 'Doctors'    },
-  { id: 'receptionist', label: 'Reception'  },
-  { id: 'lab',          label: 'Laboratory' },
-  { id: 'pharmacist',   label: 'Pharmacy'   },
-  { id: 'manager',      label: 'Manager'    },
-  { id: 'patient',      label: 'Patients'   },
+  { id: 'all', label: 'All Users' },
+  { id: 'admin', label: 'Admins' },
+  { id: 'doctor', label: 'Doctors' },
+  { id: 'receptionist', label: 'Reception' },
+  { id: 'lab', label: 'Laboratory' },
+  { id: 'pharmacist', label: 'Pharmacy' },
+  { id: 'manager', label: 'Manager' },
+  { id: 'patient', label: 'Patients' },
 ];
 
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -58,47 +58,47 @@ const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const getDepartmentLabel = (user: UserRecord): string => {
   if (user.department) return user.department;
   const map: Record<string, string> = {
-    admin:        'Administration',
+    admin: 'Administration',
     receptionist: 'Reception',
-    lab:          'Laboratory',
-    pharmacist:   'Pharmacy',
-    manager:      'Management',
-    patient:      'Patient',
-    doctor:       'Medical',
+    lab: 'Laboratory',
+    pharmacist: 'Pharmacy',
+    manager: 'Management',
+    patient: 'Patient',
+    doctor: 'Medical',
   };
   return map[user.role] || 'General';
 };
 
 const emptyForm = (): FormData => ({
-  name:     '',
-  email:    '',
-  role:     'receptionist',
-  phone:    '',
+  name: '',
+  email: '',
+  role: 'receptionist',
+  phone: '',
   isActive: true,
   doctorInfo: {
-    department:     '',
+    department: '',
     specialization: '',
-    qualification:  '',
-    fee:            500,
-    opdTiming:      '9:00 AM - 2:00 PM',
-    opdDays:        [],
+    qualification: '',
+    fee: 500,
+    opdTiming: '9:00 AM - 2:00 PM',
+    opdDays: [],
   },
 });
 
 const ManageUsers: React.FC = () => {
-  const [users, setUsers]               = useState<UserRecord[]>([]);
-  const [loading, setLoading]           = useState(true);
-  const [search, setSearch]             = useState('');
-  const [roleFilter, setRoleFilter]     = useState('all');
+  const [users, setUsers] = useState<UserRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('');
-  const [modalOpen, setModalOpen]       = useState(false);
-  const [editingUser, setEditingUser]   = useState<UserRecord | null>(null);
-  const [formData, setFormData]         = useState<FormData>(emptyForm());
-  const [saving, setSaving]             = useState(false);
-  const [saveError, setSaveError]       = useState('');
-  const [successMsg, setSuccessMsg]     = useState('');
-  const [defaultPwd, setDefaultPwd]     = useState('');
-  const [toggling, setToggling]         = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
+  const [formData, setFormData] = useState<FormData>(emptyForm());
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [defaultPwd, setDefaultPwd] = useState('');
+  const [toggling, setToggling] = useState<string | null>(null);
 
   useEffect(() => { fetchUsers(); }, []);
 
@@ -136,18 +136,18 @@ const ManageUsers: React.FC = () => {
   const openEdit = (u: UserRecord) => {
     setEditingUser(u);
     setFormData({
-      name:     u.name,
-      email:    u.email,
-      role:     u.role,
-      phone:    u.phone || '',
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      phone: u.phone || '',
       isActive: u.isActive,
       doctorInfo: {
-        department:     u.department || '',
+        department: u.department || '',
         specialization: u.specialization || '',
-        qualification:  '',
-        fee:            0,
-        opdTiming:      '9:00 AM - 2:00 PM',
-        opdDays:        [],
+        qualification: '',
+        fee: 0,
+        opdTiming: '9:00 AM - 2:00 PM',
+        opdDays: [],
       },
     });
     setSaveError('');
@@ -166,9 +166,9 @@ const ManageUsers: React.FC = () => {
     try {
       if (editingUser) {
         await api.put(`/users/${editingUser._id}`, {
-          name:     formData.name,
-          phone:    formData.phone,
-          role:     formData.role,
+          name: formData.name,
+          phone: formData.phone,
+          role: formData.role,
           isActive: formData.isActive,
           ...(formData.role === 'doctor' ? formData.doctorInfo : {}),
         });
@@ -176,9 +176,9 @@ const ManageUsers: React.FC = () => {
         fetchUsers();
       } else {
         const res = await api.post('/users/register', {
-          name:  formData.name,
+          name: formData.name,
           email: formData.email,
-          role:  formData.role,
+          role: formData.role,
           phone: formData.phone,
           ...(formData.role === 'doctor' ? formData.doctorInfo : {}),
         });
@@ -255,7 +255,7 @@ const ManageUsers: React.FC = () => {
               gap: '8px',
             }}>
               <span>Default Password: <strong>{defaultPwd}</strong></span>
-              <button 
+              <button
                 className="mmh-btn mmh-btn-ghost mmh-btn-xs"
                 onClick={() => setSuccessMsg('')}
               >Dismiss</button>

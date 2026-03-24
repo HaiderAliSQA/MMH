@@ -60,11 +60,11 @@ const seedDB = async () => {
 
     // Create Wards + Beds
     const wardsData = [
+      { name: 'Surgical Ward', department: 'Surgery', totalBeds: 15, prefix: 'SUR-' },
+      { name: 'Orthopedic Ward', department: 'Orthopedics', totalBeds: 12, prefix: 'ORTHO-' },
+      { name: 'Plastic Surgery', department: 'Plastic Surgery', totalBeds: 8, prefix: 'PL-' },
       { name: 'Cardiology Ward', department: 'Cardiology', totalBeds: 10, prefix: 'C-' },
       { name: 'General Ward', department: 'General Medicine', totalBeds: 20, prefix: 'G-' },
-      { name: 'Pediatrics Ward', department: 'Pediatrics', totalBeds: 8, prefix: 'P-' },
-      { name: 'Gynae Ward', department: 'Gynecology', totalBeds: 10, prefix: 'GY-' },
-      { name: 'ICU', department: 'Intensive Care', totalBeds: 6, prefix: 'ICU-' },
       { name: 'Emergency', department: 'Emergency', totalBeds: 10, prefix: 'E-' }
     ];
 

@@ -1,32 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { hrAPI } from '../../../api';
 import TypeSearch from '../../../components/TypeSearch';
 
-const LEAVE_BADGE: Record<string,string> = { Pending:'mmh-badge-amber', Approved:'mmh-badge-green', Rejected:'mmh-badge-rose', Cancelled:'mmh-badge-gray' };
-const LHC_CLASS: Record<string,string> = { Pending:'mmh-lhc-pending', Approved:'mmh-lhc-approved', Rejected:'mmh-lhc-rejected', Cancelled:'mmh-lhc-cancelled' };
+const LEAVE_BADGE: Record<string, string> = { Pending: 'mmh-badge-amber', Approved: 'mmh-badge-green', Rejected: 'mmh-badge-rose', Cancelled: 'mmh-badge-gray' };
+const LHC_CLASS: Record<string, string> = { Pending: 'mmh-lhc-pending', Approved: 'mmh-lhc-approved', Rejected: 'mmh-lhc-rejected', Cancelled: 'mmh-lhc-cancelled' };
 const STATUS_OPTS = [
-  { value:'', label:'All Statuses', icon:'📋' }, { value:'Pending', label:'Pending', icon:'⏳' },
-  { value:'Approved', label:'Approved', icon:'✅' }, { value:'Rejected', label:'Rejected', icon:'❌' },
+  { value: '', label: 'All Statuses', icon: '📋' }, { value: 'Pending', label: 'Pending', icon: '⏳' },
+  { value: 'Approved', label: 'Approved', icon: '✅' }, { value: 'Rejected', label: 'Rejected', icon: '❌' },
 ];
 const LEAVE_TYPE_OPTS = [
-  { value:'', label:'All Types', icon:'📃' }, { value:'Annual Leave', label:'Annual Leave', icon:'📅' },
-  { value:'Sick Leave', label:'Sick Leave', icon:'🤒' }, { value:'Emergency Leave', label:'Emergency Leave', icon:'🚨' },
-  { value:'Maternity Leave', label:'Maternity Leave', icon:'👶' }, { value:'Unpaid Leave', label:'Unpaid Leave', icon:'📝' },
+  { value: '', label: 'All Types', icon: '📃' }, { value: 'Annual Leave', label: 'Annual Leave', icon: '📅' },
+  { value: 'Sick Leave', label: 'Sick Leave', icon: '🤒' }, { value: 'Emergency Leave', label: 'Emergency Leave', icon: '🚨' },
+  { value: 'Maternity Leave', label: 'Maternity Leave', icon: '👶' }, { value: 'Unpaid Leave', label: 'Unpaid Leave', icon: '📝' },
 ];
 
-const fmtDate = (d:string) => d ? new Date(d).toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
-  const [searchParams] = useSearchParams();
   const [leaves, setLeaves] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
-  const [empSearch, setEmpSearch] = useState(searchParams.get('emp') || '');
+  const [empSearch, setEmpSearch] = useState('');
   const [rejectModal, setRejectModal] = useState<any>(null);
   const [rejectReason, setRejectReason] = useState('');
-  const [banner, setBanner] = useState<{type:string;msg:string}|null>(null);
+  const [banner, setBanner] = useState<{ type: string; msg: string } | null>(null);
 
   useEffect(() => {
     loadLeaves();
@@ -37,7 +35,7 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
   const loadLeaves = async () => {
     setLoading(true);
     try { const r = await hrAPI.getLeaves(); setLeaves(r.data || []); }
-    catch {} finally { setLoading(false); }
+    catch { } finally { setLoading(false); }
   };
 
   const handleStatusChange = async (id: string, newStatus: string) => {
@@ -50,47 +48,47 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
     setBanner(null);
     try {
       await hrAPI.updateLeaveStatus(id, newStatus);
-      setBanner({type:'success', msg: `Leave status updated to ${newStatus}`});
+      setBanner({ type: 'success', msg: `Leave status updated to ${newStatus}` });
       loadLeaves();
     } catch (e: any) {
-      setBanner({type:'error', msg: e.response?.data?.message || 'Failed'});
+      setBanner({ type: 'error', msg: e.response?.data?.message || 'Failed' });
     }
   };
 
   const handleReject = async () => {
     if (!rejectModal || !rejectReason.trim()) return;
     setBanner(null);
-    try { await hrAPI.updateLeaveStatus(rejectModal._id, 'Rejected', rejectReason); setBanner({type:'success',msg:'Leave rejected'}); setRejectModal(null); setRejectReason(''); loadLeaves(); }
-    catch (e:any) { setBanner({type:'error',msg:e.response?.data?.message||'Failed'}); }
+    try { await hrAPI.updateLeaveStatus(rejectModal._id, 'Rejected', rejectReason); setBanner({ type: 'success', msg: 'Leave rejected' }); setRejectModal(null); setRejectReason(''); loadLeaves(); }
+    catch (e: any) { setBanner({ type: 'error', msg: e.response?.data?.message || 'Failed' }); }
   };
 
   const stats = {
-    pending: leaves.filter(l=>l.status==='Pending').length,
-    approvedMonth: leaves.filter(l=>l.status==='Approved').length,
-    rejected: leaves.filter(l=>l.status==='Rejected').length,
+    pending: leaves.filter(l => l.status === 'Pending').length,
+    approvedMonth: leaves.filter(l => l.status === 'Approved').length,
+    rejected: leaves.filter(l => l.status === 'Rejected').length,
     onLeaveToday: 0,
   };
 
   const filtered = leaves.filter(l => {
-    const matchStatus = !statusFilter || l.status===statusFilter;
-    const matchType = !typeFilter || l.leaveType===typeFilter;
+    const matchStatus = !statusFilter || l.status === statusFilter;
+    const matchType = !typeFilter || l.leaveType === typeFilter;
     const matchEmp = !empSearch || l.employee?.name?.toLowerCase().includes(empSearch.toLowerCase());
     return matchStatus && matchType && matchEmp;
   });
 
   return (
     <div>
-      {banner && <div className={`mmh-banner-${banner.type}`} style={{marginBottom:16}}>{banner.type==='success'?'✅':'⚠️'} {banner.msg}</div>}
+      {banner && <div className={`mmh-banner-${banner.type}`} style={{ marginBottom: 16 }}>{banner.type === 'success' ? '✅' : '⚠️'} {banner.msg}</div>}
 
-      <div className="mmh-stats-grid" style={{marginBottom:24}}>
+      <div className="mmh-stats-grid" style={{ marginBottom: 24 }}>
         {[
-          { label:'Pending', value:stats.pending, icon:'⏳', accent:'linear-gradient(90deg,#f59e0b,#fbbf24)' },
-          { label:'Approved This Month', value:stats.approvedMonth, icon:'✅', accent:'linear-gradient(90deg,#10b981,#34d399)' },
-          { label:'Rejected', value:stats.rejected, icon:'❌', accent:'linear-gradient(90deg,#f43f5e,#fb7185)' },
-          { label:'On Leave Today', value:stats.onLeaveToday, icon:'🏖️', accent:'linear-gradient(90deg,#8b5cf6,#a78bfa)' },
+          { label: 'Pending', value: stats.pending, icon: '⏳', accent: 'linear-gradient(90deg,#f59e0b,#fbbf24)' },
+          { label: 'Approved This Month', value: stats.approvedMonth, icon: '✅', accent: 'linear-gradient(90deg,#10b981,#34d399)' },
+          { label: 'Rejected', value: stats.rejected, icon: '❌', accent: 'linear-gradient(90deg,#f43f5e,#fb7185)' },
+          { label: 'On Leave Today', value: stats.onLeaveToday, icon: '🏖️', accent: 'linear-gradient(90deg,#8b5cf6,#a78bfa)' },
         ].map(c => (
           <div className="mmh-stat-card" key={c.label}>
-            <div className="mmh-stat-accent" style={{background:c.accent}} />
+            <div className="mmh-stat-accent" style={{ background: c.accent }} />
             <span className="mmh-stat-icon">{c.icon}</span>
             <span className="mmh-stat-value">{c.value}</span>
             <span className="mmh-stat-label">{c.label}</span>
@@ -98,16 +96,16 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
         ))}
       </div>
 
-      <div className="mmh-card" style={{marginBottom:16,overflow:'visible'}}>
-        <div className="mmh-card-body" style={{padding:'12px 16px',display:'flex',gap:12,flexWrap:'wrap',overflow:'visible'}}>
-          <div style={{flex:1,minWidth:180}}>
-            <input className="mmh-input" placeholder="🔍 Search employee..." value={empSearch} onChange={e=>setEmpSearch(e.target.value)} />
+      <div className="mmh-card" style={{ marginBottom: 16, overflow: 'visible' }}>
+        <div className="mmh-card-body" style={{ padding: '12px 16px', display: 'flex', gap: 12, flexWrap: 'wrap', overflow: 'visible' }}>
+          <div style={{ flex: 1, minWidth: 180 }}>
+            <input className="mmh-input" placeholder="🔍 Search employee..." value={empSearch} onChange={e => setEmpSearch(e.target.value)} />
           </div>
-          <div style={{width:180}}>
-            <TypeSearch options={LEAVE_TYPE_OPTS} value={typeFilter} onChange={v=>setTypeFilter(v)} placeholder="Leave type..." />
+          <div style={{ width: 180 }}>
+            <TypeSearch options={LEAVE_TYPE_OPTS} value={typeFilter} onChange={v => setTypeFilter(v)} placeholder="Leave type..." />
           </div>
-          <div style={{width:180}}>
-            <TypeSearch options={STATUS_OPTS} value={statusFilter} onChange={v=>setStatusFilter(v)} placeholder="Status..." />
+          <div style={{ width: 180 }}>
+            <TypeSearch options={STATUS_OPTS} value={statusFilter} onChange={v => setStatusFilter(v)} placeholder="Status..." />
           </div>
         </div>
       </div>
@@ -147,17 +145,17 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ 
-                    width: 44, 
-                    height: 44, 
-                    borderRadius: 12, 
-                    background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    fontSize: 18, 
-                    fontWeight: 900, 
-                    color: 'white', 
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 18,
+                    fontWeight: 900,
+                    color: 'white',
                     boxShadow: '0 4px 12px rgba(99,102,241,0.3)'
                   }}>
                     {(l.employee?.name || '?').charAt(0).toUpperCase()}
@@ -195,10 +193,10 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                 <div style={{ padding: '8px 12px', background: 'rgba(139,92,246,0.08)', borderRadius: 10, border: '1px solid rgba(139,92,246,0.1)', marginBottom: 14 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: 11, color: '#a78bfa', fontWeight: 600 }}>🔄 Substitute Requirement</span>
-                    <span style={{ 
-                      fontSize: 10, 
-                      fontWeight: 700, 
-                      color: l.substituteStatus === 'Accepted' ? '#10b981' : l.substituteStatus === 'Declined' ? '#f43f5e' : '#f59e0b' 
+                    <span style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: l.substituteStatus === 'Accepted' ? '#10b981' : l.substituteStatus === 'Declined' ? '#f43f5e' : '#f59e0b'
                     }}>
                       {l.substituteStatus || 'Pending'}
                     </span>
@@ -216,8 +214,8 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
 
               <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Update Status:</span>
-                <select 
-                  className="mmh-input-select" 
+                <select
+                  className="mmh-input-select"
                   style={{ width: 140, height: 32, padding: '0 10px', fontSize: 12, borderRadius: 8, background: 'rgba(15,23,42,0.8)' }}
                   value={l.status}
                   onChange={(e) => handleStatusChange(l._id, e.target.value)}
@@ -234,20 +232,20 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
       )}
 
       {rejectModal && (
-        <div className="mmh-overlay" onClick={e=>{if(e.target===e.currentTarget)setRejectModal(null)}}>
+        <div className="mmh-overlay" onClick={e => { if (e.target === e.currentTarget) setRejectModal(null) }}>
           <div className="mmh-modal mmh-modal-sm">
             <div className="mmh-modal-header">
               <div className="mmh-modal-title">Reject Leave — {rejectModal.employee?.name}</div>
-              <button className="mmh-modal-close" onClick={()=>setRejectModal(null)}>×</button>
+              <button className="mmh-modal-close" onClick={() => setRejectModal(null)}>×</button>
             </div>
             <div className="mmh-modal-body">
               <div className="mmh-field">
                 <label className="mmh-label">Rejection Reason <span className="mmh-required">*</span></label>
-                <textarea className="mmh-textarea" placeholder="Provide reason..." value={rejectReason} onChange={e=>setRejectReason(e.target.value)} rows={3} />
+                <textarea className="mmh-textarea" placeholder="Provide reason..." value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={3} />
               </div>
             </div>
             <div className="mmh-modal-footer">
-              <button className="mmh-btn mmh-btn-ghost" onClick={()=>setRejectModal(null)}>Cancel</button>
+              <button className="mmh-btn mmh-btn-ghost" onClick={() => setRejectModal(null)}>Cancel</button>
               <button className="mmh-btn mmh-btn-rose" onClick={handleReject} disabled={!rejectReason.trim()}>Reject Leave</button>
             </div>
           </div>
