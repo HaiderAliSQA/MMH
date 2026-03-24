@@ -11,6 +11,7 @@ import PharmacyPage from './pages/pharmacy/PharmacyPage';
 import ManageUsers from './pages/admin/ManageUsers';
 import ManageWards from './pages/admin/ManageWards';
 import HRPage from './pages/admin/HRPage';
+import PaymentsGrid from './pages/admin/PaymentsGrid';
 import Settings from './pages/Settings';
 
 // Original Portal Pages
@@ -70,7 +71,7 @@ function App() {
         <Route path="/patients" element={<ProtectedRoute allowedRoles={['admin', 'receptionist']}><MainLayout user={user} title="Patients"><PatientsPage /></MainLayout></ProtectedRoute>} />
         <Route path="/pharmacy" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Pharmacy"><PharmacyPage user={user} /></MainLayout></ProtectedRoute>} />
         <Route path="/wards" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Wards"><ManageWards /></MainLayout></ProtectedRoute>} />
-        <Route path="/payments" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Payments"><PlaceholderPage title="Payments Management" /></MainLayout></ProtectedRoute>} />
+        <Route path="/payments" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Payments"><PaymentsGrid /></MainLayout></ProtectedRoute>} />
         <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Manage Users"><ManageUsers /></MainLayout></ProtectedRoute>} />
         <Route path="/admin/managers" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Manage Managers"><PlaceholderPage title="Managers Management" /></MainLayout></ProtectedRoute>} />
         <Route path="/hr" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><MainLayout user={user} title="HR Management"><HRPage /></MainLayout></ProtectedRoute>} />

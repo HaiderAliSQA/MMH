@@ -3274,3 +3274,60 @@ input[type="time"].mmh-input { color-scheme: dark; }
   animation: mmh-spin 0.65s linear infinite;
   flex-shrink: 0;
 }
+/* Compact payment method grid */
+.mmh-payment-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.mmh-payment-card-sm {
+  background: #0f1e38;
+  border: 1px solid #1e3050;
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+.mmh-payment-card-sm:hover {
+  background: #14284d;
+  border-color: #334155;
+  transform: translateY(-1px);
+}
+.mmh-payment-card-sm.selected {
+  background: rgba(16,185,129,0.08); /* default emerald tint */
+  border: 2px solid #10b981;
+  box-shadow: 0 0 15px rgba(16,185,129,0.15);
+}
+.mmh-payment-icon-sm {
+  font-size: 18px;
+  width: 34px;
+  height: 34px;
+  background: #1e3050;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mmh-payment-card-sm.selected .mmh-payment-icon-sm {
+  background: #10b981;
+  color: white;
+}
+.mmh-payment-label-sm {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+.mmh-payment-card-sm.selected .mmh-payment-label-sm {
+  color: #34d399;
+}
+
+/* Payment Badge Colors (Method specific if needed) */
+.mmh-badge-cash { background: rgba(16,185,129,0.1); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+.mmh-badge-bank { background: rgba(14,165,233,0.1); color: #38bdf8; border: 1px solid rgba(14,165,233,0.2); }
+.mmh-badge-jazz { background: rgba(244,63,94,0.1); color: #fb7185; border: 1px solid rgba(244,63,94,0.2); }
+.mmh-badge-easy { background: rgba(167,139,250,0.1); color: #a78bfa; border: 1px solid rgba(167,139,250,0.2); }

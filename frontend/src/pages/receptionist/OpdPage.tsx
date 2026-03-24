@@ -103,6 +103,68 @@ const printOpdSlip = (visitData: any) => {
   pw.document.close();
 };
 
+// ─── Admission Slip print function ────────────────────────────────────
+const SLIP_FONTS_ADMISSION = `https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap`;
+
+const printAdmissionSlip = (admissionData: any) => {
+  const pw = window.open('', 'Print', 'width=420,height=700');
+  if (!pw) return;
+
+  const date = new Date().toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
+
+  pw.document.write(`<!DOCTYPE html><html><head>
+    <title>Admission Slip</title>
+    <link href="${SLIP_FONTS_ADMISSION}" rel="stylesheet">
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{background:white;display:flex;justify-content:center;padding:20px;font-family:'Plus Jakarta Sans',sans-serif;}
+      .w{width:340px;background:white;color:#0f172a;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;}
+      .hd{background:#064e3b;color:white;padding:16px 20px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      .hd-h{font-size:17px;font-weight:900;font-style:italic;}
+      .hd-s{font-size:10px;opacity:.8;margin-top:3px;}
+      .hd-t{font-size:9px;text-transform:uppercase;letter-spacing:.15em;opacity:.7;margin-top:4px;}
+      .mid{background:#f0fdf4;padding:14px;text-align:center;border-bottom:1px dashed #a7f3d0;}
+      .mid-l{font-size:9px;color:#064e3b;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px;}
+      .mid-n{font-size:22px;font-weight:900;color:#064e3b;font-family:'JetBrains Mono',monospace;border:2px dashed #064e3b;display:inline-block;padding:5px 16px;border-radius:8px;background:white;}
+      .mid-d{font-size:10px;color:#064e3b;margin-top:5px;font-weight:700;}
+      .bd{padding:14px 18px;background:white;}
+      .row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px dotted #f1f5f9;color:#0f172a;}
+      .lbl{color:#64748b;min-width:70px;}
+      .val{font-weight:700;text-align:right;}
+      .emg{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;marginTop:10px;}
+      .emg-h{font-size:10px;fontWeight:800;color:#dc2626;marginBottom:5px;text-transform:uppercase;}
+      .ft{background:#f8fafc;padding:10px 14px;text-align:center;font-size:9px;color:#94a3b8;border-top:1px solid #e2e8f0;}
+      @media print{body{padding:0;}.hd,.mid,.emg{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
+    </style>
+  </head><body><div class="w">
+    <div class="hd"><div class="hd-h">🏥 Majida Memorial Hospital</div><div class="hd-s">Chiniot, Punjab</div><div class="hd-t">— Patient Admission Slip —</div></div>
+    <div class="mid">
+      <div class="mid-l">MR Number</div>
+      <div class="mid-n">${admissionData.mrNumber}</div>
+      <div class="mid-d">ADMITTED — ${date}</div>
+    </div>
+    <div class="bd">
+      <div class="row"><span class="lbl">Patient</span><span class="val">${admissionData.patientName}</span></div>
+      <div class="row"><span class="lbl">Age/Sex</span><span class="val">${admissionData.age} / ${admissionData.gender}</span></div>
+      <div class="row"><span class="lbl">Phone</span><span class="val">${admissionData.phone}</span></div>
+      <div class="row"><span class="lbl">Doctor</span><span class="val">${admissionData.doctorName}</span></div>
+      ${admissionData.wardName ? `<div class="row"><span class="lbl">Ward</span><span class="val">${admissionData.wardName}</span></div>` : ''}
+      ${admissionData.bedNumber ? `<div class="row"><span class="lbl">Bed</span><span class="val">${admissionData.bedNumber}</span></div>` : ''}
+      
+      <div class="emg">
+        <div class="emg-h">🚨 Emergency Contact</div>
+        <div class="row"><span class="lbl">Name</span><span class="val">${admissionData.warisName}</span></div>
+        <div class="row"><span class="lbl">Phone</span><span class="val">${admissionData.warisPhone}</span></div>
+        <div class="row"><span class="lbl">Relation</span><span class="val">${admissionData.warisRelation}</span></div>
+      </div>
+    </div>
+    <div class="ft">Please show to ward staff — MMH Chiniot</div>
+  </div>
+  <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}<\/script>
+  </body></html>`);
+  pw.document.close();
+};
+
 // ─── Discharge Slip print function ─────────────────────────────────────
 const printDischargeSlip = (ad: any) => {
   const pw = window.open('', 'Print', 'width=420,height=800');
@@ -325,7 +387,7 @@ const RegisterTab: React.FC = () => {
   });
 
   useEffect(() => {
-    api.get('/admin/doctors').then(r => {
+    api.get('/doctors').then(r => {
       setDoctors(r.data || []);
     }).catch(() => { });
   }, []);
@@ -601,7 +663,7 @@ const AdmissionTab: React.FC = () => {
 
   useEffect(() => {
     Promise.allSettled([
-      api.get('/admin/doctors'),
+      api.get('/doctors'),
       api.get('/wards'),
     ]).then(([ur, wr]) => {
       if (ur.status === 'fulfilled') setDoctors(ur.value.data || []);
@@ -1131,37 +1193,76 @@ const LabRequestTab: React.FC = () => {
 
 // ─── TAB 4 — PAYMENT ─────────────────────────────────────────────────
 const PaymentTab: React.FC = () => {
-  const [patients, setPatients] = useState<PatientResult[]>([]);
   const [method, setMethod] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(false);
+  const [recentPayments, setRecentPayments] = useState<any[]>([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // Patient Search State
+  const [selectedPatient, setSelectedPatient] = useState<PatientResult | null>(null);
+
   const [form, setForm] = useState({
-    patientId: '', purpose: 'OPD', amount: '', refNo: '', notes: ''
+    purpose: 'OPD', amount: '', refNo: '', notes: ''
   });
 
-  useEffect(() => { api.get('/patients').then(r => setPatients(r.data)).catch(() => { }); }, []);
+  // Recent Transactions Filters & Pagination
+  const [pFromDate, setPFromDate] = useState(new Date().toISOString().split('T')[0]);
+  const [pToDate, setPToDate] = useState(new Date().toISOString().split('T')[0]);
+  const [pMethod, setPMethod] = useState('');
+  const [pPage, setPPage] = useState(0);
+  const [pTotalPages, setPTotalPages] = useState(0);
+  const [pTotalCount, setPTotalCount] = useState(0);
+  const pLimit = 10;
+
+  const fetchRecent = async (page = pPage) => {
+    setFetchLoading(true);
+    try {
+      const params: any = { page, limit: pLimit };
+      if (pFromDate) params.from = pFromDate;
+      if (pToDate) params.to = pToDate;
+      if (pMethod) params.method = pMethod;
+
+      const r = await api.get('/payments', { params });
+      setRecentPayments(r.data?.payments || []);
+      setPTotalPages(r.data?.totalPages || 0);
+      setPTotalCount(r.data?.total || 0);
+      setPPage(page);
+    } catch { }
+    finally { setFetchLoading(false); }
+  };
+
+  useEffect(() => { fetchRecent(0); }, [pFromDate, pToDate, pMethod]);
 
   const s = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.patientId) { setError('Please select a patient.'); return; }
+    if (!selectedPatient) { setError('Please search and select a patient.'); return; }
     if (!form.amount) { setError('Please enter an amount.'); return; }
     if (!method) { setError('Please select a payment method.'); return; }
+    
     setLoading(true); setError(''); setSuccess('');
     try {
-      const patient = patients.find(p => p._id === form.patientId);
       await api.post('/payments', {
-        ...form, patientName: patient?.name,
-        method, amount: Number(form.amount), paidAt: new Date().toISOString(),
+        patient: selectedPatient._id,
+        patientName: selectedPatient.name,
+        purpose: form.purpose,
+        amount: Number(form.amount),
+        paymentMethod: method,
+        refNo: form.refNo,
+        notes: form.notes,
+        paidAt: new Date().toISOString(),
       });
-      setSuccess(`Payment of PKR ${Number(form.amount).toLocaleString()} recorded!`);
-      setForm({ patientId: '', purpose: 'OPD', amount: '', refNo: '', notes: '' });
+      setSuccess(`Payment of PKR ${Number(form.amount).toLocaleString()} recorded successfully!`);
+      setForm({ purpose: 'OPD', amount: '', refNo: '', notes: '' });
       setMethod('');
+      setSelectedPatient(null);
+      fetchRecent(0);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Payment failed.');
+      setError(err.response?.data?.message || 'Payment recording failed.');
     } finally { setLoading(false); }
   };
 
@@ -1170,62 +1271,148 @@ const PaymentTab: React.FC = () => {
       <div className="mmh-page-header">
         <div>
           <h1 className="mmh-page-title">Collect Payment</h1>
-          <p className="mmh-page-subtitle">Record patient payment transactions</p>
+          <p className="mmh-page-subtitle">Record and view patient transactions</p>
         </div>
+        <button className="mmh-btn mmh-btn-ghost mmh-btn-sm" onClick={() => fetchRecent(pPage)}>🔄 Refresh List</button>
       </div>
-      {error && <div className="mmh-banner-error">⚠️ {error}</div>}
-      {success && <div className="mmh-banner-success">✅ {success}</div>}
-      <div className="mmh-card">
-        <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg,#10b981,#0ea5e9)' }} />
-        <div className="mmh-card-header"><div className="mmh-card-title">💳 Payment Entry</div></div>
-        <div className="mmh-card-body">
-          <form onSubmit={handleSubmit}>
-            <div className="mmh-form-grid">
-              <div className="mmh-field">
-                <label className="mmh-label">Select Patient <span className="mmh-required">*</span></label>
-                <select className="mmh-input-select" value={form.patientId} onChange={s('patientId')} required>
-                  <option value="">— Select Patient —</option>
-                  {patients.map(p => <option key={p._id} value={p._id}>{p.mrNumber} — {p.name}</option>)}
-                </select>
-              </div>
-              <div className="mmh-field">
-                <label className="mmh-label">Purpose <span className="mmh-required">*</span></label>
-                <select className="mmh-input-select" value={form.purpose} onChange={s('purpose')}>
-                  {['OPD', 'Admission', 'Lab', 'Pharmacy', 'Other'].map(p => <option key={p} value={p}>{p}</option>)}
-                </select>
-              </div>
-              <div className="mmh-field mmh-form-full">
-                <label className="mmh-label">Amount (PKR) <span className="mmh-required">*</span></label>
-                <input type="number" className="mmh-input" placeholder="0.00" min={0} value={form.amount} onChange={s('amount')} required />
-              </div>
-            </div>
-            <label className="mmh-label" style={{ display: 'block', margin: '16px 0 8px' }}>
-              Payment Method <span className="mmh-required">*</span>
-            </label>
-            <div className="mmh-payment-grid">
-              {PAYMENT_METHODS.map(pm => (
-                <div key={pm.id} className={`mmh-payment-card${method === pm.id ? ' selected' : ''}`} onClick={() => setMethod(pm.id)}>
-                  <span className="mmh-payment-card-icon">{pm.icon}</span>
-                  {pm.label}
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.8fr', gap: 20, alignItems: 'start' }}>
+        {/* Left: Entry Form */}
+        <div className="mmh-card" style={{ position: 'sticky', top: 0 }}>
+          <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg,#10b981,#0ea5e9)' }} />
+          <div className="mmh-card-header"><div className="mmh-card-title">💳 New Payment</div></div>
+          <div className="mmh-card-body">
+            {error && <div className="mmh-banner-error" style={{ marginBottom: 15 }}>{error}</div>}
+            {success && <div className="mmh-banner-success" style={{ marginBottom: 15 }}>{success}</div>}
+
+            <form onSubmit={handleSubmit}>
+              <PatientSearchField 
+                label="Patient Search"
+                selectedPatient={selectedPatient}
+                onSelect={setSelectedPatient}
+                onClear={() => setSelectedPatient(null)}
+              />
+
+              <div className="mmh-form-grid" style={{ marginBottom: 15 }}>
+                <div className="mmh-field">
+                  <label className="mmh-label">Purpose <span className="mmh-required">*</span></label>
+                  <select className="mmh-input-select" value={form.purpose} onChange={s('purpose')}>
+                    {['OPD', 'Admission', 'Lab', 'Pharmacy', 'Emergency', 'Other'].map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
                 </div>
-              ))}
-            </div>
-            {method && method !== 'Cash' && (
-              <div className="mmh-field" style={{ marginTop: 12 }}>
-                <label className="mmh-label">Reference Number</label>
-                <input className="mmh-input" placeholder="Transaction / reference no." value={form.refNo} onChange={s('refNo')} />
+                <div className="mmh-field">
+                  <label className="mmh-label">Amount (PKR) <span className="mmh-required">*</span></label>
+                  <input type="number" className="mmh-input" style={{ fontWeight: 800, color: '#10b981' }} placeholder="0" min={0} value={form.amount} onChange={s('amount')} required />
+                </div>
               </div>
-            )}
-            <div className="mmh-field" style={{ marginTop: 14 }}>
-              <label className="mmh-label">Notes (optional)</label>
-              <textarea className="mmh-textarea" placeholder="Additional notes..." value={form.notes} onChange={s('notes')} style={{ minHeight: 70 }} />
-            </div>
-            <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
-              <button className="mmh-btn mmh-btn-green" type="submit" disabled={loading}>
-                {loading ? '⏳ Recording...' : '💳 Record Payment'}
+
+              <label className="mmh-label" style={{ display: 'block', marginBottom: 8 }}>
+                Payment Method <span className="mmh-required">*</span>
+              </label>
+              <div className="mmh-payment-grid-compact">
+                {PAYMENT_METHODS.map(pm => (
+                  <div key={pm.id} className={`mmh-payment-card-sm${method === pm.id ? ' selected' : ''}`} onClick={() => setMethod(pm.id)}>
+                    <div className="mmh-payment-icon-sm">{pm.icon}</div>
+                    <div className="mmh-payment-label-sm">{pm.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {method && method !== 'Cash' && (
+                <div className="mmh-field" style={{ marginTop: 15 }}>
+                  <label className="mmh-label">Ref / Transaction ID</label>
+                  <input className="mmh-input" placeholder="e.g. TRX-12345" value={form.refNo} onChange={s('refNo')} />
+                </div>
+              )}
+
+              <div className="mmh-field" style={{ marginTop: 15 }}>
+                <label className="mmh-label">Notes</label>
+                <textarea className="mmh-textarea" placeholder="Optional notes..." value={form.notes} onChange={s('notes')} style={{ minHeight: 60 }} />
+              </div>
+
+              <button className="mmh-btn mmh-btn-primary" style={{ width: '100%', marginTop: 20, height: 45 }} type="submit" disabled={loading}>
+                {loading ? 'Recording...' : '💳 Complete Transaction'}
               </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Right: History Grid */}
+        <div className="mmh-table-card">
+          <div className="mmh-table-card-top" style={{ background: 'linear-gradient(90deg, #1e293b, #334155)' }} />
+          <div className="mmh-card-header" style={{ padding: '15px 20px', borderBottom: '1px solid #1e3050', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+               <div className="mmh-card-title" style={{ fontSize: 14 }}>🗓️ Recent Transactions</div>
+               <div style={{ fontSize: 10, color: '#64748b' }}>Showing {recentPayments.length} of {pTotalCount} total</div>
             </div>
-          </form>
+            <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" onClick={() => fetchRecent(pPage)}>🔄 Refresh</button>
+          </div>
+          
+          {/* Filters Bar */}
+          <div style={{ padding: '12px 20px', background: 'rgba(15,23,42,0.2)', borderBottom: '1px solid #1e3050', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+              <div className="mmh-field">
+                <label className="mmh-label" style={{ fontSize: 10 }}>From Date</label>
+                <input type="date" className="mmh-input mmh-input-sm" value={pFromDate} onChange={e => setPFromDate(e.target.value)} />
+              </div>
+              <div className="mmh-field">
+                <label className="mmh-label" style={{ fontSize: 10 }}>To Date</label>
+                <input type="date" className="mmh-input mmh-input-sm" value={pToDate} onChange={e => setPToDate(e.target.value)} />
+              </div>
+              <div className="mmh-field">
+                <label className="mmh-label" style={{ fontSize: 10 }}>Method</label>
+                <select className="mmh-input-select mmh-input-sm" value={pMethod} onChange={e => setPMethod(e.target.value)}>
+                    <option value="">All Methods</option>
+                    {['Cash', 'Card', 'Insurance', 'JazzCash', 'EasyPaisa', 'Bank Transfer'].map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+          </div>
+
+          <div className="mmh-table-scroll" style={{ maxHeight: 'calc(100vh - 400px)' }}>
+            <table className="mmh-table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th><th>Time & Date</th><th>Patient</th><th>Amount</th><th>Method</th><th>Purpose</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fetchLoading ? (
+                  <tr><td colSpan={6} className="mmh-empty" style={{ padding: 40 }}>Loading history...</td></tr>
+                ) : recentPayments.length === 0 ? (
+                  <tr><td colSpan={6} className="mmh-empty" style={{ padding: 40 }}>No transactions found for these filters</td></tr>
+                ) : recentPayments.map(p => (
+                  <tr key={p._id}>
+                    <td style={{ fontFamily: 'JetBrains Mono', fontSize: 11, color: '#0ea5e9', fontWeight: 700 }}>{p.invoiceNumber}</td>
+                    <td>
+                        <div style={{ color: 'white', fontWeight: 600 }}>{new Date(p.createdAt).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}</div>
+                        <div style={{ fontSize: 9, color: '#64748b' }}>{new Date(p.createdAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}</div>
+                    </td>
+                    <td>
+                      <div className="mmh-td-name" style={{ fontSize: 12 }}>{p.patient?.name || p.patientName}</div>
+                      <div style={{ fontSize: 9, color: '#475569', fontFamily: 'JetBrains Mono' }}>{p.patient?.mrNumber || 'Walk-in'}</div>
+                    </td>
+                    <td style={{ fontWeight: 800, color: '#10b981', fontSize: 13 }}>Rs. {p.amount.toLocaleString()}</td>
+                    <td>
+                      <span className={`mmh-badge mmh-badge-${(p.paymentMethod || p.method || '').toLowerCase().includes('cash') ? 'green' : (p.paymentMethod || p.method || '').toLowerCase().includes('bank') ? 'sky' : 'amber'}`} style={{ fontSize: 10, padding: '2px 8px' }}>
+                        {p.paymentMethod || p.method || '—'}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: 11, color: '#94a3b8' }}>{p.purpose}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Footer */}
+          {pTotalPages > 1 && (
+            <div style={{ padding: '12px 20px', borderTop: '1px solid #1e3050', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(15,23,42,0.3)' }}>
+                <div style={{ fontSize: 11, color: '#64748b' }}>Page {pPage + 1} of {pTotalPages}</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" disabled={pPage === 0} onClick={() => fetchRecent(pPage - 1)}>◀ Prev</button>
+                    <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" disabled={pPage >= pTotalPages - 1} onClick={() => fetchRecent(pPage + 1)}>Next ▶</button>
+                </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

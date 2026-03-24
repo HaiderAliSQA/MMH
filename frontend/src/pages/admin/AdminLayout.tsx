@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import Sidebar from '../../components/Sidebar';
 import AdminDashboard from './AdminDashboard';
 import ManageUsers from './ManageUsers';
-import ManageMedicines from './ManageMedicines';
 import ManageWards from './ManageWards';
+import ManagePayments from './ManagePayments';
 import PatientRecords from '../../components/PatientRecords';
 import '../../styles/mmh.css';
 
@@ -18,6 +18,7 @@ const TABS = [
   { id: 'records', label: 'Patient Records', icon: '📜' },
   { id: 'meds',    label: 'Pharmacy',  icon: '💊' },
   { id: 'wards',   label: 'Wards',     icon: '🏥' },
+  { id: 'payments', label: 'Payments',  icon: '💳' },
 ];
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ initialTab = 'dash', onLogout }) => {
@@ -85,6 +86,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ initialTab = 'dash', onLogout
           {activeTab === 'records' && <PatientRecords />}
           {activeTab === 'meds'  && <ManageMedicines />}
           {activeTab === 'wards' && <ManageWards />}
+          {activeTab === 'payments' && <ManagePayments />}
         </div>
       </main>
     </div>

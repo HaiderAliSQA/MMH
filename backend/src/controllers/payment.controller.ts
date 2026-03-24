@@ -2,7 +2,8 @@ import { Request, Response } from 'express';
 import Payment from '../models/Payment.model';
 
 export const getPayments = async (req: Request, res: Response) => {
-  const { from, to } = req.query;
+  const { from, to, method, patientId, search, page = 0, limit = 10 } = req.query;
+  const skip = Number(page) * Number(limit);
   const query: any = {};
 
   if (from && to) {
@@ -11,20 +12,42 @@ export const getPayments = async (req: Request, res: Response) => {
     const end = new Date(to as string);
     end.setHours(23, 59, 59, 999);
     query.createdAt = { $gte: start, $lte: end };
-  } else {
-    // Default: today only
+  } else if (!patientId && !search) {
+    // Default to today ONLY if no specific patient or search is requested
     const start = new Date();
     start.setHours(0, 0, 0, 0);
     query.createdAt = { $gte: start };
   }
 
-  const payments = await Payment.find(query).populate('patient').sort({ createdAt: -1 });
+  if (method) query.paymentMethod = method;
+  if (patientId) query.patient = patientId;
+  
+  // Basic search by invoice number or notes if needed
+  if (search) {
+    query.$or = [
+      { invoiceNumber: { $regex: search, $options: 'i' } },
+      { notes: { $regex: search, $options: 'i' } },
+      { patientName: { $regex: search, $options: 'i' } }
+    ];
+  }
 
-  const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
+  const total = await Payment.countDocuments(query);
+  const payments = await Payment.find(query)
+    .populate('patient', 'name mrNumber')
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(Number(limit));
+
+  // For total revenue, we still need the sum of all payments matched by query
+  const allPaymentsForRevenue = await Payment.find(query, 'amount');
+  const totalRevenue = allPaymentsForRevenue.reduce((sum, p) => sum + p.amount, 0);
 
   res.status(200).json({
     payments,
+    total,
     totalRevenue,
+    page: Number(page),
+    totalPages: Math.ceil(total / Number(limit)),
   });
 };
 

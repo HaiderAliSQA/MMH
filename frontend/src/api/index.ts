@@ -107,13 +107,13 @@ export const adminAPI = {
   createUser:   (data: object) => api.post('/admin/users', data),
   updateUser:   (id: string, data: object) =>
     api.put(`/admin/users/${id}`, data),
-  getDoctors:   () => api.get('/admin/doctors'),
-  createDoctor: (data: object) => api.post('/admin/doctors', data),
+  getDoctors:   () => api.get('/doctors'),
+  createDoctor: (data: object) => api.post('/doctors', data),
   updateDoctor: (id: string, data: object) =>
-    api.put(`/admin/doctors/${id}`, data),
-  getWards:     () => api.get('/admin/wards'),
+    api.put(`/doctors/${id}`, data),
+  getWards:     () => api.get('/wards'),
   getBeds:      (wardId: string) =>
-    api.get(`/admin/wards/${wardId}/beds`),
+    api.get(`/wards/${wardId}/beds`),
 }
 
 export const hrAPI = {

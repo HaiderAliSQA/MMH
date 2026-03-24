@@ -202,7 +202,7 @@ export const updateUser = async (req: any, res: Response): Promise<void> => {
 };
 
 export const getDoctors = async (req: Request, res: Response) => {
-  const doctors = await Doctor.find({ isActive: true }).sort({ name: 1 });
+  const doctors = await Doctor.find({ isActive: { $ne: false } }).sort({ name: 1 });
   res.status(200).json(doctors);
 };
 
