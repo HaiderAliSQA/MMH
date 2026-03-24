@@ -103,61 +103,55 @@ const printOpdSlip = (visitData: any) => {
   pw.document.close();
 };
 
-// ─── Admission Slip print function ──────────────────────────────────────
-const printAdmissionSlip = (ad: any) => {
-  const pw = window.open('', 'Print', 'width=420,height=780');
+// ─── Discharge Slip print function ─────────────────────────────────────
+const printDischargeSlip = (ad: any) => {
+  const pw = window.open('', 'Print', 'width=420,height=800');
   if (!pw) return;
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
   const timeStr = now.toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
+  const admitDate = ad.admitDate ? new Date(ad.admitDate).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+  
   pw.document.write(`<!DOCTYPE html><html><head>
-    <title>Admission Slip</title>
+    <title>Discharge Slip</title>
     <link href="${SLIP_FONTS}" rel="stylesheet">
     <style>
       *{box-sizing:border-box;margin:0;padding:0}
       body{background:white;display:flex;justify-content:center;padding:20px;font-family:'Plus Jakarta Sans',sans-serif;}
       .w{width:340px;background:white;color:#0f172a;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;}
-      .hd{background:#064e3b;color:white;padding:16px 20px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      .hd{background:#0c3b6b;color:white;padding:16px 20px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       .hd-h{font-size:17px;font-weight:900;font-style:italic;}
-      .hd-s{font-size:10px;opacity:.8;margin-top:3px;}
+      .hd-s{font-size:10px;opacity:.8;margin-top:2px;}
       .hd-t{font-size:9px;letter-spacing:.15em;text-transform:uppercase;opacity:.7;margin-top:4px;}
-      .mr{background:#f0fdf4;padding:14px;text-align:center;border-bottom:1px dashed #a7f3d0;}
-      .mr-l{font-size:9px;color:#064e3b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;}
-      .mr-n{font-size:22px;font-weight:900;color:#064e3b;font-family:'JetBrains Mono',monospace;border:2px dashed #064e3b;display:inline-block;padding:4px 14px;border-radius:8px;background:white;}
-      .mr-d{font-size:10px;color:#064e3b;margin-top:5px;font-weight:700;}
+      .mr{background:#f8fafc;padding:14px;text-align:center;border-bottom:1px dashed #cbd5e1;}
+      .mr-l{font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.12em;margin-bottom:5px;}
+      .mr-n{font-size:22px;font-weight:900;color:#0c3b6b;font-family:'JetBrains Mono',monospace;border:2px dashed #0c3b6b;display:inline-block;padding:4px 14px;border-radius:8px;background:white;}
       .bd{padding:14px 18px;background:white;}
-      .st{font-size:9px;font-weight:800;color:#064e3b;text-transform:uppercase;letter-spacing:.1em;margin:10px 0 5px;padding-bottom:3px;border-bottom:1.5px solid #d1fae5;}
-      .row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px dotted #f1f5f9;}
-      .lbl{color:#64748b;min-width:80px;}
-      .val{font-weight:700;text-align:right;color:#0f172a;}
-      .em{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;margin:10px 0;}
-      .em-t{font-size:10px;font-weight:800;color:#dc2626;margin-bottom:5px;text-transform:uppercase;letter-spacing:.08em;}
+      .st{font-size:9px;font-weight:800;color:#0c3b6b;text-transform:uppercase;letter-spacing:.1em;margin:12px 0 6px;padding-bottom:3px;border-bottom:1.5px solid #dbeafe;}
+      .row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px dotted #f1f5f9;color:#0f172a;}
+      .lbl{color:#64748b;min-width:85px;}
+      .val{font-weight:700;text-align:right;}
+      .sm{font-size:10px;color:#475569;line-height:1.5;margin-top:5px;padding:8px;background:#f8fafc;border-radius:6px;}
       .ft{background:#f8fafc;padding:10px 14px;text-align:center;font-size:9px;color:#94a3b8;border-top:1px solid #e2e8f0;}
-      @media print{body{padding:0;}.em{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
+      @media print{body{padding:0;}}
     </style>
   </head><body><div class="w">
-    <div class="hd"><div class="hd-h">🏥 Majida Memorial Hospital</div><div class="hd-s">Chiniot, Punjab</div><div class="hd-t">— Patient Admission Slip —</div></div>
-    <div class="mr"><div class="mr-l">MR Number</div><div class="mr-n">${ad.mrNumber}</div><div class="mr-d">ADMITTED — ${dateStr}</div></div>
+    <div class="hd"><div class="hd-h">🏥 Majida Memorial Hospital</div><div class="hd-s">Chiniot, Punjab</div><div class="hd-t">— Patient Discharge Slip —</div></div>
+    <div class="mr"><div class="mr-l">MR Number</div><div class="mr-n">${ad.patient?.mrNumber || ad.mrNumber}</div></div>
     <div class="bd">
       <div class="st">Patient Information</div>
-      <div class="row"><span class="lbl">Name</span><span class="val">${ad.patientName}</span></div>
-      <div class="row"><span class="lbl">Age/Sex</span><span class="val">${ad.age} Yrs / ${ad.gender}</span></div>
-      <div class="row"><span class="lbl">Phone</span><span class="val">${ad.phone}</span></div>
-      <div class="st">Admission Details</div>
-      <div class="row"><span class="lbl">Doctor</span><span class="val">${ad.doctorName}</span></div>
-      ${ad.department ? `<div class="row"><span class="lbl">Dept.</span><span class="val">${ad.department}</span></div>` : ''}
-      ${ad.wardName ? `<div class="row"><span class="lbl">Ward</span><span class="val">${ad.wardName}</span></div>` : ''}
-      ${ad.bedNumber ? `<div class="row"><span class="lbl">Bed</span><span class="val">${ad.bedNumber}</span></div>` : ''}
-      <div class="row"><span class="lbl">Date</span><span class="val">${dateStr}</span></div>
-      <div class="row"><span class="lbl">Time</span><span class="val">${timeStr}</span></div>
-      ${ad.symptoms ? `<div class="st">Presenting Complaint</div><div style="font-size:11px;color:#0f172a;padding:5px 0;line-height:1.5;">${ad.symptoms}</div>` : ''}
-      <div class="em"><div class="em-t">🚨 Emergency Contact (Waris)</div>
-        <div class="row"><span class="lbl">Name</span><span class="val">${ad.warisName}</span></div>
-        <div class="row"><span class="lbl">Phone</span><span class="val">${ad.warisPhone}</span></div>
-        <div class="row"><span class="lbl">Relation</span><span class="val">${ad.warisRelation}</span></div>
-      </div>
+      <div class="row"><span class="lbl">Patient Name</span><span class="val">${ad.patient?.name || ad.patientName}</span></div>
+      <div class="row"><span class="lbl">Age/Gender</span><span class="val">${ad.patient?.age || ad.age}y / ${ad.patient?.gender || ad.gender}</span></div>
+      <div class="st">Hospitalization Details</div>
+      <div class="row"><span class="lbl">Consultant</span><span class="val">${ad.doctor?.name || ad.doctorName}</span></div>
+      <div class="row"><span class="lbl">Ward/Bed</span><span class="val">${ad.ward?.name || ad.wardName} — ${ad.bed?.bedNumber || ad.bedNumber}</span></div>
+      <div class="row"><span class="lbl">Admit Date</span><span class="val">${admitDate}</span></div>
+      <div class="row"><span class="lbl">Discharge Date</span><span class="val">${dateStr}</span></div>
+      <div class="row"><span class="lbl">Discharge Time</span><span class="val">${timeStr}</span></div>
+      ${ad.diagnosis ? `<div class="st">Diagnosis</div><div class="sm">${ad.diagnosis}</div>` : ''}
+      ${ad.symptoms ? `<div class="st">Symptoms at Admission</div><div class="sm">${ad.symptoms}</div>` : ''}
     </div>
-    <div class="ft">Please show this slip to ward staff<br/>MMH Chiniot | Majida Memorial Hospital<br/>Keep this slip safe during stay</div>
+    <div class="ft">Wishing you a speedy recovery!<br/>MMH Chiniot | Majida Memorial Hospital</div>
   </div>
   <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}<\/script>
   </body></html>`);
@@ -288,6 +282,7 @@ const OpdPage: React.FC = () => {
   const tabs = [
     { id: 'registration', label: 'OPD Registration', icon: '📝' },
     { id: 'admission', label: 'Admission', icon: '🏥' },
+    { id: 'discharge', label: 'Discharge', icon: '🚪' },
     { id: 'lab-request', label: 'Lab Request', icon: '🔬' },
     { id: 'payment', label: 'Payment', icon: '💳' },
     { id: 'today-list', label: "Today's List", icon: '📋' },
@@ -306,6 +301,7 @@ const OpdPage: React.FC = () => {
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px', width: '100%', boxSizing: 'border-box' }}>
         {currentTab === 'registration' && <RegisterTab />}
         {currentTab === 'admission' && <AdmissionTab />}
+        {currentTab === 'discharge' && <DischargeTab />}
         {currentTab === 'lab-request' && <LabRequestTab />}
         {currentTab === 'payment' && <PaymentTab />}
         {currentTab === 'today-list' && <TodaysListTab />}
@@ -1322,6 +1318,193 @@ const TodaysListTab: React.FC = () => {
           </table>
         </div>
       </div>
+    </div>
+  );
+};
+
+// ─── TAB 2.5 — DISCHARGE ─────────────────────────────────────────────
+const DischargeTab: React.FC = () => {
+  const [admissions, setAdmissions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [confirming, setConfirming] = useState<any>(null);
+  const [discharging, setDischarging] = useState(false);
+  const [dischargeSlip, setDischargeSlip] = useState<any>(null);
+
+  const fetchAdmissions = async () => {
+    setLoading(true);
+    try {
+      const r = await api.get('/admissions');
+      setAdmissions(r.data || []);
+    } catch { setError('Failed to load admissions.'); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchAdmissions(); }, []);
+
+  const handleDischarge = async (adId: string) => {
+    setDischarging(true);
+    try {
+      const r = await api.put(`/admissions/${adId}/discharge`);
+      const data = r.data?.data ?? r.data;
+      setDischargeSlip(data);
+      setConfirming(null);
+      fetchAdmissions();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Discharge failed.');
+    } finally { setDischarging(false); }
+  };
+
+  const filtered = admissions.filter(ad => 
+    ad.patient?.name?.toLowerCase().includes(search.toLowerCase()) ||
+    ad.patient?.mrNumber?.toLowerCase().includes(search.toLowerCase()) ||
+    ad.bed?.bedNumber?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div style={{ animation: 'mmh-slide-up 0.3s both' }}>
+      <div className="mmh-page-header">
+        <div>
+          <h1 className="mmh-page-title">Patient Discharge</h1>
+          <p className="mmh-page-subtitle">Discharge admitted patients and release allocated beds</p>
+        </div>
+        <div className="mmh-header-search" style={{ position: 'relative' }}>
+          <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</span>
+          <input 
+            className="mmh-input" 
+            style={{ paddingLeft: 40, width: 300 }}
+            placeholder="Search by name, MR# or Bed..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="mmh-table-card">
+        <div className="mmh-table-card-top" style={{ background: 'linear-gradient(90deg, #334155, #475569)' }} />
+        <div className="mmh-table-scroll">
+          <table className="mmh-table">
+            <thead>
+              <tr>
+                <th>Patient</th><th>MR Number</th><th>Ward/Bed</th><th>Doctor</th><th>Admit Date</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} className="mmh-empty" style={{ textAlign: 'center', padding: 40 }}>Loading data...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={6}>
+                  <div className="mmh-empty">
+                    <div className="mmh-empty-icon">🛌</div>
+                    <div className="mmh-empty-text">No active admissions found</div>
+                    <div className="mmh-empty-sub">{search ? 'Try a different search term' : 'Currently no patients are admitted'}</div>
+                  </div>
+                </td></tr>
+              ) : filtered.map(ad => (
+                <tr key={ad._id}>
+                  <td className="mmh-td-name">{ad.patient?.name}</td>
+                  <td style={{ fontFamily: 'JetBrains Mono', fontSize: 13 }}>{ad.patient?.mrNumber}</td>
+                  <td>
+                    <span className="mmh-badge mmh-badge-sky">
+                      <span className="mmh-badge-dot" />
+                      {ad.ward?.name || '—'} / {ad.bed?.bedNumber || '—'}
+                    </span>
+                  </td>
+                  <td style={{ color: '#94a3b8' }}>{ad.doctor?.name}</td>
+                  <td style={{ color: '#64748b', fontSize: 12 }}>
+                    {new Date(ad.admitDate).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </td>
+                  <td>
+                    <button 
+                      className="mmh-btn mmh-btn-danger mmh-btn-sm" 
+                      onClick={() => setConfirming(ad)}
+                    >
+                      🚪 Discharge
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Confirmation Modal */}
+      {confirming && (
+        <div className="mmh-overlay">
+          <div className="mmh-modal mmh-modal-sm">
+            <div className="mmh-modal-header">
+              <div className="mmh-modal-title">Confirm Discharge</div>
+              <button className="mmh-modal-close" onClick={() => setConfirming(null)}>×</button>
+            </div>
+            <div className="mmh-modal-body">
+              <p style={{ color: '#94a3b8', marginBottom: 15 }}>
+                Are you sure you want to discharge <strong>{confirming.patient?.name}</strong>?
+              </p>
+              <div style={{ background: 'rgba(244,63,94,0.1)', border: '1px solid rgba(244,63,94,0.2)', padding: 12, borderRadius: 8 }}>
+                <div style={{ fontSize: 11, color: '#fb7185', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>⚠️ Warning</div>
+                <div style={{ fontSize: 12, color: '#fb7185' }}>
+                  This will release <strong>Bed {confirming.bed?.bedNumber}</strong> in {confirming.ward?.name} and mark the patient as discharged.
+                </div>
+              </div>
+            </div>
+            <div className="mmh-modal-footer">
+              <button className="mmh-btn mmh-btn-ghost" onClick={() => setConfirming(null)}>Cancel</button>
+              <button 
+                className="mmh-btn mmh-btn-danger" 
+                onClick={() => handleDischarge(confirming._id)}
+                disabled={discharging}
+              >
+                {discharging ? 'Discharging...' : 'Yes, Discharge Patient'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Discharge Slip Modal */}
+      {dischargeSlip && (
+        <div className="mmh-overlay" onClick={e => { if (e.target === e.currentTarget) setDischargeSlip(null); }}>
+          <div className="mmh-modal mmh-modal-sm">
+            <div className="mmh-modal-header">
+              <div>
+                <div className="mmh-modal-title">Patient Discharged ✅</div>
+                <div className="mmh-modal-subtitle">Slip generated and bed has been released</div>
+              </div>
+              <button className="mmh-modal-close" onClick={() => setDischargeSlip(null)}>×</button>
+            </div>
+            <div className="mmh-modal-body" style={{ overflowY: 'auto', padding: 20 }}>
+              <div style={{ background: 'white', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden', maxWidth: 340, margin: '0 auto' }}>
+                <div style={{ background: '#0c3b6b', color: 'white', padding: '14px 18px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic' }}>🏥 Majida Memorial Hospital</div>
+                  <div style={{ fontSize: 10, opacity: 0.8, marginTop: 2 }}>Chiniot, Punjab</div>
+                  <div style={{ fontSize: 9, opacity: 0.7, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.15em' }}>— Patient Discharge Slip —</div>
+                </div>
+                <div style={{ padding: '14px 18px', background: 'white' }}>
+                   {[['Patient', dischargeSlip.patient?.name], ['MR Number', dischargeSlip.patient?.mrNumber], ['Consultant', dischargeSlip.doctor?.name]].map(([l, v]) => (
+                    <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '3px 0', borderBottom: '1px dotted #f1f5f9', color: '#0f172a' }}>
+                      <span style={{ color: '#64748b', minWidth: 80 }}>{l}</span>
+                      <span style={{ fontWeight: 700 }}>{v}</span>
+                    </div>
+                  ))}
+                  <div style={{ background: '#f8fafc', padding: 10, borderRadius: 8, marginTop: 10, textAlign: 'center' }}>
+                    <div style={{ fontSize: 9, color: '#64748b', textTransform: 'uppercase' }}>Released Bed</div>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: '#0c3b6b' }}>{dischargeSlip.ward?.name} — {dischargeSlip.bed?.bedNumber}</div>
+                  </div>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '10px 14px', textAlign: 'center', fontSize: 9, color: '#94a3b8', borderTop: '1px solid #e2e8f0' }}>
+                  Wishing you a speedy recovery! — MMH
+                </div>
+              </div>
+            </div>
+            <div className="mmh-modal-footer">
+              <button className="mmh-btn mmh-btn-ghost" onClick={() => setDischargeSlip(null)}>Close</button>
+              <button className="mmh-btn mmh-btn-primary" onClick={() => printDischargeSlip(dischargeSlip)}>🖨️ Print Discharge Slip</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

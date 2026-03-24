@@ -80,10 +80,11 @@ export const dischargePatient = async (req: Request, res: Response) => {
     return;
   }
 
-  admission.status      = 'Discharged';
+  admission.status = 'Discharged';
   admission.dischargeDate = new Date();
   await admission.save();
 
+  // Release the bed if assigned
   if (admission.bed) {
     await Bed.findByIdAndUpdate(admission.bed, {
       status: 'Available',
@@ -91,7 +92,19 @@ export const dischargePatient = async (req: Request, res: Response) => {
     });
   }
 
-  await Patient.findByIdAndUpdate(admission.patient, { status: 'Discharged' });
+  // Update patient status to OPD or discharged status
+  await Patient.findByIdAndUpdate(admission.patient, { status: 'OPD' });
 
-  res.status(200).json(admission);
+  // Return fully populated admission for the discharge slip
+  const populated = await Admission.findById(admission._id)
+    .populate('patient', 'name mrNumber age gender phone')
+    .populate('doctor',  'name department')
+    .populate('ward',    'name')
+    .populate('bed',     'bedNumber');
+
+  res.status(200).json({
+    success: true,
+    message: 'Patient discharged successfully',
+    data: populated,
+  });
 };
