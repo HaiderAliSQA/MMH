@@ -33,7 +33,11 @@ interface CartItem {
   total: number;
 }
 
-const PharmacyPage: React.FC = () => {
+interface PharmacyProps {
+  user: any;
+}
+
+const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'dispense';
   const [loading, setLoading] = useState(false);

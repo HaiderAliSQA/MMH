@@ -9,9 +9,9 @@ const STATUS_OPTS = [
   { value:'Approved', label:'Approved', icon:'✅' }, { value:'Rejected', label:'Rejected', icon:'❌' },
 ];
 const LEAVE_TYPE_OPTS = [
-  { value:'', label:'All Types', icon:'📃' }, { value:'Annual', label:'Annual', icon:'📅' },
-  { value:'Sick', label:'Sick', icon:'🤒' }, { value:'Emergency', label:'Emergency', icon:'🚨' },
-  { value:'Maternity', label:'Maternity', icon:'👶' }, { value:'Unpaid', label:'Unpaid', icon:'📝' },
+  { value:'', label:'All Types', icon:'📃' }, { value:'Annual Leave', label:'Annual Leave', icon:'📅' },
+  { value:'Sick Leave', label:'Sick Leave', icon:'🤒' }, { value:'Emergency Leave', label:'Emergency Leave', icon:'🚨' },
+  { value:'Maternity Leave', label:'Maternity Leave', icon:'👶' }, { value:'Unpaid Leave', label:'Unpaid Leave', icon:'📝' },
 ];
 
 const fmtDate = (d:string) => d ? new Date(d).toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric'}) : '—';
@@ -100,43 +100,123 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
       </div>
 
       {loading ? (
-        <div style={{display:'flex',justifyContent:'center',padding:'40px 0'}}><div className="mmh-loader" /></div>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
+          <div className="mmh-loader" />
+        </div>
       ) : filtered.length === 0 ? (
-        <div className="mmh-empty"><div className="mmh-empty-icon">📃</div><div className="mmh-empty-text">No leave requests found</div></div>
+        <div className="mmh-empty" style={{ padding: '60px 20px', background: 'rgba(30,41,59,0.2)', borderRadius: 20, border: '1px dashed rgba(255,255,255,0.05)' }}>
+          <div className="mmh-empty-icon" style={{ fontSize: 48, marginBottom: 16 }}>📃</div>
+          <div className="mmh-empty-text" style={{ fontSize: 16, color: '#94a3b8' }}>No leave requests found matching criteria</div>
+        </div>
       ) : (
-        <div style={{display:'grid',gap:12}}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 20 }}>
           {filtered.map(l => (
-            <div key={l._id} className={`mmh-leave-history-card ${LHC_CLASS[l.status]||''}`}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:8}}>
-                <div style={{display:'flex',alignItems:'center',gap:12}}>
-                  <div style={{width:40,height:40,borderRadius:10,background:'linear-gradient(135deg,#0ea5e9,#8b5cf6)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:900,color:'white',flexShrink:0}}>
-                    {(l.employee?.name||'?').charAt(0)}
+            <div key={l._id} className={`mmh-leave-card ${LHC_CLASS[l.status] || ''}`} style={{
+              background: 'rgba(30,41,59,0.4)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255,255,255,0.05)',
+              borderRadius: 20,
+              padding: 20,
+              display: 'flex',
+              flexDirection: 'column',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div className="mmh-card-status-line" style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: 4,
+                height: '100%',
+                background: l.status === 'Pending' ? '#f59e0b' : l.status === 'Approved' ? '#10b981' : l.status === 'Rejected' ? '#f43f5e' : '#64748b'
+              }} />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ 
+                    width: 44, 
+                    height: 44, 
+                    borderRadius: 12, 
+                    background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    fontSize: 18, 
+                    fontWeight: 900, 
+                    color: 'white', 
+                    boxShadow: '0 4px 12px rgba(99,102,241,0.3)'
+                  }}>
+                    {(l.employee?.name || '?').charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <div style={{fontWeight:700,color:'white',fontSize:14}}>{l.employee?.name}</div>
-                    <div style={{fontSize:12,color:'#64748b'}}>{l.employee?.department} · {l.employee?.employeeId}</div>
+                    <div style={{ fontWeight: 800, color: 'white', fontSize: 15 }}>{l.employee?.name}</div>
+                    <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>{l.employee?.department} · {l.employee?.employeeId}</div>
                   </div>
                 </div>
-                <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                  <span className="mmh-badge mmh-badge-sky">{l.leaveType}</span>
-                  <span className={`mmh-badge ${LEAVE_BADGE[l.status]||'mmh-badge-gray'}`}>{l.status}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+                  <span className="mmh-badge mmh-badge-sky" style={{ fontSize: 10, padding: '2px 8px' }}>{l.leaveType}</span>
+                  <span className={`mmh-badge ${LEAVE_BADGE[l.status] || 'mmh-badge-gray'}`} style={{ fontSize: 10, padding: '2px 8px' }}>{l.status}</span>
                 </div>
               </div>
-              <div style={{marginTop:10,display:'flex',gap:24,fontSize:12,color:'#94a3b8',flexWrap:'wrap'}}>
-                <span>📅 {fmtDate(l.fromDate)} → {fmtDate(l.toDate)}</span>
-                <span>📊 {l.totalDays || 0} day{(l.totalDays||0)!==1?'s':''}</span>
+
+              <div style={{ display: 'flex', gap: 20, padding: '12px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: 12, marginBottom: 14 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Duration</span>
+                  <span style={{ fontSize: 13, color: 'white', fontWeight: 700 }}>📅 {fmtDate(l.fromDate)} → {fmtDate(l.toDate)}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Days</span>
+                  <span style={{ fontSize: 13, color: '#38bdf8', fontWeight: 800 }}>{l.totalDays || 0} Day{(l.totalDays || 0) !== 1 ? 's' : ''}</span>
+                </div>
               </div>
-              {l.reason && <div style={{marginTop:6,fontSize:12,color:'#cbd5e1',lineHeight:1.5}}>💬 {l.reason}</div>}
+
+              {l.reason && (
+                <div style={{ marginBottom: 14 }}>
+                  <span style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>Reason</span>
+                  <div style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.6, fontStyle: 'italic' }}>"{l.reason}"</div>
+                </div>
+              )}
+
               {l.substituteEmployee && (
-                <div style={{marginTop:6,fontSize:11,color:'#a78bfa'}}>🔄 Substitute: {l.substituteEmployee?.name||'—'} — {l.substituteStatus||'Pending'}</div>
+                <div style={{ padding: '8px 12px', background: 'rgba(139,92,246,0.08)', borderRadius: 10, border: '1px solid rgba(139,92,246,0.1)', marginBottom: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 11, color: '#a78bfa', fontWeight: 600 }}>🔄 Substitute Requirement</span>
+                    <span style={{ 
+                      fontSize: 10, 
+                      fontWeight: 700, 
+                      color: l.substituteStatus === 'Accepted' ? '#10b981' : l.substituteStatus === 'Declined' ? '#f43f5e' : '#f59e0b' 
+                    }}>
+                      {l.substituteStatus || 'Pending'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12, color: 'white', marginTop: 4, fontWeight: 500 }}>{l.substituteEmployee?.name}</div>
+                </div>
               )}
+
               {l.status === 'Rejected' && l.rejectedReason && (
-                <div style={{marginTop:6,fontSize:11,color:'#fb7185'}}>❌ Reason: {l.rejectedReason}</div>
+                <div style={{ padding: '10px 14px', background: 'rgba(244,63,94,0.08)', borderRadius: 12, border: '1px solid rgba(244,63,94,0.15)', marginTop: 'auto' }}>
+                  <span style={{ fontSize: 11, color: '#fb7185', fontWeight: 700, display: 'block', marginBottom: 2 }}>❌ Rejection Reason</span>
+                  <div style={{ fontSize: 12, color: '#fda4af' }}>{l.rejectedReason}</div>
+                </div>
               )}
+
               {l.status === 'Pending' && (
-                <div style={{marginTop:12,display:'flex',gap:8,justifyContent:'flex-end'}}>
-                  <button className="mmh-btn mmh-btn-green mmh-btn-sm" onClick={()=>handleApprove(l._id)}>✅ Approve</button>
-                  <button className="mmh-btn mmh-btn-rose mmh-btn-sm" onClick={()=>{setRejectModal(l);setRejectReason('')}}>❌ Reject</button>
+                <div style={{ marginTop: 'auto', paddingTop: 16, display: 'flex', gap: 10 }}>
+                  <button 
+                    className="mmh-btn mmh-btn-green mmh-btn-sm" 
+                    style={{ flex: 1, height: 38, fontWeight: 700 }}
+                    onClick={() => handleApprove(l._id)}
+                  >
+                    ✅ Approve
+                  </button>
+                  <button 
+                    className="mmh-btn mmh-btn-rose mmh-btn-sm" 
+                    style={{ flex: 1, height: 38, fontWeight: 700 }}
+                    onClick={() => { setRejectModal(l); setRejectReason(''); }}
+                  >
+                    ❌ Reject
+                  </button>
                 </div>
               )}
             </div>

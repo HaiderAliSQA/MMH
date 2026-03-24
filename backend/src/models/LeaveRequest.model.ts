@@ -21,7 +21,7 @@ const LeaveRequestSchema = new Schema<ILeaveRequest>(
     employee: { type: Schema.Types.ObjectId, ref: 'Employee', required: true },
     leaveType: {
       type: String,
-      enum: ['Annual', 'Sick', 'Emergency', 'Maternity', 'Unpaid'],
+      enum: ['Annual Leave', 'Sick Leave', 'Emergency Leave', 'Maternity Leave', 'Unpaid Leave'],
       required: true,
     },
     fromDate: { type: Date, required: true },

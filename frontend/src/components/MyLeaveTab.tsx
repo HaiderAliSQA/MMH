@@ -59,7 +59,7 @@ const calcWorkingDays = (from: string, to: string): number => {
   let days = 0;
   const cur = new Date(a);
   while (cur <= b) {
-    if (cur.getDay() !== 0) days++; // exclude Sunday
+    days++;
     cur.setDate(cur.getDate() + 1);
   }
   return days;
@@ -296,7 +296,7 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
 
             {fromDate && toDate && workingDays > 0 && (
               <div className="mmh-duration-box" style={{ marginTop: '16px' }}>
-                📅 Duration: {workingDays} working day{workingDays !== 1 ? 's' : ''} (excludes Sundays)
+                📅 Duration: {workingDays} day{workingDays !== 1 ? 's' : ''} (includes Sundays)
               </div>
             )}
 
