@@ -1425,21 +1425,31 @@ const TodaysListTab: React.FC = () => {
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    api.get('/opd').then(r => {
-      const today = new Date().toDateString();
-      const filtered = r.data.filter((v: any) => v.createdAt && new Date(v.createdAt).toDateString() === today);
-      setRecords(filtered);
-    }).catch(() => { }).finally(() => setLoading(false));
-  }, []);
+  const fetchRecords = async () => {
+    setLoading(true);
+    try {
+      const r = await api.get('/opd');
+      // Backend already filters for today: { success: true, data: [...] }
+      const data = r.data?.data ?? (Array.isArray(r.data) ? r.data : []);
+      setRecords(data);
+    } catch { 
+      setRecords([]);
+    } finally { 
+      setLoading(false); 
+    }
+  };
+
+  useEffect(() => { fetchRecords(); }, []);
 
   const waiting = records.filter(r => r.status === 'Waiting').length;
-  const done = records.filter(r => r.status === 'Done').length;
+  const done = records.filter(r => r.status === 'Done' || r.status === 'Examined').length;
 
   const statusBadge = (s: string) => {
-    if (s === 'Done') return <span className="mmh-badge mmh-badge-green"><span className="mmh-badge-dot" />Done</span>;
-    if (s === 'Examining' || s === 'Processing' || s === 'In Consult') return <span className="mmh-badge mmh-badge-sky"><span className="mmh-badge-dot" />In Consult</span>;
-    if (s === 'Examined') return <span className="mmh-badge mmh-badge-green"><span className="mmh-badge-dot" />Examined</span>;
+    const st = s?.toLowerCase() || 'waiting';
+    if (st === 'done' || st === 'examined') 
+      return <span className="mmh-badge mmh-badge-green"><span className="mmh-badge-dot" />Done</span>;
+    if (['examining', 'processing', 'in consult', 'assigned'].includes(st)) 
+      return <span className="mmh-badge mmh-badge-sky"><span className="mmh-badge-dot" />In Consult</span>;
     return <span className="mmh-badge mmh-badge-amber"><span className="mmh-badge-dot" />Waiting</span>;
   };
 
@@ -1450,7 +1460,9 @@ const TodaysListTab: React.FC = () => {
           <h1 className="mmh-page-title">Today's OPD List</h1>
           <p className="mmh-page-subtitle">{new Date().toLocaleDateString('en-PK', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
         </div>
-        <button className="mmh-btn mmh-btn-ghost mmh-btn-sm" onClick={() => window.location.reload()}>🔄 Refresh</button>
+        <button className="mmh-btn mmh-btn-ghost mmh-btn-sm" onClick={fetchRecords} disabled={loading}>
+          {loading ? '⏳ Loading...' : '🔄 Refresh List'}
+        </button>
       </div>
       <div className="mmh-stats-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', marginBottom: 20 }}>
         {[
@@ -1477,7 +1489,7 @@ const TodaysListTab: React.FC = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} className="mmh-empty" style={{ textAlign: 'center', padding: 40 }}>Loading...</td></tr>
+                <tr><td colSpan={7} className="mmh-empty" style={{ textAlign: 'center', padding: 40 }}>Loading data...</td></tr>
               ) : records.length === 0 ? (
                 <tr><td colSpan={7}>
                   <div className="mmh-empty">
@@ -1493,10 +1505,14 @@ const TodaysListTab: React.FC = () => {
                   </td>
                   <td style={{ fontFamily: 'JetBrains Mono', fontSize: 12 }}>{r.patient?.mrNumber || r.patient?.mrNo || '—'}</td>
                   <td className="mmh-td-name">{r.patient?.name || r.name}</td>
-                  <td style={{ color: '#94a3b8' }}>{r.patient?.age || r.age || '—'} / {r.patient?.gender || r.gender || '—'}</td>
-                  <td style={{ color: '#94a3b8' }}>{r.doctor?.name || r.doctorName || '—'}</td>
+                  <td style={{ color: '#94a3b8' }}>
+                    {r.patient?.age || r.age || '—'} / {r.patient?.gender || r.gender || '—'}
+                  </td>
+                  <td style={{ fontWeight: 600, color: '#eef2ff' }}>
+                    {r.doctor?.name || r.doctorName || '—'}
+                  </td>
                   <td>{statusBadge(r.status || 'Waiting')}</td>
-                  <td style={{ color: '#64748b', fontSize: 12 }}>
+                  <td style={{ color: '#64748b', fontSize: 11 }}>
                     {r.createdAt ? new Date(r.createdAt).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' }) : '—'}
                   </td>
                 </tr>
