@@ -59,9 +59,17 @@ export const patientAPI = {
 
 export const opdAPI = {
   getToday: () => api.get('/opd'),
+  getDoctorAllVisits: (params?: object) => api.get('/opd/doctor/all', { params }),
+  getPatientOPD: (patientId: string) => api.get(`/opd/patient/${patientId}`),
   create:   (data: object) => api.post('/opd', data),
   updateStatus: (id: string, status: string) =>
     api.put(`/opd/${id}/status`, { status }),
+}
+
+export const prescriptionAPI = {
+  getForDoctor: () => api.get('/prescriptions/doctor'),
+  getForPatient: (patientId: string) => api.get(`/prescriptions/patient/${patientId}`),
+  create: (data: object) => api.post('/prescriptions', data),
 }
 
 export const admissionAPI = {
@@ -71,17 +79,17 @@ export const admissionAPI = {
 }
 
 export const labAPI = {
-  getAll:        (status?: string) =>
-    api.get('/lab', { params: status ? { status } : {} }),
-  create:        (data: object) => api.post('/lab', data),
-  updateStatus:  (id: string, status: string) =>
-    api.put(`/lab/${id}/status`, { status }),
+  getAll: (params?: any) =>
+    api.get('/labs', { params }),
+  create: (data: object) => api.post('/labs', data),
+  updateStatus: (id: string, status: string) =>
+    api.put(`/labs/${id}/status`, { status }),
   updateResults: (id: string, results: object[]) =>
-    api.put(`/lab/${id}/results`, { results }),
+    api.put(`/labs/${id}/results`, { results }),
 }
 
 export const pharmacyAPI = {
-  getMedicines:   () => api.get('/medicines'),
+  getMedicines: (params?: object) => api.get('/medicines', { params }),
   createMedicine: (data: object) => api.post('/medicines', data),
   updateMedicine: (id: string, data: object) =>
     api.put(`/medicines/${id}`, data),

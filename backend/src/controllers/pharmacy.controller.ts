@@ -3,7 +3,14 @@ import Medicine from '../models/Medicine.model';
 import Dispense from '../models/Dispense.model';
 
 export const getMedicines = async (req: Request, res: Response) => {
-  const medicines = await Medicine.find({ isActive: true }).sort({ name: 1 });
+  const { search } = req.query;
+  const query: any = { isActive: true };
+
+  if (search) {
+    query.name = { $regex: search, $options: 'i' };
+  }
+
+  const medicines = await Medicine.find(query).sort({ name: 1 }).limit( search ? 15 : 100);
   res.status(200).json(medicines);
 };
 

@@ -2,8 +2,9 @@ import { Router } from 'express';
 import { login, getMe, changePassword } from '../controllers/auth.controller';
 import { protect, authorize } from '../middleware/auth.middleware';
 import { getPatients, createPatient, updatePatient, searchPatients } from '../controllers/patient.controller';
-import { getOpdVisits, createOpdVisit, updateOpdStatus } from '../controllers/opd.controller';
 import { getAdmissions, createAdmission, dischargePatient } from '../controllers/admission.controller';
+import { getTodayOPD, createOpdVisit, updateOPDStatus, getDoctorAllVisits, getPatientOPD } from '../controllers/opd.controller';
+import { getDoctorPrescriptions, getPatientPrescriptions, createPrescription } from '../controllers/prescription.controller';
 import { getLabRequests, createLabRequest, updateLabStatus } from '../controllers/lab.controller';
 import { getMedicines, createMedicine, updateMedicine, dispenseMedicine } from '../controllers/pharmacy.controller';
 import { getPayments, createPayment } from '../controllers/payment.controller';
@@ -39,9 +40,16 @@ router.post('/patients', createPatient);
 router.put('/patients/:id', updatePatient);
 
 // OPD Routes
-router.get('/opd', getOpdVisits);
-router.post('/opd', createOpdVisit);
-router.put('/opd/:id/status', updateOpdStatus);
+router.get('/opd/doctor/all', protect, authorize('doctor', 'admin'), getDoctorAllVisits);
+router.get('/opd/patient/:patientId', protect, getPatientOPD);
+router.get('/opd', protect, getTodayOPD);
+router.post('/opd', protect, authorize('receptionist', 'admin'), createOpdVisit);
+router.put('/opd/:id/status', protect, authorize('receptionist', 'doctor', 'admin'), updateOPDStatus);
+
+// Prescription Routes
+router.get('/prescriptions/doctor', protect, authorize('doctor', 'admin'), getDoctorPrescriptions);
+router.get('/prescriptions/patient/:patientId', protect, getPatientPrescriptions);
+router.post('/prescriptions', protect, authorize('doctor'), createPrescription);
 
 // Admission Routes
 router.get('/admissions', getAdmissions);

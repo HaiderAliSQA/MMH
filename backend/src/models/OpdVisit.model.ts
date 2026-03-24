@@ -21,7 +21,7 @@ const OpdVisitSchema = new Schema<IOpdVisit>(
     visitDate: { type: Date, default: Date.now },
     status: {
       type: String,
-      enum: ['Waiting', 'In Progress', 'Done'],
+      enum: ['Waiting', 'Examining', 'Examined', 'Done', 'In Progress'],
       default: 'Waiting',
     },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },

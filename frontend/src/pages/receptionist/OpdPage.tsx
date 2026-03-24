@@ -329,8 +329,8 @@ const RegisterTab: React.FC = () => {
   });
 
   useEffect(() => {
-    api.get('/users').then(r => {
-      setDoctors(r.data.filter((u: any) => u.role === 'doctor'));
+    api.get('/admin/doctors').then(r => {
+      setDoctors(r.data || []);
     }).catch(() => { });
   }, []);
 
@@ -605,10 +605,10 @@ const AdmissionTab: React.FC = () => {
 
   useEffect(() => {
     Promise.allSettled([
-      api.get('/users'),
+      api.get('/admin/doctors'),
       api.get('/wards'),
     ]).then(([ur, wr]) => {
-      if (ur.status === 'fulfilled') setDoctors(ur.value.data.filter((u: any) => u.role === 'doctor'));
+      if (ur.status === 'fulfilled') setDoctors(ur.value.data || []);
       if (wr.status === 'fulfilled') setWards(wr.value.data);
     });
   }, []);
@@ -1255,7 +1255,8 @@ const TodaysListTab: React.FC = () => {
 
   const statusBadge = (s: string) => {
     if (s === 'Done') return <span className="mmh-badge mmh-badge-green"><span className="mmh-badge-dot" />Done</span>;
-    if (s === 'Processing') return <span className="mmh-badge mmh-badge-sky"><span className="mmh-badge-dot" />In Consult</span>;
+    if (s === 'Examining' || s === 'Processing' || s === 'In Consult') return <span className="mmh-badge mmh-badge-sky"><span className="mmh-badge-dot" />In Consult</span>;
+    if (s === 'Examined') return <span className="mmh-badge mmh-badge-green"><span className="mmh-badge-dot" />Examined</span>;
     return <span className="mmh-badge mmh-badge-amber"><span className="mmh-badge-dot" />Waiting</span>;
   };
 
