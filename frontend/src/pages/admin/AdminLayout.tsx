@@ -4,6 +4,7 @@ import AdminDashboard from './AdminDashboard';
 import ManageUsers from './ManageUsers';
 import ManageWards from './ManageWards';
 import ManagePayments from './ManagePayments';
+import ManageMedicines from './ManageMedicines';
 import PatientRecords from '../../components/PatientRecords';
 import '../../styles/mmh.css';
 
