@@ -102,10 +102,10 @@ export const paymentAPI = {
 
 export const adminAPI = {
   getStats:     () => api.get('/admin/stats'),
-  getUsers:     () => api.get('/admin/users'),
-  createUser:   (data: object) => api.post('/admin/users', data),
+  getUsers:     () => api.get('/users'),
+  createUser:   (data: object) => api.post('/users/register', data),
   updateUser:   (id: string, data: object) =>
-    api.put(`/admin/users/${id}`, data),
+    api.put(`/users/${id}`, data),
   getDoctors:   () => api.get('/doctors'),
   createDoctor: (data: object) => api.post('/doctors', data),
   updateDoctor: (id: string, data: object) =>
