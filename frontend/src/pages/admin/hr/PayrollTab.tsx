@@ -7,6 +7,7 @@ const PayrollTab: React.FC<{ employees: any[] }> = ({ employees }) => {
   const [month, setMonth] = useState(3);
   const [year, setYear] = useState(2026);
   const [payroll, setPayroll] = useState<any[]>([]);
+  const [totals, setTotals] = useState<any>({ totalGross: 0, totalDeductions: 0, totalNet: 0, count: 0 });
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [banner, setBanner] = useState<{type:string;msg:string}|null>(null);
@@ -16,7 +17,13 @@ const PayrollTab: React.FC<{ employees: any[] }> = ({ employees }) => {
 
   const loadPayroll = async () => {
     setLoading(true);
-    try { const r = await hrAPI.getPayroll(month, year); setPayroll(r.data || []); }
+    try { 
+      const r = await hrAPI.getPayroll(month, year); 
+      // The backend returns an object { payrolls, totals }
+      const data = r.data || {};
+      setPayroll(data.payrolls || []); 
+      if (data.totals) setTotals(data.totals);
+    }
     catch {} finally { setLoading(false); }
   };
 
@@ -34,9 +41,9 @@ const PayrollTab: React.FC<{ employees: any[] }> = ({ employees }) => {
     try { await hrAPI.markPaid(id); loadPayroll(); } catch {}
   };
 
-  const totalGross = payroll.reduce((s,p) => s + (p.grossSalary||0), 0);
-  const totalDeduct = payroll.reduce((s,p) => s + (p.totalDeductions||0), 0);
-  const totalNet = payroll.reduce((s,p) => s + (p.netSalary||0), 0);
+  const totalGross = totals.totalGross || 0;
+  const totalDeduct = totals.totalDeductions || 0;
+  const totalNet = totals.totalNet || 0;
 
   const exportCSV = () => {
     const hdr = 'Employee,ID,Basic,Allowances,Gross,Deductions,Net,Status\n';
