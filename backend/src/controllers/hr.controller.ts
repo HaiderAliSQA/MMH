@@ -12,7 +12,12 @@ import Payroll from '../models/Payroll.model';
 import User from '../models/User.model';
 
 interface AuthRequest extends Request {
-  user?: { id: string; role: string; name?: string };
+  user?: {
+    id: string;
+    role: string;
+  };
+  file?: any;
+  files?: any;
 }
 
 // ─── Helper: get working days in a month (excludes Sundays) ───

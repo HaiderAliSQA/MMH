@@ -7,6 +7,8 @@ interface AuthRequest extends Request {
     id: string;
     role: string;
   };
+  file?: any;
+  files?: any;
 }
 
 export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
