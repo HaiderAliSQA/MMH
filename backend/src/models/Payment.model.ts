@@ -9,6 +9,7 @@ export interface IPayment extends Document {
   purpose: 'OPD' | 'Admission' | 'Lab' | 'Pharmacy' | 'Other';
   status: 'Paid' | 'Pending' | 'Refunded';
   collectedBy?: mongoose.Types.ObjectId;
+  relatedDispense?: mongoose.Types.ObjectId;
   notes?: string;
 }
 
@@ -32,6 +33,7 @@ const PaymentSchema = new Schema<IPayment>(
       default: 'Paid',
     },
     collectedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    relatedDispense: { type: Schema.Types.ObjectId, ref: 'Dispense' },
     notes: { type: String },
   },
   { timestamps: true }

@@ -3,6 +3,7 @@ import api from '../../api';
 import '../../styles/mmh.css';
 import DispensingSlip, { printSlip } from '../../components/DispensingSlip';
 import MyLeaveTab from '../../components/MyLeaveTab';
+import PaymentsGrid from '../admin/PaymentsGrid';
 import { useSearchParams } from 'react-router-dom';
 
 interface Medicine {
@@ -13,7 +14,7 @@ interface Medicine {
   unit: string;
   quantity: number;
   minQty: number;
-  price: number;
+  pricePerUnit: number;
 }
 
 interface Patient {
@@ -29,7 +30,7 @@ interface CartItem {
   medicineId: string;
   name: string;
   qty: number;
-  price: number;
+  pricePerUnit: number;
   total: number;
 }
 
@@ -60,6 +61,9 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
   const [selectedMedId, setSelectedMedId] = useState('');
   const [selectedQty, setSelectedQty] = useState(1);
   const [dispenseNotes, setDispenseNotes] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [stats, setStats] = useState({ total: 0, revenue: 0 });
 
   // Inventory State
   const [searchQuery, setSearchQuery] = useState('');
@@ -154,14 +158,14 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
         alert("Cannot exceed available stock. Max available: " + med.quantity);
         return;
       }
-      setCart(cart.map(c => c.medicineId === selectedMedId ? { ...c, qty: c.qty + selectedQty, total: (c.qty + selectedQty) * c.price } : c));
+      setCart(cart.map(c => c.medicineId === selectedMedId ? { ...c, qty: c.qty + selectedQty, total: (c.qty + selectedQty) * c.pricePerUnit } : c));
     } else {
       setCart([...cart, {
         medicineId: selectedMedId,
         name: med.name,
         qty: selectedQty,
-        price: med.price,
-        total: med.price * selectedQty
+        pricePerUnit: med.pricePerUnit,
+        total: med.pricePerUnit * selectedQty
       }]);
     }
 
@@ -188,13 +192,16 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
         patient: selectedPatient._id,
         items: cart.map(c => ({ medicine: c.medicineId, quantity: c.qty })),
         totalAmount: runningTotal,
-        notes: dispenseNotes
+        notes: dispenseNotes,
+        paymentMethod: paymentMethod
       });
 
       setDispenseRecord(res.data.data);
       setCart([]);
       clearPatient();
       setDispenseNotes('');
+      setPaymentMethod('Cash');
+      setRefreshKey(prev => prev + 1);
       fetchData();
     } catch (error: any) {
       console.error('Dispense error:', error);
@@ -294,10 +301,42 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
           >
             <span>🏖️</span> My Leave
           </button>
+          <button
+            className={`mmh-admin-tab ${activeTab === 'payments' ? 'active' : ''}`}
+            onClick={() => setSearchParams({ tab: 'payments' })}
+          >
+            <span>💰</span> Payments History
+          </button>
         </div>
       </div>
 
       {activeTab === 'my-leave' && <MyLeaveTab userRole={user.role} />}
+
+      {activeTab === 'payments' && (
+        <div style={{ animation: 'mmh-slide-up 0.4s ease' }}>
+          <div className="mmh-card">
+            <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-green)' }} />
+            <div className="mmh-card-header">
+                <div className="mmh-card-title">Pharmacy Collection History</div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--mmh-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Collection (Filtered)</div>
+                  <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--mmh-green)', fontFamily: 'JetBrains Mono' }}>
+                    PKR {stats.revenue.toLocaleString()}
+                  </div>
+                </div>
+            </div>
+            <div className="mmh-card-body" style={{ padding: '0 0 20px 0' }}>
+               <PaymentsGrid 
+                 key={refreshKey}
+                 forceSource="pharmacy" 
+                 forceCollectorId={user._id || user.id}
+                 hideHeader={true} 
+                 onStatsUpdate={setStats}
+               />
+            </div>
+          </div>
+        </div>
+      )}
 
       {activeTab === 'dispense' && (
         <div className="mmh-tab-content">
@@ -398,7 +437,7 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                     >
                       <option value="">-- Search Medicines --</option>
                       {medicines.filter(m => m.quantity > 0).map(m => (
-                        <option key={m._id} value={m._id}>{m.name} ({m.quantity} available)  {m.price}</option>
+                        <option key={m._id} value={m._id}>{m.name} ({m.quantity} available)  {m.pricePerUnit}</option>
                       ))}
                     </select>
                     {selectedMedicine && (
@@ -449,9 +488,9 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                         <div className="mmh-field">
                           <label className="mmh-label">Subtotal Estimate</label>
                           <div style={{ padding: '12px 16px', background: '#111d35', borderRadius: '12px', border: '1px solid #1e3050' }}>
-                            <div style={{ fontSize: '12px', color: '#64748b' }}>PKR {selectedMedicine.price} / {selectedMedicine.unit}</div>
+                            <div style={{ fontSize: '12px', color: '#64748b' }}>PKR {selectedMedicine.pricePerUnit} / {selectedMedicine.unit}</div>
                             <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--mmh-green)', fontFamily: 'JetBrains Mono, monospace', marginTop: '2px' }}>
-                              PKR {selectedMedicine.price * (selectedQty || 0)}
+                              PKR {selectedMedicine.pricePerUnit * (selectedQty || 0)}
                             </div>
                           </div>
                         </div>
@@ -495,7 +534,7 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div className="mmh-cart-item-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
                               <div className="mmh-cart-item-detail">
-                                {item.qty} {unit}s × PKR {item.price}
+                                {item.qty} {unit}s × PKR {item.pricePerUnit}
                               </div>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -509,6 +548,38 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                           </div>
                         );
                       })}
+                    </div>
+
+                    <div className="mmh-field" style={{ marginBottom: '20px' }}>
+                      <label className="mmh-label">Payment Method <span className="mmh-required">*</span></label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                        {[
+                          { id: 'Cash', icon: '💵', label: 'Cash' },
+                          { id: 'Card', icon: '💳', label: 'Card' },
+                          { id: 'Insurance', icon: '🏥', label: 'Insurance' },
+                          { id: 'JazzCash', icon: '📱', label: 'JazzCash' },
+                          { id: 'EasyPaisa', icon: '📱', label: 'EasyPaisa' },
+                          { id: 'Bank Transfer', icon: '🏦', label: 'Bank' }
+                        ].map(m => (
+                          <div 
+                            key={m.id}
+                            className={`mmh-payment-method-card ${paymentMethod === m.id ? 'active' : ''}`}
+                            onClick={() => setPaymentMethod(m.id)}
+                            style={{
+                              padding: '12px 8px',
+                              borderRadius: '12px',
+                              textAlign: 'center',
+                              cursor: 'pointer',
+                              background: paymentMethod === m.id ? 'var(--mmh-bg4)' : 'var(--mmh-bg3)',
+                              border: `1px solid ${paymentMethod === m.id ? 'var(--mmh-sky)' : 'var(--mmh-border)'}`,
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <div style={{ fontSize: '18px', marginBottom: '4px' }}>{m.icon}</div>
+                            <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase' }}>{m.label}</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="mmh-field" style={{ marginBottom: '16px' }}>
@@ -707,7 +778,7 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                                 </div>
                               </div>
                             </td>
-                            <td style={{ fontWeight: 700 }}>{m.price}</td>
+                            <td style={{ fontWeight: 700 }}>{m.pricePerUnit}</td>
                             <td>
                               <span className={`mmh-badge ${m.quantity === 0 ? 'mmh-badge-rose' : m.quantity <= m.minQty ? 'mmh-badge-amber' : 'mmh-badge-green'}`}>
                                 {m.quantity === 0 ? 'No Stock' : m.quantity <= m.minQty ? 'Low stock' : 'Adequate'}

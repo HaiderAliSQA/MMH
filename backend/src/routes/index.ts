@@ -62,15 +62,15 @@ router.get('/labs', getLabRequests);
 router.post('/labs', createLabRequest);
 router.put('/labs/:id', updateLabStatus);
 
-// Pharmacy Routes
-router.get('/medicines', getMedicines);
-router.post('/medicines', createMedicine);
-router.put('/medicines/:id', updateMedicine);
-router.post('/dispense', dispenseMedicine);
+// Pharmacy Routes (Secured)
+router.get('/medicines', protect, getMedicines);
+router.post('/medicines', protect, authorize('pharmacist', 'admin'), createMedicine);
+router.put('/medicines/:id', protect, authorize('pharmacist', 'admin'), updateMedicine);
+router.post('/dispense', protect, authorize('pharmacist', 'admin'), dispenseMedicine);
 
-// Payment Routes
-router.get('/payments', getPayments);
-router.post('/payments', createPayment);
+// Payment Routes (Secured)
+router.get('/payments', protect, getPayments);
+router.post('/payments', protect, createPayment);
 
 // Data Routes
 router.get('/admin/stats', getStats);

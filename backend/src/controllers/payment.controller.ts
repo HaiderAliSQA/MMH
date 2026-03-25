@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import Payment from '../models/Payment.model';
 
 export const getPayments = async (req: Request, res: Response) => {
@@ -20,8 +21,12 @@ export const getPayments = async (req: Request, res: Response) => {
   }
 
   if (method) query.paymentMethod = method;
-  if (patientId) query.patient = patientId;
-  if (collector) query.collectedBy = collector;
+  if (patientId && mongoose.Types.ObjectId.isValid(patientId as string)) {
+    query.patient = new mongoose.Types.ObjectId(patientId as string);
+  }
+  if (collector && mongoose.Types.ObjectId.isValid(collector as string)) {
+    query.collectedBy = new mongoose.Types.ObjectId(collector as string);
+  }
 
   // Source filtering
   if (source === 'reception') {
@@ -43,7 +48,7 @@ export const getPayments = async (req: Request, res: Response) => {
   const total = await Payment.countDocuments(query);
   const payments = await Payment.find(query)
     .populate('patient', 'name mrNumber')
-    .populate('collectedBy', 'name')
+    .populate('collectedBy', 'name role')
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(Number(limit))

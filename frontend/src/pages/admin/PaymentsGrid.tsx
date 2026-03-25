@@ -18,7 +18,19 @@ interface Payment {
 
 const PAYMENT_METHODS = ['Cash', 'Card', 'Insurance', 'JazzCash', 'EasyPaisa', 'Bank Transfer'];
 
-const PaymentsGrid: React.FC = () => {
+const PaymentsGrid: React.FC<{ 
+  forceSource?: string; 
+  forceCollectorId?: string;
+  title?: string; 
+  hideHeader?: boolean;
+  onStatsUpdate?: (stats: { total: number; revenue: number }) => void;
+}> = ({ 
+  forceSource, 
+  forceCollectorId,
+  title = '💳 Payments Management',
+  hideHeader = false,
+  onStatsUpdate
+}) => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -28,8 +40,8 @@ const PaymentsGrid: React.FC = () => {
   const [toDate, setToDate] = useState(new Date().toISOString().split('T')[0]);
   const [method, setMethod] = useState('');
   const [search, setSearch] = useState('');
-  const [source, setSource] = useState('');
-  const [collector, setCollector] = useState('');
+  const [source, setSource] = useState(forceSource || '');
+  const [collector, setCollector] = useState(forceCollectorId || '');
   const [users, setUsers] = useState<any[]>([]);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -53,6 +65,13 @@ const PaymentsGrid: React.FC = () => {
       setTotalPages(res.data?.totalPages || 0);
       setTotalCount(res.data?.total || 0);
       setPage(p);
+      
+      if (onStatsUpdate) {
+        onStatsUpdate({ 
+          total: res.data?.total || 0, 
+          revenue: res.data?.totalRevenue || 0 
+        });
+      }
     } catch (err) {
       console.error('Fetch Payments Error:', err);
       setPayments([]);
@@ -86,30 +105,32 @@ const PaymentsGrid: React.FC = () => {
 
   return (
     <div style={{ animation: 'mmh-slide-up 0.4s ease' }}>
-      <div className="mmh-page-header">
-        <div>
-          <h1 className="mmh-page-title">💳 Payments Management</h1>
-          <p className="mmh-page-subtitle">Track hospital revenue and transactions</p>
+      {!hideHeader && (
+        <div className="mmh-page-header">
+          <div>
+            <h1 className="mmh-page-title">{title}</h1>
+            <p className="mmh-page-subtitle">Track hospital revenue and transactions</p>
+          </div>
+          <div style={{ 
+            background: 'rgba(15, 23, 42, 0.4)', 
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(226, 232, 240, 0.1)', 
+            padding: '12px 24px', 
+            borderRadius: 16, 
+            display: 'flex', 
+            flexDirection: 'column',
+            alignItems: 'flex-end'
+          }}>
+              <span style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Total Revenue (Selected Period)</span>
+              <span style={{ fontSize: 24, fontWeight: 900, color: '#10b981', fontFamily: 'JetBrains Mono, monospace' }}>PKR {totalRevenue.toLocaleString()}</span>
+          </div>
         </div>
-        <div style={{ 
-          background: 'rgba(15, 23, 42, 0.4)', 
-          backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(226, 232, 240, 0.1)', 
-          padding: '12px 24px', 
-          borderRadius: 16, 
-          display: 'flex', 
-          flexDirection: 'column',
-          alignItems: 'flex-end'
-        }}>
-            <span style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Total Revenue (Selected Period)</span>
-            <span style={{ fontSize: 24, fontWeight: 900, color: '#10b981', fontFamily: 'JetBrains Mono, monospace' }}>PKR {totalRevenue.toLocaleString()}</span>
-        </div>
-      </div>
+      )}
 
       {/* Filters */}
       <div className="mmh-card" style={{ marginBottom: 24 }}>
         <div className="mmh-card-body">
-          <form className="mmh-form-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr) auto', gap: 16, alignItems: 'end' }} onSubmit={handleSearch}>
+          <form className="mmh-form-grid" style={{ gridTemplateColumns: `repeat(${[!forceSource, !forceCollectorId, true, true, true].filter(Boolean).length}, 1fr) auto`, gap: 16, alignItems: 'end' }} onSubmit={handleSearch}>
             <div className="mmh-field">
               <label className="mmh-label">From Date</label>
               <input type="date" className="mmh-input" value={fromDate} onChange={e => setFromDate(e.target.value)} />
@@ -118,7 +139,7 @@ const PaymentsGrid: React.FC = () => {
               <label className="mmh-label">To Date</label>
               <input type="date" className="mmh-input" value={toDate} onChange={e => setToDate(e.target.value)} />
             </div>
-            <div className="mmh-field">
+            <div className="mmh-field" style={{ display: forceSource ? 'none' : 'block' }}>
               <label className="mmh-label">Payment Source</label>
               <select className="mmh-input-select" value={source} onChange={e => setSource(e.target.value)}>
                 <option value="">All Sources</option>
@@ -126,7 +147,7 @@ const PaymentsGrid: React.FC = () => {
                 <option value="pharmacy">Pharmacy</option>
               </select>
             </div>
-            <div className="mmh-field">
+            <div className="mmh-field" style={{ display: forceCollectorId ? 'none' : 'block' }}>
               <label className="mmh-label">Collector Name</label>
               <select className="mmh-input-select" value={collector} onChange={e => setCollector(e.target.value)}>
                 <option value="">All Collectors</option>
@@ -163,9 +184,8 @@ const PaymentsGrid: React.FC = () => {
                 <tr>
                   <th>Date & Time</th>
                   <th>Invoice #</th>
-                  <th>Patient Detail</th>
-                  <th>Source</th>
-                  <th>Purpose</th>
+                  <th>Patient</th>
+                  <th>MR#</th>
                   <th>Amount</th>
                   <th>Method</th>
                   <th>Status</th>
@@ -189,29 +209,25 @@ const PaymentsGrid: React.FC = () => {
                       </td>
                       <td>
                         <div style={{ fontWeight: 700, color: 'white' }}>{p.patient?.name || p.patientName}</div>
-                        <div style={{ fontSize: 10, color: '#0ea5e9', fontWeight: 700, fontFamily: 'JetBrains Mono' }}>{p.patient?.mrNumber || '—'}</div>
                       </td>
-                        <td>
-                          <span className={`mmh-badge ${p.purpose === 'Pharmacy' ? 'mmh-badge-rose' : 'mmh-badge-sky'}`} style={{ fontSize: 9 }}>
-                            {p.purpose === 'Pharmacy' ? '💊 Pharmacy' : '🏨 Reception'}
-                          </span>
-                        </td>
-                        <td><span className="mmh-badge" style={{ background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)' }}>{p.purpose}</span></td>
-                        <td style={{ fontWeight: 900, color: '#10b981', fontSize: 14 }}>PKR {p.amount.toLocaleString()}</td>
-                        <td>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: 14 }}>{p.paymentMethod === 'Cash' ? '💵' : p.paymentMethod === 'Card' ? '💳' : '📱'}</span>
-                            {p.paymentMethod}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`mmh-badge ${p.status === 'Paid' ? 'mmh-badge-green' : 'mmh-badge-amber'}`}>
-                            {p.status}
-                          </span>
-                        </td>
-                        <td style={{ fontSize: 11, color: '#f8fafc', fontWeight: 600 }}>
-                           👤 {p.collectedBy?.name || 'System Auto'}
-                        </td>
+                      <td>
+                        <div style={{ fontSize: 11, color: '#0ea5e9', fontWeight: 800, fontFamily: 'JetBrains Mono' }}>{p.patient?.mrNumber || '—'}</div>
+                      </td>
+                      <td style={{ fontWeight: 900, color: '#10b981', fontSize: 14 }}>PKR {p.amount.toLocaleString()}</td>
+                      <td>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 14 }}>{p.paymentMethod === 'Cash' ? '💵' : p.paymentMethod === 'Card' ? '💳' : p.paymentMethod === 'Insurance' ? '🏥' : '📱'}</span>
+                          {p.paymentMethod}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`mmh-badge ${p.status === 'Paid' ? 'mmh-badge-green' : 'mmh-badge-amber'}`}>
+                          {p.status}
+                        </span>
+                      </td>
+                      <td style={{ fontSize: 11, color: '#f8fafc', fontWeight: 600 }}>
+                         👤 {p.collectedBy?.name || 'System Auto'}
+                      </td>
                     </tr>
                   ))
                 )}

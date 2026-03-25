@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import MainLayout from '../components/MainLayout';
+import PaymentsGrid from './admin/PaymentsGrid';
 import '../styles/mmh.css';
 
 const Pharmacist: React.FC = () => {
@@ -61,6 +62,7 @@ const Pharmacist: React.FC = () => {
             <div className="mmh-admin-tabs" style={{ marginBottom: '24px' }}>
                 <button className={`mmh-admin-tab ${tab === 'dispense' ? 'active' : ''}`} onClick={() => setTab('dispense')}>Prescription Dispensing</button>
                 <button className={`mmh-admin-tab ${tab === 'inv' ? 'active' : ''}`} onClick={() => setTab('inv')}>Live Inventory Status</button>
+                <button className={`mmh-admin-tab ${tab === 'payments' ? 'active' : ''}`} onClick={() => setTab('payments')}>💰 Payments History</button>
             </div>
 
             {tab === 'dispense' && (
@@ -163,6 +165,23 @@ const Pharmacist: React.FC = () => {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            )}
+
+            {tab === 'payments' && (
+                <div style={{ animation: 'mmh-slide-up 0.3s ease' }}>
+                    <div className="mmh-card">
+                        <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-green)' }} />
+                        <div className="mmh-card-header">
+                            <div className="mmh-card-title">Pharmacy Daily Collection</div>
+                        </div>
+                        <div className="mmh-card-body" style={{ padding: '0 0 20px 0' }}>
+                            <PaymentsGrid 
+                                forceSource="pharmacy" 
+                                hideHeader={true} 
+                            />
+                        </div>
                     </div>
                 </div>
             )}
