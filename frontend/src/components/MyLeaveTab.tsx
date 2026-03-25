@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { hrAPI } from '../api';
+import api, { hrAPI } from '../api';
 import TypeSearch from './TypeSearch';
+import LeaveFileUpload from './LeaveFileUpload';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Employee {
@@ -26,6 +27,12 @@ interface LeaveRecord {
   needsSubstitute: boolean;
   substituteEmployee?: { _id: string; name: string; employeeId: string };
   substituteStatus?: string;
+  document?: {
+    originalName: string;
+    fileName: string;
+    fileSize: number;
+    mimeType: string;
+  };
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -78,6 +85,19 @@ const fmtDate = (d: string): string => {
   return new Date(d).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
+const getFileIconByName = (name: string): string => {
+  const ext = name.split('.').pop()?.toLowerCase();
+  if (ext === 'pdf') return '📄';
+  if (['jpg', 'jpeg', 'png'].includes(ext || '')) return '🖼️';
+  if (['doc', 'docx'].includes(ext || '')) return '📝';
+  return '📎';
+};
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
 const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
   const [employee, setEmployee] = useState<Employee | null>(null);
@@ -96,6 +116,7 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
   const [reason, setReason] = useState('');
   const [needsSubstitute, setNeedsSubstitute] = useState(false);
   const [substituteId, setSubstituteId] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -159,22 +180,34 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
     setSubmitLoading(true);
     setBanner(null);
     try {
-      await hrAPI.applyLeave({
-        leaveType,
-        fromDate,
-        toDate,
-        reason,
-        totalDays: days,
-        needsSubstitute,
-        substituteEmployee: needsSubstitute ? substituteId : undefined,
+      const formData = new FormData();
+      formData.append('leaveType', leaveType);
+      formData.append('fromDate', fromDate);
+      formData.append('toDate', toDate);
+      formData.append('reason', reason);
+      formData.append('totalDays', String(days));
+      formData.append('needsSubstitute', String(needsSubstitute));
+      if (needsSubstitute && substituteId) {
+        formData.append('substituteEmployee', substituteId);
+      }
+      if (selectedFile) {
+        formData.append('document', selectedFile);
+      }
+
+      await api.post('/hr/leaves', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-      setBanner({ type: 'success', msg: `✅ Leave request submitted! (${days} working day${days !== 1 ? 's' : ''})` });
+
+      setBanner({ type: 'success', msg: `✅ Leave request submitted${selectedFile ? ' with document' : ''}! (${days} working day${days !== 1 ? 's' : ''})` });
       setLeaveType('');
       setFromDate('');
       setToDate('');
       setReason('');
       setNeedsSubstitute(false);
       setSubstituteId('');
+      setSelectedFile(null);
       await loadData();
     } catch (err: any) {
       setBanner({ type: 'error', msg: err.response?.data?.message || 'Failed to submit leave request' });
@@ -192,6 +225,13 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
     } catch (err: any) {
       setBanner({ type: 'error', msg: err.response?.data?.message || 'Failed to cancel leave request' });
     }
+  };
+
+  const viewDocument = (leaveId: string) => {
+    const token = localStorage.getItem('mmh_token');
+    const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+    const url = `${apiUrl}/api/hr/leaves/${leaveId}/document?token=${token}`;
+    window.open(url, '_blank');
   };
 
   const workingDays = Math.max(0, calcWorkingDays(fromDate, toDate));
@@ -329,6 +369,30 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
               />
             </div>
 
+            <div className="mmh-field" style={{ marginTop: 16 }}>
+              <label className="mmh-label">
+                Supporting Document
+                <span style={{
+                  fontSize: '9px',
+                  background: 'rgba(16,185,129,0.1)',
+                  color: '#34d399',
+                  border: '1px solid rgba(16,185,129,0.25)',
+                  borderRadius: '4px',
+                  padding: '1px 6px',
+                  marginLeft: '6px',
+                  fontWeight: '500',
+                  textTransform: 'none',
+                  letterSpacing: '0',
+                }}>
+                  Optional
+                </span>
+              </label>
+              <LeaveFileUpload
+                onFileSelect={setSelectedFile}
+                selectedFile={selectedFile}
+              />
+            </div>
+
             {/* Sub logic only for doctors */}
             {activeRole === 'doctor' && (
               <>
@@ -437,6 +501,22 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
                   {l.status === 'Rejected' && l.rejectedReason && (
                     <div className="mmh-lhc-reject-reason">
                       ❌ {l.rejectedReason}
+                    </div>
+                  )}
+
+                  {l.document && (
+                    <div style={{ marginTop: 12 }}>
+                      <div style={{ fontSize: 9, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Supporting Document</div>
+                      <div className="mmh-attachment-card" onClick={() => viewDocument(l._id)}>
+                        <div className="mmh-attachment-icon">{getFileIconByName(l.document.originalName)}</div>
+                        <div className="mmh-attachment-info">
+                          <div className="mmh-attachment-name">{l.document.originalName}</div>
+                          <div className="mmh-attachment-meta">{formatFileSize(l.document.fileSize)}</div>
+                        </div>
+                        <div className="mmh-attachment-actions">
+                          <span style={{ fontSize: 10, color: '#0ea5e9', fontWeight: 800 }}>VIEW ↗</span>
+                        </div>
+                      </div>
                     </div>
                   )}
 

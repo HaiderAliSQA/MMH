@@ -1,4 +1,5 @@
-
+import fs from 'fs';
+import path from 'path';
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import Employee, { generateEmployeeId } from '../models/Employee.model';
@@ -8,6 +9,7 @@ import Patient from '../models/Patient.model';
 import LeaveRequest from '../models/LeaveRequest.model';
 import { Notification } from '../models/Notification.model';
 import Payroll from '../models/Payroll.model';
+import User from '../models/User.model';
 
 interface AuthRequest extends Request {
   user?: { id: string; role: string; name?: string };
@@ -37,6 +39,18 @@ const shiftTimesMap: Record<string, { start: string; end: string }> = {
   Evening: { start: '14:00', end: '20:00' },
   Night: { start: '20:00', end: '08:00' },
   Off: { start: '', end: '' },
+};
+
+const getDeptByRole = (role: string): string => {
+  const map: Record<string, string> = {
+    receptionist: 'Reception',
+    doctor:       'Medical',
+    lab:          'Laboratory',
+    pharmacist:   'Pharmacy',
+    manager:      'Management',
+    admin:        'Administration',
+  };
+  return map[role] || 'General';
 };
 
 // ─── Helper: generate payroll data from attendance ───
@@ -400,9 +414,28 @@ export const getAttendanceSummary = async (req: Request, res: Response): Promise
 // ═══════════════════════════════════════════════════════════
 
 export const getLeaves = async (req: Request, res: Response): Promise<void> => {
-  const { status } = req.query;
-  const query: Record<string, unknown> = {};
+  const { status, leaveType, search, employee } = req.query;
+  const query: Record<string, any> = {};
+
   if (status) query.status = status;
+  if (leaveType) query.leaveType = leaveType;
+
+  // Shortcut for exact ID: Prioritize 'employee' ID if provided, as it is lightning fast
+  if (employee) {
+    query.employee = employee;
+  } else if (search && typeof search === 'string') {
+    // Only perform the regex search if we don't already have an exact ID
+    const matchingEmployees = await Employee.find({
+      $or: [
+        { name: { $regex: search, $options: 'i' } },
+        { employeeId: { $regex: search, $options: 'i' } },
+      ],
+    })
+    .select('_id')
+    .lean();
+    
+    query.employee = { $in: matchingEmployees.map((e) => e._id) };
+  }
 
   const leaves = await LeaveRequest.find(query)
     .populate({
@@ -413,65 +446,91 @@ export const getLeaves = async (req: Request, res: Response): Promise<void> => {
       path: 'substituteEmployee',
       select: 'name employeeId',
     })
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean(); // Faster responses
 
   res.status(200).json(leaves);
 };
 
 export const applyLeave = async (req: AuthRequest, res: Response): Promise<void> => {
-  let employeeId = req.body.employee;
-  let employeeDoc = await Employee.findOne({ user: req.user?.id });
+  const {
+    leaveType, fromDate, toDate,
+    totalDays, reason,
+    needsSubstitute, substituteEmployee,
+  } = req.body;
 
-  if (!employeeDoc) {
-    employeeDoc = await Employee.create({
+  let employee = await Employee.findOne({ user: req.user?.id });
+  let employeeId = employee?._id;
+
+  // Auto-create employee profile if missing
+  if (!employee) {
+    const user = await User.findById(req.user?.id);
+    employee = await Employee.create({
       user: req.user?.id,
-      name: req.user?.name || req.user?.role,
-      employeeId: `EMP-${Math.floor(Math.random() * 10000)}`,
-      role: req.user?.role,
-      department: 'General',
+      employeeId: await generateEmployeeId(),
+      name: user?.name || 'Unknown',
+      role: user?.role || 'staff',
+      department: getDeptByRole(user?.role || ''),
+      basicSalary: 0,
+      joiningDate: new Date(),
       annualLeaveBalance: 24,
       sickLeaveBalance: 10,
       emergencyLeaveBalance: 3,
-      designation: 'Staff',
-      phone: '-',
-      joiningDate: new Date()
     });
-  }
-  employeeId = employeeDoc._id;
-
-  const { leaveType, fromDate, toDate, reason, needsSubstitute, substituteEmployee, totalDays } = req.body;
-
-  if (employeeDoc && totalDays > 0) {
-    if (leaveType === 'Annual Leave' && totalDays > (employeeDoc.annualLeaveBalance || 0)) {
-      res.status(400).json({ success: false, message: `Not enough Annual Leave balance.` });
-      return;
-    }
-    if (leaveType === 'Sick Leave' && totalDays > (employeeDoc.sickLeaveBalance || 0)) {
-      res.status(400).json({ success: false, message: `Not enough Sick Leave balance.` });
-      return;
-    }
-    if (leaveType === 'Emergency Leave' && totalDays > (employeeDoc.emergencyLeaveBalance || 0)) {
-      res.status(400).json({ success: false, message: `Not enough Emergency Leave balance.` });
-      return;
-    }
+    employeeId = employee._id;
   }
 
-  const leave = await LeaveRequest.create({
+  // Balance checks
+  const days = Number(totalDays);
+  if (employee && days > 0) {
+    if (leaveType === 'Annual Leave' && days > (employee.annualLeaveBalance || 0)) {
+      res.status(400).json({ success: false, message: 'Not enough Annual Leave balance.' });
+      return;
+    }
+    if (leaveType === 'Sick Leave' && days > (employee.sickLeaveBalance || 0)) {
+      res.status(400).json({ success: false, message: 'Not enough Sick Leave balance.' });
+      return;
+    }
+    if (leaveType === 'Emergency Leave' && days > (employee.emergencyLeaveBalance || 0)) {
+      res.status(400).json({ success: false, message: 'Not enough Emergency Leave balance.' });
+      return;
+    }
+  }
+
+  // Build leave data
+  const leaveData: any = {
     employee: employeeId,
     leaveType,
     fromDate: new Date(fromDate),
     toDate: new Date(toDate),
-    totalDays: totalDays || 0,
+    totalDays: days || 0,
     reason,
-    needsSubstitute: needsSubstitute || false,
-    substituteEmployee: substituteEmployee || undefined,
-    substituteStatus: needsSubstitute ? 'Pending' : 'Not Required',
-  });
+    needsSubstitute: needsSubstitute === 'true' || needsSubstitute === true,
+    substituteEmployee: substituteEmployee || null,
+    substituteStatus: (needsSubstitute === 'true' || needsSubstitute === true) ? 'Pending' : 'Not Required',
+    status: 'Pending',
+  };
 
+  // If file was uploaded (multer adds to req.file)
+  if (req.file) {
+    leaveData.document = {
+      originalName: req.file.originalname,
+      fileName: req.file.filename,
+      fileSize: req.file.size,
+      mimeType: req.file.mimetype,
+      uploadedAt: new Date(),
+    };
+  }
+
+  const leave = await LeaveRequest.create(leaveData);
+
+  // Create admin notification
+  const empName = employee?.name || 'Employee';
+  
   await Notification.create({
     type: 'leave_request',
     title: 'New Leave Request',
-    message: `${employeeDoc.name} (${employeeDoc.role}) has applied for ${leaveType} from ${leave.fromDate.toISOString().split('T')[0]} to ${leave.toDate.toISOString().split('T')[0]}`,
+    message: `${empName} applied for ${leaveType} from ${new Date(fromDate).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })} to ${new Date(toDate).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}` + (req.file ? ' (with document)' : ''),
     forRole: 'admin',
     fromUser: req.user?.id,
     relatedId: leave._id,
@@ -479,16 +538,35 @@ export const applyLeave = async (req: AuthRequest, res: Response): Promise<void>
   });
 
   const populated = await LeaveRequest.findById(leave._id)
-    .populate({
-      path: 'employee',
-      select: 'name employeeId role department',
-    })
-    .populate({
-      path: 'substituteEmployee',
-      select: 'name employeeId',
-    });
+    .populate({ path: 'employee', select: 'name employeeId role department' })
+    .populate({ path: 'substituteEmployee', select: 'name employeeId' });
 
-  res.status(201).json({ success: true, data: populated });
+  res.status(201).json({ success: true, message: 'Leave request submitted successfully', data: populated });
+};
+
+export const getLeaveDocument = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { leaveId } = req.params;
+
+  const leave = await LeaveRequest.findById(leaveId).populate('employee');
+
+  if (!leave || !leave.document?.fileName) {
+    res.status(404).json({ success: false, message: 'Document not found' });
+    return;
+  }
+
+  const filePath = path.join(__dirname, '../../uploads/leave-docs', leave.document.fileName);
+
+  if (!fs.existsSync(filePath)) {
+    res.status(404).json({ success: false, message: 'File not found on server' });
+    return;
+  }
+
+  // Set headers
+  const isDownload = req.query.download === 'true';
+  res.setHeader('Content-Disposition', `${isDownload ? 'attachment' : 'inline'}; filename="${leave.document.originalName}"`);
+  res.setHeader('Content-Type', leave.document.mimeType);
+
+  res.sendFile(filePath);
 };
 
 export const approveLeave = async (req: AuthRequest, res: Response): Promise<void> => {

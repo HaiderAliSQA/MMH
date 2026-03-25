@@ -1,0 +1,149 @@
+/* --- LEAVE UPLOAD & DOCUMENT STYLES ------------------ */
+.mmh-leave-upload-container {
+  margin-top: 8px;
+}
+.mmh-upload-zone {
+  border: 2px dashed var(--mmh-border);
+  background: rgba(15, 30, 56, 0.4);
+  border-radius: 14px;
+  padding: 24px;
+  text-align: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+.mmh-upload-zone:hover {
+  background: rgba(15, 30, 56, 0.7);
+  border-color: var(--mmh-sky);
+}
+.mmh-upload-zone-drag {
+  background: rgba(14, 165, 233, 0.08);
+  border-color: var(--mmh-sky);
+  transform: scale(1.01);
+}
+.mmh-upload-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+.mmh-upload-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 4px;
+}
+.mmh-upload-sub {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 16px;
+  max-width: 260px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+}
+.mmh-upload-types {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.mmh-upload-type-badge {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+}
+.mmh-upload-limit {
+  font-size: 10px;
+  color: #475569;
+  margin-bottom: 12px;
+}
+.mmh-upload-btn {
+  display: inline-block;
+  background: rgba(14, 165, 233, 0.15);
+  color: #38bdf8;
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+}
+
+/* File Preview */
+.mmh-file-preview {
+  background: #0f172a;
+  border: 1px solid var(--mmh-border2);
+  border-radius: 14px;
+  padding: 14px;
+  animation: mmh-scale-in 0.2s ease;
+}
+.mmh-file-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mmh-file-icon {
+  width: 44px;
+  height: 44px;
+  background: #1e293b;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.mmh-file-icon-pdf { background: rgba(244, 63, 94, 0.1); color: #fb7185; }
+.mmh-file-icon-img { background: rgba(14, 165, 233, 0.1); color: #38bdf8; }
+.mmh-file-icon-doc { background: rgba(139, 92, 246, 0.1); color: #a78bfa; }
+
+.mmh-file-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+.mmh-file-meta {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+.mmh-file-remove {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(244, 63, 94, 0.1);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 10px;
+  transition: all 0.15s;
+}
+.mmh-file-remove:hover {
+  background: #f43f5e;
+  color: white;
+}
+.mmh-file-note {
+  margin-top: 10px;
+  font-size: 10px;
+  color: #475569;
+  font-style: italic;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+/* Leave List Card Custom */
+.mmh-lhc-approved { border-left: 3px solid #10b981; }
+.mmh-lhc-pending  { border-left: 3px solid #f59e0b; }
+.mmh-lhc-rejected { border-left: 3px solid #f43f5e; }
+.mmh-lhc-cancelled { border-left: 3px solid #64748b; }

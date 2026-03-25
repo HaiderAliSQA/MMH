@@ -87,30 +87,9 @@ const TypeSearch: React.FC<TypeSearchProps> = ({
               disabled={disabled}
               autoComplete="off"
             />
-            {open && (
-              <div className="mmh-ts-dropdown">
-                {filtered.length === 0 ? (
-                  <div className="mmh-ts-empty">No results found</div>
-                ) : (
-                  filtered.map(opt => (
-                    <div
-                      key={opt.value}
-                      className="mmh-ts-option"
-                      onMouseDown={e => { e.preventDefault(); handleSelect(opt); }}
-                    >
-                      {opt.icon && <span style={{ fontSize: 16 }}>{opt.icon}</span>}
-                      <div>
-                        <div className="mmh-ts-option-label">{opt.label}</div>
-                        {opt.sub && <div className="mmh-ts-option-sub">{opt.sub}</div>}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
           </>
         ) : (
-          <div className="mmh-ts-selected">
+          <div className="mmh-ts-selected" onClick={() => !disabled && setOpen(!open)}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               {selected.icon && <span style={{ fontSize: 16 }}>{selected.icon}</span>}
               <div>
@@ -118,7 +97,35 @@ const TypeSearch: React.FC<TypeSearchProps> = ({
                 {selected.sub && <div style={{ fontSize: 11, color: '#64748b', marginTop: 1 }}>{selected.sub}</div>}
               </div>
             </div>
-            <button type="button" className="mmh-ts-clear" onClick={handleClear} title="Clear">×</button>
+            <button 
+              type="button" 
+              className="mmh-ts-clear" 
+              onClick={(e) => { e.stopPropagation(); handleClear(); }} 
+              title="Clear"
+            >×</button>
+          </div>
+        )}
+
+        {open && (
+          <div className="mmh-ts-dropdown">
+            {filtered.length === 0 ? (
+              <div className="mmh-ts-empty">No results found</div>
+            ) : (
+              filtered.map(opt => (
+                <div
+                  key={opt.value}
+                  className={`mmh-ts-option ${opt.value === value ? 'active' : ''}`}
+                  onMouseDown={e => { e.preventDefault(); handleSelect(opt); }}
+                >
+                  {opt.icon && <span style={{ fontSize: 16 }}>{opt.icon}</span>}
+                  <div style={{ flex: 1 }}>
+                    <div className="mmh-ts-option-label">{opt.label}</div>
+                    {opt.sub && <div className="mmh-ts-option-sub">{opt.sub}</div>}
+                  </div>
+                  {opt.value === value && <span style={{ color: '#0ea5e9' }}>✓</span>}
+                </div>
+              ))
+            )}
           </div>
         )}
       </div>

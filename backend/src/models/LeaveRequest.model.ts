@@ -14,6 +14,13 @@ export interface ILeaveRequest extends Document {
   approvedBy: mongoose.Types.ObjectId;
   approvedAt: Date;
   rejectedReason: string;
+  document?: {
+    originalName: string;
+    fileName: string;
+    fileSize: number;
+    mimeType: string;
+    uploadedAt: Date;
+  };
 }
 
 const LeaveRequestSchema = new Schema<ILeaveRequest>(
@@ -43,6 +50,13 @@ const LeaveRequestSchema = new Schema<ILeaveRequest>(
     approvedBy: { type: Schema.Types.ObjectId, ref: 'User' },
     approvedAt: { type: Date },
     rejectedReason: { type: String },
+    document: {
+      originalName: { type: String },
+      fileName: { type: String },
+      fileSize: { type: Number },
+      mimeType: { type: String },
+      uploadedAt: { type: Date },
+    },
   },
   { timestamps: true }
 );

@@ -114,7 +114,7 @@ const EmployeesTab: React.FC<{ employees: any[]; reload: () => void }> = ({ empl
                     <td>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" onClick={() => openEdit(emp)}>✏️ Edit</button>
-                        <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" style={{ color: '#f59e0b' }} onClick={() => setSearchParams({ tab: 'leave', emp: emp.name })}>🏖️ Leaves</button>
+                        <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" style={{ color: '#f59e0b' }} onClick={() => setSearchParams({ tab: 'leave', empId: emp._id, empName: emp.name })}>🏖️ Leaves</button>
                       </div>
                     </td>
                   </tr>

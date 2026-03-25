@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import 'express-async-errors';
@@ -59,6 +60,9 @@ app.get('/api/health', (req, res) => {
 
 // All routes
 app.use('/api', routes);
+
+// Serve static uploads
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Global error handler
 app.use((

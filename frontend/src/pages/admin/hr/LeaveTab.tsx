@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { hrAPI } from '../../../api';
 import TypeSearch from '../../../components/TypeSearch';
 
@@ -16,25 +17,65 @@ const LEAVE_TYPE_OPTS = [
 
 const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
+const getFileIconByName = (name: string): string => {
+  const ext = name.split('.').pop()?.toLowerCase();
+  if (ext === 'pdf') return '📄';
+  if (['jpg', 'jpeg', 'png'].includes(ext || '')) return '🖼️';
+  if (['doc', 'docx'].includes(ext || '')) return '📝';
+  return '📎';
+};
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+};
+
+const getTypeName = (mime: string): string => {
+  if (mime.includes('pdf')) return 'PDF Document';
+  if (mime.includes('jpeg') || mime.includes('jpg')) return 'JPEG Image';
+  if (mime.includes('png')) return 'PNG Image';
+  if (mime.includes('wordprocessingml') || mime.includes('msword')) return 'Word Document';
+  return 'Document';
+};
+
 const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [leaves, setLeaves] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
-  const [empSearch, setEmpSearch] = useState('');
+  
+  // States match URL or fall back to empty
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
+  const [typeFilter, setTypeFilter] = useState(searchParams.get('type') || '');
+  const [empSearch, setEmpSearch] = useState(searchParams.get('search') || searchParams.get('empName') || '');
+  
   const [rejectModal, setRejectModal] = useState<any>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [banner, setBanner] = useState<{ type: string; msg: string } | null>(null);
 
   useEffect(() => {
     loadLeaves();
-    const interval = setInterval(loadLeaves, 30000);
+    const interval = setInterval(loadLeaves, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [searchParams]); // Re-fetch when URL changes
 
   const loadLeaves = async () => {
     setLoading(true);
-    try { const r = await hrAPI.getLeaves(); setLeaves(r.data || []); }
+    try { 
+      const params: any = {};
+      const status = searchParams.get('status');
+      const type = searchParams.get('type');
+      const search = searchParams.get('search');
+      const employee = searchParams.get('empId');
+      const empName = searchParams.get('empName');
+
+      if (status) params.status = status;
+      if (type) params.leaveType = type;
+      if (employee) params.employee = employee;
+      if (search || empName) params.search = search || empName;
+
+      const r = await hrAPI.getLeaves(params); 
+      setLeaves(r.data || []); 
+    }
     catch { } finally { setLoading(false); }
   };
 
@@ -60,6 +101,13 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
     setBanner(null);
     try { await hrAPI.updateLeaveStatus(rejectModal._id, 'Rejected', rejectReason); setBanner({ type: 'success', msg: 'Leave rejected' }); setRejectModal(null); setRejectReason(''); loadLeaves(); }
     catch (e: any) { setBanner({ type: 'error', msg: e.response?.data?.message || 'Failed' }); }
+  };
+
+  const viewDocument = (leaveId: string) => {
+    const token = localStorage.getItem('mmh_token');
+    const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+    const url = `${apiUrl}/api/hr/leaves/${leaveId}/document?token=${token}`;
+    window.open(url, '_blank');
   };
 
   const stats = {
@@ -97,15 +145,65 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
       </div>
 
       <div className="mmh-card" style={{ marginBottom: 16, overflow: 'visible' }}>
-        <div className="mmh-card-body" style={{ padding: '12px 16px', display: 'flex', gap: 12, flexWrap: 'wrap', overflow: 'visible' }}>
-          <div style={{ flex: 1, minWidth: 180 }}>
-            <input className="mmh-input" placeholder="🔍 Search employee..." value={empSearch} onChange={e => setEmpSearch(e.target.value)} />
+        <div className="mmh-card-body" style={{ padding: '12px 16px', display: 'flex', gap: 12, flexWrap: 'wrap', overflow: 'visible', alignItems: 'center' }}>
+          <div style={{ flex: 1, minWidth: 180, position: 'relative' }}>
+            <input 
+              className="mmh-input" 
+              placeholder="🔍 Search employee name or ID..." 
+              value={empSearch} 
+              onChange={e => {
+                setEmpSearch(e.target.value);
+                const params = new URLSearchParams(searchParams);
+                if (e.target.value) params.set('search', e.target.value);
+                else params.delete('search');
+                params.delete('empName'); // Remove name if manually typing
+                params.delete('empId');   // Remove exact ID if manually typing
+                setSearchParams(params);
+              }} 
+            />
+            {(searchParams.get('search') || searchParams.get('empName')) && (
+              <button 
+                onClick={() => {
+                  setEmpSearch('');
+                  const params = new URLSearchParams(searchParams);
+                  params.delete('search');
+                  params.delete('empName');
+                  params.delete('empId');
+                  setSearchParams(params);
+                }}
+                style={{
+                  position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                  background: 'rgba(244,63,94,0.1)', color: '#fb7185', border: 'none',
+                  borderRadius: 6, padding: '2px 8px', fontSize: 10, fontWeight: 700, cursor: 'pointer'
+                }}
+              >✕ Clear</button>
+            )}
           </div>
           <div style={{ width: 180 }}>
-            <TypeSearch options={LEAVE_TYPE_OPTS} value={typeFilter} onChange={v => setTypeFilter(v)} placeholder="Leave type..." />
+            <TypeSearch 
+              options={LEAVE_TYPE_OPTS} 
+              value={typeFilter} 
+              onChange={v => {
+                setTypeFilter(v);
+                const params = new URLSearchParams(searchParams);
+                if (v) params.set('type', v); else params.delete('type');
+                setSearchParams(params);
+              }} 
+              placeholder="Leave type..." 
+            />
           </div>
           <div style={{ width: 180 }}>
-            <TypeSearch options={STATUS_OPTS} value={statusFilter} onChange={v => setStatusFilter(v)} placeholder="Status..." />
+            <TypeSearch 
+              options={STATUS_OPTS} 
+              value={statusFilter} 
+              onChange={v => {
+                setStatusFilter(v);
+                const params = new URLSearchParams(searchParams);
+                if (v) params.set('status', v); else params.delete('status');
+                setSearchParams(params);
+              }} 
+              placeholder="Status..." 
+            />
           </div>
         </div>
       </div>
@@ -114,14 +212,14 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
         <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
           <div className="mmh-loader" />
         </div>
-      ) : filtered.length === 0 ? (
+      ) : leaves.length === 0 ? (
         <div className="mmh-empty" style={{ padding: '60px 20px', background: 'rgba(30,41,59,0.2)', borderRadius: 20, border: '1px dashed rgba(255,255,255,0.05)' }}>
-          <div className="mmh-empty-icon" style={{ fontSize: 48, marginBottom: 16 }}>📃</div>
+          <div className="mmh-empty-icon" style={{ fontSize: 48, marginBottom: 16 }}>🏖️</div>
           <div className="mmh-empty-text" style={{ fontSize: 16, color: '#94a3b8' }}>No leave requests found matching criteria</div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 20 }}>
-          {filtered.map(l => (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 24 }}>
+          {leaves.map(l => (
             <div key={l._id} className={`mmh-leave-card ${LHC_CLASS[l.status] || ''}`} style={{
               background: 'rgba(30,41,59,0.4)',
               backdropFilter: 'blur(10px)',
@@ -189,15 +287,42 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                 </div>
               )}
 
+              {l.document ? (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Supporting Document</div>
+                  <div className="mmh-attachment-card">
+                    <div className="mmh-attachment-icon">{getFileIconByName(l.document.originalName)}</div>
+                    <div className="mmh-attachment-info">
+                      <div className="mmh-attachment-name">{l.document.originalName}</div>
+                      <div className="mmh-attachment-meta">{formatFileSize(l.document.fileSize)}</div>
+                    </div>
+                    <div className="mmh-attachment-actions">
+                      <button 
+                        onClick={() => viewDocument(l._id)}
+                        className="mmh-btn mmh-btn-xs mmh-btn-primary" 
+                        title="View Document"
+                        style={{ width: 32, height: 32, padding: 0, borderRadius: 10 }}
+                      >👁️</button>
+                      <button 
+                        onClick={() => {
+                          const token = localStorage.getItem('mmh_token');
+                          const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+                          window.open(`${apiUrl}/api/hr/leaves/${l._id}/document?token=${token}&download=true`, '_blank');
+                        }}
+                        className="mmh-btn mmh-btn-xs mmh-btn-green" 
+                        title="Download Document"
+                        style={{ width: 32, height: 32, padding: 0, borderRadius: 10 }}
+                      >⬇️</button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
               {l.substituteEmployee && (
                 <div style={{ padding: '8px 12px', background: 'rgba(139,92,246,0.08)', borderRadius: 10, border: '1px solid rgba(139,92,246,0.1)', marginBottom: 14 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: 11, color: '#a78bfa', fontWeight: 600 }}>🔄 Substitute Requirement</span>
-                    <span style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: l.substituteStatus === 'Accepted' ? '#10b981' : l.substituteStatus === 'Declined' ? '#f43f5e' : '#f59e0b'
-                    }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: l.substituteStatus === 'Accepted' ? '#10b981' : l.substituteStatus === 'Declined' ? '#f43f5e' : '#f59e0b' }}>
                       {l.substituteStatus || 'Pending'}
                     </span>
                   </div>
