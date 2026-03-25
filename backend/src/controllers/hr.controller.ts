@@ -458,95 +458,103 @@ export const getLeaves = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const applyLeave = async (req: AuthRequest, res: Response): Promise<void> => {
-  const {
-    leaveType, fromDate, toDate,
-    totalDays, reason,
-    needsSubstitute, substituteEmployee,
-  } = req.body;
+  try {
+    const {
+      leaveType, fromDate, toDate,
+      totalDays, reason,
+      needsSubstitute, substituteEmployee,
+    } = req.body;
 
-  let employee = await Employee.findOne({ user: req.user?.id });
-  let employeeId = employee?._id;
+    let employee = await Employee.findOne({ user: req.user?.id });
+    let employeeId = employee?._id;
 
-  // Auto-create employee profile if missing
-  if (!employee) {
-    const user = await User.findById(req.user?.id);
-    employee = await Employee.create({
-      user: req.user?.id,
-      employeeId: await generateEmployeeId(),
-      name: user?.name || 'Unknown',
-      role: user?.role || 'staff',
-      department: getDeptByRole(user?.role || ''),
-      basicSalary: 0,
-      joiningDate: new Date(),
-      annualLeaveBalance: 24,
-      sickLeaveBalance: 10,
-      emergencyLeaveBalance: 3,
-    });
-    employeeId = employee._id;
-  }
-
-  // Balance checks
-  const days = Number(totalDays);
-  if (employee && days > 0) {
-    if (leaveType === 'Annual Leave' && days > (employee.annualLeaveBalance || 0)) {
-      res.status(400).json({ success: false, message: 'Not enough Annual Leave balance.' });
-      return;
+    // Auto-create employee profile if missing
+    if (!employee) {
+      const user = await User.findById(req.user?.id);
+      employee = await Employee.create({
+        user: req.user?.id,
+        employeeId: await generateEmployeeId(),
+        name: user?.name || 'Unknown',
+        role: user?.role || 'staff',
+        department: getDeptByRole(user?.role || ''),
+        basicSalary: 0,
+        joiningDate: new Date(),
+        annualLeaveBalance: 24,
+        sickLeaveBalance: 10,
+        emergencyLeaveBalance: 3,
+      });
+      employeeId = employee._id;
     }
-    if (leaveType === 'Sick Leave' && days > (employee.sickLeaveBalance || 0)) {
-      res.status(400).json({ success: false, message: 'Not enough Sick Leave balance.' });
-      return;
-    }
-    if (leaveType === 'Emergency Leave' && days > (employee.emergencyLeaveBalance || 0)) {
-      res.status(400).json({ success: false, message: 'Not enough Emergency Leave balance.' });
-      return;
-    }
-  }
 
-  // Build leave data
-  const leaveData: any = {
-    employee: employeeId,
-    leaveType,
-    fromDate: new Date(fromDate),
-    toDate: new Date(toDate),
-    totalDays: days || 0,
-    reason,
-    needsSubstitute: needsSubstitute === 'true' || needsSubstitute === true,
-    substituteEmployee: substituteEmployee || null,
-    substituteStatus: (needsSubstitute === 'true' || needsSubstitute === true) ? 'Pending' : 'Not Required',
-    status: 'Pending',
-  };
+    // Balance checks
+    const days = Number(totalDays);
+    if (employee && days > 0) {
+      if (leaveType === 'Annual Leave' && days > (employee.annualLeaveBalance || 0)) {
+        res.status(400).json({ success: false, message: 'Not enough Annual Leave balance.' });
+        return;
+      }
+      if (leaveType === 'Sick Leave' && days > (employee.sickLeaveBalance || 0)) {
+        res.status(400).json({ success: false, message: 'Not enough Sick Leave balance.' });
+        return;
+      }
+      if (leaveType === 'Emergency Leave' && days > (employee.emergencyLeaveBalance || 0)) {
+        res.status(400).json({ success: false, message: 'Not enough Emergency Leave balance.' });
+        return;
+      }
+    }
 
-  // If file was uploaded (multer adds to req.file)
-  if (req.file) {
-    leaveData.document = {
-      originalName: req.file.originalname,
-      fileName: req.file.filename,
-      fileSize: req.file.size,
-      mimeType: req.file.mimetype,
-      uploadedAt: new Date(),
+    // Build leave data
+    const leaveData: any = {
+      employee: employeeId,
+      leaveType,
+      fromDate: new Date(fromDate),
+      toDate: new Date(toDate),
+      totalDays: days || 0,
+      reason,
+      needsSubstitute: needsSubstitute === 'true' || needsSubstitute === true,
+      substituteEmployee: substituteEmployee || null,
+      substituteStatus: (needsSubstitute === 'true' || needsSubstitute === true) ? 'Pending' : 'Not Required',
+      status: 'Pending',
     };
+
+    // If file was uploaded
+    if (req.file) {
+      const isCloudinary = (req.file as any).path?.startsWith('http');
+      leaveData.document = {
+        originalName: req.file.originalname,
+        fileName: (req.file as any).filename || '',
+        publicId: (req.file as any).filename || '',
+        url: isCloudinary ? (req.file as any).path : `/uploads/${(req.file as any).filename}`,
+        fileSize: req.file.size || 0,
+        mimeType: req.file.mimetype,
+        uploadedAt: new Date(),
+      };
+    }
+
+    const leave = await LeaveRequest.create(leaveData);
+
+    // Create admin notification
+    const empName = employee?.name || 'Employee';
+    
+    await Notification.create({
+      type: 'leave_request',
+      title: 'New Leave Request',
+      message: `${empName} applied for ${leaveType} from ${new Date(fromDate).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })} to ${new Date(toDate).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}` + (req.file ? ' (with document)' : ''),
+      forRole: 'admin',
+      fromUser: req.user?.id,
+      relatedId: leave._id,
+      isRead: false,
+    });
+
+    const populated = await LeaveRequest.findById(leave._id)
+      .populate({ path: 'employee', select: 'name employeeId role department' })
+      .populate({ path: 'substituteEmployee', select: 'name employeeId' });
+
+    res.status(201).json({ success: true, message: 'Leave request submitted successfully', data: populated });
+  } catch (err: any) {
+    console.error("error in applyLeave:", err);
+    res.status(500).json({ success: false, message: err.message || 'Internal Error', stack: err.stack });
   }
-
-  const leave = await LeaveRequest.create(leaveData);
-
-  // Create admin notification
-  const empName = employee?.name || 'Employee';
-  
-  await Notification.create({
-    type: 'leave_request',
-    title: 'New Leave Request',
-    message: `${empName} applied for ${leaveType} from ${new Date(fromDate).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })} to ${new Date(toDate).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}` + (req.file ? ' (with document)' : ''),
-    forRole: 'admin',
-    fromUser: req.user?.id,
-    relatedId: leave._id,
-    isRead: false,
-  });
-
-  const populated = await LeaveRequest.findById(leave._id)
-    .populate({ path: 'employee', select: 'name employeeId role department' })
-    .populate({ path: 'substituteEmployee', select: 'name employeeId' });
-
-  res.status(201).json({ success: true, message: 'Leave request submitted successfully', data: populated });
 };
 
 export const getLeaveDocument = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -554,24 +562,59 @@ export const getLeaveDocument = async (req: AuthRequest, res: Response): Promise
 
   const leave = await LeaveRequest.findById(leaveId).populate('employee');
 
-  if (!leave || !leave.document?.fileName) {
+  if (!leave || !leave.document) {
     res.status(404).json({ success: false, message: 'Document not found' });
     return;
   }
 
-  const filePath = path.join(__dirname, '../../uploads/leave-docs', leave.document.fileName);
+  const isDownload = req.query.download === 'true';
 
-  if (!fs.existsSync(filePath)) {
-    res.status(404).json({ success: false, message: 'File not found on server' });
+  // If we have a Cloudinary URL, use it
+  if (leave.document?.url) {
+    if (isDownload) {
+      const downloadUrl = leave.document.url.replace('/upload/', '/upload/fl_attachment/');
+      res.redirect(downloadUrl);
+    } else {
+      res.redirect(leave.document.url);
+    }
     return;
   }
 
-  // Set headers
-  const isDownload = req.query.download === 'true';
-  res.setHeader('Content-Disposition', `${isDownload ? 'attachment' : 'inline'}; filename="${leave.document.originalName}"`);
-  res.setHeader('Content-Type', leave.document.mimeType);
+  // Fallback for older local documents without Cloudinary URL
+  if (leave.document?.fileName) {
+    const filePath = path.join(__dirname, '../../uploads', leave.document.fileName);
+    if (fs.existsSync(filePath)) {
+      if (isDownload) {
+        res.download(filePath, leave.document.originalName || leave.document.fileName);
+      } else {
+        res.sendFile(filePath);
+      }
+      return;
+    }
+  }
 
-  res.sendFile(filePath);
+  // If we reach here, the file doesn't exist on disk (deleted by Render's ephemeral storage)
+  res.status(404).send(`
+    <html>
+      <head>
+        <title>Document Not Found</title>
+        <style>
+          body { font-family: system-ui, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #f8fafc; color: #334155; margin: 0; }
+          .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); text-align: center; max-width: 400px; }
+          h1 { color: #e11d48; margin-top: 0; }
+          p { line-height: 1.5; color: #64748b; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h1>📄 Document Unavailable</h1>
+          <p>This is a legacy document that was uploaded before the permanent Cloudinary cloud storage system was implemented.</p>
+          <p>Because the previous server storage was temporary, this file is no longer available.</p>
+          <button onclick="window.close()" style="margin-top: 20px; padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">Close Window</button>
+        </div>
+      </body>
+    </html>
+  `);
 };
 
 export const approveLeave = async (req: AuthRequest, res: Response): Promise<void> => {

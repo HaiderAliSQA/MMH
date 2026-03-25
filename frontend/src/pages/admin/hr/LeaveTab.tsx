@@ -50,6 +50,7 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
   
   const [rejectModal, setRejectModal] = useState<any>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [previewDoc, setPreviewDoc] = useState<string | null>(null);
   const [banner, setBanner] = useState<{ type: string; msg: string } | null>(null);
 
   useEffect(() => {
@@ -103,11 +104,52 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
     catch (e: any) { setBanner({ type: 'error', msg: e.response?.data?.message || 'Failed' }); }
   };
 
-  const viewDocument = (leaveId: string) => {
-    const token = localStorage.getItem('mmh_token');
-    const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
-    const url = `${apiUrl}/api/hr/leaves/${leaveId}/document?token=${token}`;
-    window.open(url, '_blank');
+  const viewDocument = (l: any) => {
+    if (!l.document) return;
+    
+    let url = l.document.url;
+
+    // Fix absolute Windows paths that might have been stored during testing
+    if (url && url.includes('\\uploads\\')) {
+      const fileName = url.split('\\').pop();
+      url = `/uploads/${fileName}`;
+    }
+
+    // If it's a relative local URL (not Cloudinary), prefix it with our base API URL (removing /api)
+    if (url && !url.startsWith('http')) {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+      url = `${apiUrl}${url}`;
+    }
+
+    if (url) {
+      setPreviewDoc(url);
+    } else {
+      // Fallback for very old records that don't even have a URL property but have a fileName
+      const token = localStorage.getItem('mmh_token');
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+      window.open(`${apiUrl}/api/hr/leaves/${l._id}/document?token=${token}`, '_blank');
+    }
+  };
+
+  const downloadDocument = (l: any) => {
+    if (!l.document) return;
+
+    let url = l.document.url;
+    // Fix absolute Windows paths that might have been stored during testing
+    if (url && url.includes('\\uploads\\')) {
+      const fileName = url.split('\\').pop();
+      url = `/uploads/${fileName}`;
+    }
+
+    if (url?.startsWith('http') && url.includes('cloudinary')) {
+      // Cloudinary fl_attachment forces browser download
+      const downloadUrl = url.replace('/upload/', '/upload/fl_attachment/');
+      window.open(downloadUrl, '_blank');
+    } else {
+      const token = localStorage.getItem('mmh_token');
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+      window.open(`${apiUrl}/api/hr/leaves/${l._id}/document?token=${token}&download=true`, '_blank');
+    }
   };
 
   const stats = {
@@ -298,17 +340,13 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                     </div>
                     <div className="mmh-attachment-actions">
                       <button 
-                        onClick={() => viewDocument(l._id)}
+                        onClick={() => viewDocument(l)}
                         className="mmh-btn mmh-btn-xs mmh-btn-primary" 
                         title="View Document"
                         style={{ width: 32, height: 32, padding: 0, borderRadius: 10 }}
                       >👁️</button>
                       <button 
-                        onClick={() => {
-                          const token = localStorage.getItem('mmh_token');
-                          const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
-                          window.open(`${apiUrl}/api/hr/leaves/${l._id}/document?token=${token}&download=true`, '_blank');
-                        }}
+                        onClick={() => downloadDocument(l)}
                         className="mmh-btn mmh-btn-xs mmh-btn-green" 
                         title="Download Document"
                         style={{ width: 32, height: 32, padding: 0, borderRadius: 10 }}
@@ -372,6 +410,24 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
             <div className="mmh-modal-footer">
               <button className="mmh-btn mmh-btn-ghost" onClick={() => setRejectModal(null)}>Cancel</button>
               <button className="mmh-btn mmh-btn-rose" onClick={handleReject} disabled={!rejectReason.trim()}>Reject Leave</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {previewDoc && (
+        <div className="mmh-overlay" style={{ zIndex: 10000 }} onClick={() => setPreviewDoc(null)}>
+          <div className="mmh-modal" style={{ width: '800px', maxWidth: '95vw', maxHeight: '95vh', background: 'transparent', border: 'none', boxShadow: 'none' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+              <button onClick={() => window.open(previewDoc, '_blank')} className="mmh-btn mmh-btn-xs mmh-btn-sky" style={{ marginRight: 8 }}>Open Original ↗</button>
+              <button onClick={() => setPreviewDoc(null)} className="mmh-btn mmh-btn-xs mmh-btn-rose" style={{ width: 32, height: 32, padding: 0 }}>×</button>
+            </div>
+            <div className="mmh-card" style={{ padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400, background: '#0f172a' }}>
+              {previewDoc.toLowerCase().endsWith('.pdf') ? (
+                <iframe src={previewDoc} style={{ width: '100%', height: '75vh', border: 'none' }} />
+              ) : (
+                <img src={previewDoc} alt="Preview" style={{ maxWidth: '100%', maxHeight: '75vh', objectFit: 'contain' }} />
+              )}
             </div>
           </div>
         </div>

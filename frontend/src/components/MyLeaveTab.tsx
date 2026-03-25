@@ -32,6 +32,7 @@ interface LeaveRecord {
     fileName: string;
     fileSize: number;
     mimeType: string;
+    url?: string;
   };
 }
 
@@ -108,6 +109,7 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
   const [banner, setBanner] = useState<{ type: string; msg: string } | null>(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
+  const [previewDoc, setPreviewDoc] = useState<string | null>(null);
 
   // Form
   const [leaveType, setLeaveType] = useState('');
@@ -227,11 +229,31 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
     }
   };
 
-  const viewDocument = (leaveId: string) => {
-    const token = localStorage.getItem('mmh_token');
-    const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
-    const url = `${apiUrl}/api/hr/leaves/${leaveId}/document?token=${token}`;
-    window.open(url, '_blank');
+  const viewDocument = (l: LeaveRecord) => {
+    if (!l.document) return;
+    
+    let url = l.document.url;
+
+    // Fix absolute Windows paths that might have been stored during testing
+    if (url && url.includes('\\uploads\\')) {
+      const fileName = url.split('\\').pop();
+      url = `/uploads/${fileName}`;
+    }
+
+    // If it's a relative local URL (not Cloudinary), prefix it with our base API URL (removing /api)
+    if (url && !url.startsWith('http')) {
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+      url = `${apiUrl}${url}`;
+    }
+
+    if (url) {
+      setPreviewDoc(url);
+    } else {
+      // Fallback for very old records that only have fileName
+      const token = localStorage.getItem('mmh_token');
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+      window.open(`${apiUrl}/api/hr/leaves/${l._id}/document?token=${token}`, '_blank');
+    }
   };
 
   const workingDays = Math.max(0, calcWorkingDays(fromDate, toDate));
@@ -507,7 +529,7 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
                   {l.document && (
                     <div style={{ marginTop: 12 }}>
                       <div style={{ fontSize: 9, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Supporting Document</div>
-                      <div className="mmh-attachment-card" onClick={() => viewDocument(l._id)}>
+                      <div className="mmh-attachment-card" onClick={() => viewDocument(l)}>
                         <div className="mmh-attachment-icon">{getFileIconByName(l.document.originalName)}</div>
                         <div className="mmh-attachment-info">
                           <div className="mmh-attachment-name">{l.document.originalName}</div>
@@ -534,6 +556,24 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
           </div>
         </div>
       </div>
+
+      {previewDoc && (
+        <div className="mmh-overlay" style={{ zIndex: 10000 }} onClick={() => setPreviewDoc(null)}>
+          <div className="mmh-modal" style={{ width: '800px', maxWidth: '95vw', maxHeight: '95vh', background: 'transparent', border: 'none', boxShadow: 'none' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+              <button onClick={() => window.open(previewDoc, '_blank')} className="mmh-btn mmh-btn-xs mmh-btn-sky" style={{ marginRight: 8 }}>Open Original ↗</button>
+              <button onClick={() => setPreviewDoc(null)} className="mmh-btn mmh-btn-xs mmh-btn-rose" style={{ width: 32, height: 32, padding: 0 }}>×</button>
+            </div>
+            <div className="mmh-card" style={{ padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400, background: '#0f172a' }}>
+              {previewDoc.toLowerCase().endsWith('.pdf') ? (
+                <iframe src={previewDoc} style={{ width: '100%', height: '75vh', border: 'none' }} />
+              ) : (
+                <img src={previewDoc} alt="Preview" style={{ maxWidth: '100%', maxHeight: '75vh', objectFit: 'contain' }} />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

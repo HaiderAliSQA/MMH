@@ -19,6 +19,8 @@ export interface ILeaveRequest extends Document {
     fileName: string;
     fileSize: number;
     mimeType: string;
+    url: string;
+    publicId: string;
     uploadedAt: Date;
   };
 }
@@ -55,6 +57,8 @@ const LeaveRequestSchema = new Schema<ILeaveRequest>(
       fileName: { type: String },
       fileSize: { type: Number },
       mimeType: { type: String },
+      url: { type: String },
+      publicId: { type: String },
       uploadedAt: { type: Date },
     },
   },
