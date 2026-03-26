@@ -14,6 +14,7 @@ export interface ILeaveRequest extends Document {
   approvedBy: mongoose.Types.ObjectId;
   approvedAt: Date;
   rejectedReason: string;
+  durationType: string;
   document?: {
     originalName: string;
     cloudinaryId: string;
@@ -52,6 +53,11 @@ const LeaveRequestSchema = new Schema<ILeaveRequest>(
     approvedBy: { type: Schema.Types.ObjectId, ref: 'User' },
     approvedAt: { type: Date },
     rejectedReason: { type: String },
+    durationType: {
+      type: String,
+      enum: ['Full Day', 'Half Day', 'Quarter Day', 'Short Leave'],
+      default: 'Full Day',
+    },
     document: {
       originalName: { type: String },
       cloudinaryId:  { type: String },  // public_id
@@ -67,7 +73,13 @@ const LeaveRequestSchema = new Schema<ILeaveRequest>(
 
 // Auto-calculate totalDays before save
 LeaveRequestSchema.pre('save', function () {
-  if (this.fromDate && this.toDate) {
+  if (this.durationType === 'Half Day') {
+    this.totalDays = 0.5;
+  } else if (this.durationType === 'Quarter Day') {
+    this.totalDays = 0.25;
+  } else if (this.durationType === 'Short Leave') {
+    this.totalDays = 0.5;
+  } else if (this.fromDate && this.toDate) {
     const diffTime = Math.abs(this.toDate.getTime() - this.fromDate.getTime());
     this.totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   }

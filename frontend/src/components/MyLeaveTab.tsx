@@ -13,6 +13,8 @@ interface Employee {
   annualLeaveBalance: number;
   sickLeaveBalance?: number;
   emergencyLeaveBalance?: number;
+  maternityLeaveBalance?: number;
+  unpaidLeaveBalance?: number;
 }
 
 interface LeaveRecord {
@@ -126,6 +128,7 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
 
   // Form
   const [leaveType, setLeaveType] = useState('');
+  const [durationType, setDurationType] = useState('Full Day');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [reason, setReason] = useState('');
@@ -179,6 +182,8 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
     const annual = employee?.annualLeaveBalance ?? 24;
     const sick = employee?.sickLeaveBalance ?? 10;
     const emergency = employee?.emergencyLeaveBalance ?? 3;
+    const maternity = employee?.maternityLeaveBalance ?? 90;
+    const unpaid = employee?.unpaidLeaveBalance ?? 30;
 
     if (leaveType === 'Annual Leave' && days > annual) {
       setBanner({ type: 'error', msg: `Not enough Annual Leave balance. Remaining: ${annual}` });
@@ -192,15 +197,24 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
       setBanner({ type: 'error', msg: `Not enough Emergency Leave balance. Remaining: ${emergency}` });
       return;
     }
+    if (leaveType === 'Maternity Leave' && days > maternity) {
+      setBanner({ type: 'error', msg: `Not enough Maternity Leave balance. Remaining: ${maternity}` });
+      return;
+    }
+    if (leaveType === 'Unpaid Leave' && days > unpaid) {
+      setBanner({ type: 'error', msg: `Not enough Unpaid Leave balance. Remaining: ${unpaid}` });
+      return;
+    }
     setSubmitLoading(true);
     setBanner(null);
     try {
       const formData = new FormData();
       formData.append('leaveType', leaveType);
       formData.append('fromDate', fromDate);
-      formData.append('toDate', toDate);
+      formData.append('toDate', durationType === 'Full Day' ? toDate : fromDate);
       formData.append('reason', reason);
-      formData.append('totalDays', String(days));
+      formData.append('totalDays', String(workingDays));
+      formData.append('durationType', durationType);
       formData.append('needsSubstitute', String(needsSubstitute));
       if (needsSubstitute && substituteId) {
         formData.append('substituteEmployee', substituteId);
@@ -213,6 +227,7 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
 
       setBanner({ type: 'success', msg: `✅ Leave request submitted${selectedFile ? ' with document' : ''}! (${days} working day${days !== 1 ? 's' : ''})` });
       setLeaveType('');
+      setDurationType('Full Day');
       setFromDate('');
       setToDate('');
       setReason('');
@@ -240,12 +255,28 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
 
 
 
-  const workingDays = Math.max(0, calcWorkingDays(fromDate, toDate));
+  const getWorkingDays = () => {
+    if (durationType === 'Half Day') return 0.5;
+    if (durationType === 'Quarter Day') return 0.25;
+    if (durationType === 'Short Leave') return 0.5; // Adjusted to match user expectation (0.5 deduction)
+    return Math.max(0, calcWorkingDays(fromDate, toDate));
+  };
+  const workingDays = getWorkingDays();
 
-  // Leave balance data
-  const annual = employee?.annualLeaveBalance ?? 24;
-  const sick = employee?.sickLeaveBalance ?? 10;
-  const emergency = employee?.emergencyLeaveBalance ?? 3;
+  // Calculate Pending Deductions
+  const pendingByCard = leaves
+    .filter(l => l.status === 'Pending')
+    .reduce((acc, l) => {
+      acc[l.leaveType] = (acc[l.leaveType] || 0) + (l.totalDays || 0);
+      return acc;
+    }, {} as Record<string, number>);
+
+  // Leave balance data (Balance - Pending)
+  const annual = (employee?.annualLeaveBalance ?? 24) - (pendingByCard['Annual Leave'] || 0);
+  const sick = (employee?.sickLeaveBalance ?? 10) - (pendingByCard['Sick Leave'] || 0);
+  const emergency = (employee?.emergencyLeaveBalance ?? 3) - (pendingByCard['Emergency Leave'] || 0);
+  const maternity = (employee?.maternityLeaveBalance ?? 90) - (pendingByCard['Maternity Leave'] || 0);
+  const unpaid = (employee?.unpaidLeaveBalance ?? 30) - (pendingByCard['Unpaid Leave'] || 0);
 
   const activeRole = userRole || employee?.role;
   // Substitute options (doctors only, exclude self)
@@ -287,313 +318,342 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
       )}
 
       {/* ── Leave Balance Row ── */}
-      <div className="mmh-leave-bal-row">
-        <div className="mmh-leave-bal-card">
-          <div className="mmh-lbc-number">{annual}</div>
-          <div className="mmh-lbc-label">Annual Leave</div>
-          <div className="mmh-lbc-bar-track">
-            <div className={`mmh-lbc-bar-fill ${barColor(annual, 24)}`} style={{ width: `${Math.min(100, (annual / 24) * 100)}%` }} />
+      <div className="mmh-leave-bal-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 24 }}>
+        {[
+          { label: 'Annual Leave', val: annual, max: 24, icon: '📅', color: '#10b981' },
+          { label: 'Sick Leave', val: sick, max: 10, icon: '🤒', color: '#f59e0b' },
+          { label: 'Emergency Leave', val: emergency, max: 3, icon: '🚨', color: '#ef4444' },
+          { label: 'Maternity Leave', val: maternity, max: 90, icon: '👶', color: '#8b5cf6' },
+          { label: 'Unpaid Leave', val: unpaid, max: 30, icon: '📝', color: '#64748b' },
+        ].map((c) => (
+          <div key={c.label} className="mmh-leave-bal-card" style={{ margin: 0, borderTop: `4px solid ${c.color}` }}>
+            <div className="mmh-lbc-icon" style={{ fontSize: 20, marginBottom: 4 }}>{c.icon}</div>
+            <div className="mmh-lbc-number" style={{ color: '#f8fafc' }}>{c.val} <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 400 }}>Days</span></div>
+            <div className="mmh-lbc-label" style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', marginTop: 4 }}>{c.label}</div>
+            <div className="mmh-lbc-bar-track" style={{ marginTop: 12 }}>
+              <div className={`mmh-lbc-bar-fill ${barColor(c.val, c.max)}`} style={{ width: `${Math.min(100, (c.val / c.max) * 100)}%` }} />
+            </div>
+            <div className="mmh-lbc-remaining" style={{ fontSize: 10, marginTop: 8, color: '#64748b' }}>
+              Available Balance
+            </div>
           </div>
-          <div className="mmh-lbc-remaining">{annual} out of 24 remaining</div>
-        </div>
-
-        <div className="mmh-leave-bal-card">
-          <div className="mmh-lbc-number">{sick}</div>
-          <div className="mmh-lbc-label">Sick Leave</div>
-          <div className="mmh-lbc-bar-track">
-            <div className={`mmh-lbc-bar-fill ${barColor(sick, 10)}`} style={{ width: `${Math.min(100, (sick / 10) * 100)}%` }} />
-          </div>
-          <div className="mmh-lbc-remaining">{sick} out of 10 remaining</div>
-        </div>
-
-        <div className="mmh-leave-bal-card">
-          <div className="mmh-lbc-number">{emergency}</div>
-          <div className="mmh-lbc-label">Emergency Leave</div>
-          <div className="mmh-lbc-bar-track">
-            <div className={`mmh-lbc-bar-fill ${barColor(emergency, 3)}`} style={{ width: `${Math.min(100, (emergency / 3) * 100)}%` }} />
-          </div>
-          <div className="mmh-lbc-remaining">{emergency} out of 3 remaining</div>
-        </div>
+        ))}
       </div>
 
       {/* ── Two-Column Layout ── */}
-      <div className="mmh-leave-2col">
+      <div className="mmh-leave-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'stretch' }}>
         {/* LEFT — Apply Leave Form */}
-        <div className="mmh-leave-form-card">
+        <div className="mmh-leave-form-card" style={{ height: '780px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div className="mmh-leave-card-title">📝 Apply for Leave</div>
-
-          <form onSubmit={handleSubmit}>
-            <TypeSearch
-              options={LEAVE_TYPES}
-              value={leaveType}
-              onChange={(v) => setLeaveType(v)}
-              placeholder="Type to search leave type..."
-              label="Leave Type"
-              required
-            />
-
-            <div className="mmh-form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
-              <div className="mmh-field">
-                <label className="mmh-label">From Date <span className="mmh-required">*</span></label>
-                <input
-                  type="date"
-                  className="mmh-input"
-                  min={todayStr}
-                  value={fromDate}
-                  onChange={(e) => { setFromDate(e.target.value); if (toDate && e.target.value > toDate) setToDate(''); }}
+          
+          <div style={{ flex: 1, overflowY: 'auto', paddingRight: 8, paddingBottom: 20 }}>
+            <form onSubmit={handleSubmit}>
+              <div className="mmh-form-grid" style={{ gridTemplateColumns: '1.2fr 1fr', gap: 16 }}>
+                <TypeSearch
+                  options={LEAVE_TYPES}
+                  value={leaveType}
+                  onChange={(v) => setLeaveType(v)}
+                  placeholder="Leave type..."
+                  label="Leave Type"
+                  required
+                />
+                <TypeSearch
+                  options={[
+                    { value: 'Full Day', label: 'Full Day', icon: '☀️' },
+                    { value: 'Half Day', label: 'Half Day', icon: '🌓' },
+                    { value: 'Quarter Day', label: 'Quarter Day', icon: '🕒' },
+                    { value: 'Short Leave', label: 'Short Leave', icon: '⏱️' },
+                  ]}
+                  value={durationType}
+                  onChange={(v) => {
+                    setDurationType(v);
+                    if (v !== 'Full Day' && fromDate) {
+                      setToDate(fromDate);
+                    }
+                  }}
+                  placeholder="Duration..."
+                  label="Duration Type"
                   required
                 />
               </div>
-              <div className="mmh-field">
-                <label className="mmh-label">To Date <span className="mmh-required">*</span></label>
-                <input
-                  type="date"
-                  className="mmh-input"
-                  min={fromDate || todayStr}
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
 
-            {fromDate && toDate && workingDays > 0 && (
-              <div className="mmh-duration-box" style={{ marginTop: '16px' }}>
-                📅 Duration: {workingDays} day{workingDays !== 1 ? 's' : ''} (includes Sundays)
-              </div>
-            )}
-
-            <div className="mmh-field" style={{ marginTop: 16 }}>
-              <label className="mmh-label">Reason <span className="mmh-required">*</span></label>
-              <textarea
-                className="mmh-textarea"
-                placeholder="Describe reason for leave..."
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                required
-                rows={3}
-              />
-            </div>
-
-            <div className="mmh-field" style={{ marginTop: 16 }}>
-              <label className="mmh-label">
-                Supporting Document
-                <span style={{
-                  fontSize: '9px',
-                  background: 'rgba(16,185,129,0.1)',
-                  color: '#34d399',
-                  border: '1px solid rgba(16,185,129,0.25)',
-                  borderRadius: '4px',
-                  padding: '1px 6px',
-                  marginLeft: '6px',
-                  fontWeight: '500',
-                  textTransform: 'none',
-                  letterSpacing: '0',
-                }}>
-                  Optional
-                </span>
-              </label>
-              <LeaveFileUpload
-                onFileSelect={setSelectedFile}
-                selectedFile={selectedFile}
-              />
-            </div>
-
-            {/* Sub logic only for doctors */}
-            {activeRole === 'doctor' && (
-              <>
-                <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 10 }}>
+              <div className="mmh-form-grid" style={{ gridTemplateColumns: durationType === 'Full Day' ? '1fr 1fr' : '1fr', gap: 16, marginTop: 16 }}>
+                <div className="mmh-field">
+                  <label className="mmh-label">From Date <span className="mmh-required">*</span></label>
                   <input
-                    id="needsSub"
-                    type="checkbox"
-                    checked={needsSubstitute}
-                    onChange={(e) => { setNeedsSubstitute(e.target.checked); if (!e.target.checked) setSubstituteId(''); }}
-                    style={{ width: 16, height: 16, accentColor: '#8b5cf6', cursor: 'pointer' }}
+                    type="date"
+                    className="mmh-input"
+                    min={todayStr}
+                    value={fromDate}
+                    onChange={(e) => {
+                      setFromDate(e.target.value);
+                      if (durationType === 'Full Day') {
+                        if (toDate && e.target.value > toDate) setToDate('');
+                      } else {
+                        setToDate(e.target.value);
+                      }
+                    }}
+                    onClick={(e) => (e.currentTarget as any).showPicker?.()}
+                    style={{ cursor: 'pointer' }}
+                    required
                   />
-                  <label htmlFor="needsSub" style={{ fontSize: 13, color: '#a78bfa', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>
-                    🔄 I need a substitute doctor
-                  </label>
                 </div>
-
-                {needsSubstitute && (
-                  <div style={{ marginTop: 12, overflow: 'visible' }}>
-                    <TypeSearch
-                      options={substituteOpts}
-                      value={substituteId}
-                      onChange={(v) => setSubstituteId(v)}
-                      placeholder="Search substitute doctor..."
-                      label="Substitute Doctor"
-                      required={needsSubstitute}
+                {durationType === 'Full Day' && (
+                  <div className="mmh-field">
+                    <label className="mmh-label">To Date <span className="mmh-required">*</span></label>
+                    <input
+                      type="date"
+                      className="mmh-input"
+                      min={fromDate || todayStr}
+                      value={toDate}
+                      onChange={(e) => setToDate(e.target.value)}
+                      onClick={(e) => (e.currentTarget as any).showPicker?.()}
+                      style={{ cursor: 'pointer' }}
+                      required
                     />
-                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 6, paddingLeft: 2 }}>
-                      ℹ️ Admin will notify the substitute and confirm acceptance.
-                    </div>
                   </div>
                 )}
-              </>
-            )}
+              </div>
 
-            <button
-              type="submit"
-              className="mmh-btn mmh-btn-primary mmh-btn-full"
-              style={{ marginTop: 20 }}
-              disabled={submitLoading}
-            >
-              {submitLoading ? '⏳ Submitting...' : '📤 Submit Leave Request'}
-            </button>
-          </form>
+              {fromDate && toDate && workingDays > 0 && (
+                <div className="mmh-duration-box" style={{ marginTop: '16px' }}>
+                  📅 Duration: {workingDays} day{workingDays !== 1 ? 's' : ''} ({durationType})
+                </div>
+              )}
+
+              <div className="mmh-field" style={{ marginTop: 16 }}>
+                <label className="mmh-label">Reason <span className="mmh-required">*</span></label>
+                <textarea
+                  className="mmh-textarea"
+                  placeholder="Describe reason for leave..."
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  required
+                  rows={3}
+                />
+              </div>
+
+              <div className="mmh-field" style={{ marginTop: 16 }}>
+                <label className="mmh-label">
+                  Supporting Document
+                  <span style={{
+                    fontSize: '9px',
+                    background: 'rgba(16,185,129,0.1)',
+                    color: '#34d399',
+                    border: '1px solid rgba(16,185,129,0.25)',
+                    borderRadius: '4px',
+                    padding: '1px 6px',
+                    marginLeft: '6px',
+                    fontWeight: '500',
+                    textTransform: 'none',
+                    letterSpacing: '0',
+                  }}>
+                    Optional
+                  </span>
+                </label>
+                <LeaveFileUpload
+                  onFileSelect={setSelectedFile}
+                  selectedFile={selectedFile}
+                />
+              </div>
+
+              {/* Sub logic only for doctors */}
+              {activeRole === 'doctor' && (
+                <>
+                  <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 10 }}>
+                    <input
+                      id="needsSub"
+                      type="checkbox"
+                      checked={needsSubstitute}
+                      onChange={(e) => { setNeedsSubstitute(e.target.checked); if (!e.target.checked) setSubstituteId(''); }}
+                      style={{ width: 16, height: 16, accentColor: '#8b5cf6', cursor: 'pointer' }}
+                    />
+                    <label htmlFor="needsSub" style={{ fontSize: 13, color: '#a78bfa', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>
+                      🔄 I need a substitute doctor
+                    </label>
+                  </div>
+
+                  {needsSubstitute && (
+                    <div style={{ marginTop: 12, overflow: 'visible' }}>
+                      <TypeSearch
+                        options={substituteOpts}
+                        value={substituteId}
+                        onChange={(v) => setSubstituteId(v)}
+                        placeholder="Search substitute doctor..."
+                        label="Substitute Doctor"
+                        required={needsSubstitute}
+                      />
+                      <div style={{ fontSize: 11, color: '#64748b', marginTop: 6, paddingLeft: 2 }}>
+                        ℹ️ Admin will notify the substitute and confirm acceptance.
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              <button
+                type="submit"
+                className="mmh-btn mmh-btn-primary mmh-btn-full"
+                style={{ marginTop: 24 }}
+                disabled={submitLoading}
+              >
+                {submitLoading ? '⏳ Submitting...' : '📤 Submit Leave Request'}
+              </button>
+            </form>
+          </div>
         </div>
 
         {/* RIGHT — Leave History */}
-        <div className="mmh-leave-hist-card">
-          <div className="mmh-leave-card-title" style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div className="mmh-leave-hist-card" style={{ height: '780px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div className="mmh-leave-card-title" style={{ display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
             <span>📋 Leave History</span>
             <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>{leaves.length} requests</span>
           </div>
 
-          <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap', overflow: 'visible' }}>
-            <div style={{ flex: 1, minWidth: 140 }}>
-              <input
-                className="mmh-input"
-                placeholder="🔍 Search..."
-                value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
-              />
-            </div>
-            <div style={{ width: 140, overflow: 'visible' }}>
-              <TypeSearch
-                options={STATUS_OPTS}
-                value={statusFilter}
-                onChange={(v) => setStatusFilter(v)}
-                placeholder="Filter status..."
-              />
-            </div>
-          </div>
-
-          <div>
-            {filteredLeaves.length === 0 ? (
-              <div className="mmh-empty" style={{ padding: '30px 0' }}>
-                <div className="mmh-empty-icon">📃</div>
-                <div className="mmh-empty-text">No leave requests found</div>
+          <div style={{ flex: 1, overflowY: 'auto', paddingRight: 8, marginTop: 12, paddingBottom: 20 }}>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap', overflow: 'visible' }}>
+              <div style={{ flex: 1, minWidth: 140 }}>
+                <input
+                  className="mmh-input"
+                  placeholder="🔍 Search..."
+                  value={searchFilter}
+                  onChange={(e) => setSearchFilter(e.target.value)}
+                />
               </div>
-            ) : (
-              filteredLeaves.map((l) => (
-                <div key={l._id} className={`mmh-lhc mmh-lhc-${l.status?.toLowerCase() || 'pending'}`}>
-                  <div className="mmh-lhc-top">
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      <span className="mmh-badge mmh-badge-sky">{l.leaveType}</span>
-                      <span className={`mmh-badge ${STATUS_BADGE[l.status] || 'mmh-badge-gray'}`}>{l.status}</span>
-                    </div>
-                  </div>
+              <div style={{ width: 140, overflow: 'visible' }}>
+                <TypeSearch
+                  options={STATUS_OPTS}
+                  value={statusFilter}
+                  onChange={(v) => setStatusFilter(v)}
+                  placeholder="Filter status..."
+                />
+              </div>
+            </div>
 
-                  <div className="mmh-lhc-dates">
-                    {fmtDate(l.fromDate)} → {fmtDate(l.toDate)}
-                    <strong style={{ marginLeft: 6 }}>({l.totalDays || calcWorkingDays(l.fromDate, l.toDate)}d)</strong>
-                  </div>
-
-                  {l.reason && <div className="mmh-lhc-reason">{l.reason}</div>}
-
-                  {l.needsSubstitute && l.substituteEmployee && (
-                    <div className="mmh-lhc-substitute">
-                      🔄 Sub: {l.substituteEmployee.name}
-                      {l.substituteStatus && (
-                        <span style={{ color: l.substituteStatus === 'Accepted' ? '#34d399' : l.substituteStatus === 'Declined' ? '#fb7185' : '#fbbf24' }}>
-                          ({l.substituteStatus})
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {l.status === 'Rejected' && l.rejectedReason && (
-                    <div className="mmh-lhc-reject-reason">
-                      ❌ {l.rejectedReason}
-                    </div>
-                  )}
-
-                  {l.document && (
-                    <div style={{ marginTop: 12 }}>
-                      <div style={{ fontSize: 9, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Supporting Document</div>
-
-                      {/* Document Info Card */}
-                      <div style={{
-                        display: 'flex', alignItems: 'center', gap: '10px',
-                        padding: '10px 13px', background: 'rgba(15,23,42,0.4)',
-                        border: '1px solid rgba(139,92,246,0.15)',
-                        borderRadius: '10px', marginBottom: '8px'
-                      }}>
-                        <div style={{ fontSize: '18px' }}>
-                          {getFileIconByName(l.document.originalName)}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{
-                            fontSize: '12px', fontWeight: '600', color: '#a78bfa',
-                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-                          }}>
-                            {l.document.originalName}
-                          </div>
-                          <div style={{ fontSize: '10px', color: '#475569' }}>
-                            {formatFileSize(l.document.fileSize)}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        {(() => {
-                          const { view, download } = getDocUrls(l.document);
-                          return (
-                            <>
-                              <a
-                                href={view}
-                                target="_blank"
-                                rel="noreferrer"
-                                style={{
-                                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  gap: '6px', padding: '6px 0', background: 'rgba(14,165,233,0.1)',
-                                  border: '1px solid rgba(14,165,233,0.2)', borderRadius: '8px',
-                                  color: '#38bdf8', fontSize: '11px', fontWeight: '700',
-                                  textDecoration: 'none', cursor: 'pointer'
-                                }}
-                              >
-                                👁️ View
-                              </a>
-                              <a
-                                href={download}
-                                target="_blank"
-                                rel="noreferrer"
-                                download={l.document.originalName}
-                                style={{
-                                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  gap: '6px', padding: '6px 0', background: 'rgba(139,92,246,0.1)',
-                                  border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px',
-                                  color: '#a78bfa', fontSize: '11px', fontWeight: '700',
-                                  textDecoration: 'none', cursor: 'pointer'
-                                }}
-                              >
-                                ⬇️ Download
-                              </a>
-                            </>
-                          )
-                        })()}
-                      </div>
-                    </div>
-                  )}
-
-                  {l.status === 'Pending' && (
-                    <button
-                      className="mmh-lhc-cancel-btn"
-                      onClick={() => handleCancel(l._id)}
-                    >
-                      Cancel Leave
-                    </button>
-                  )}
+            <div>
+              {filteredLeaves.length === 0 ? (
+                <div className="mmh-empty" style={{ padding: '30px 0' }}>
+                  <div className="mmh-empty-icon">📃</div>
+                  <div className="mmh-empty-text">No leave requests found</div>
                 </div>
-              ))
-            )}
+              ) : (
+                filteredLeaves.map((l) => (
+                  <div key={l._id} className={`mmh-lhc mmh-lhc-${l.status?.toLowerCase() || 'pending'}`}>
+                    <div className="mmh-lhc-top">
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <span className="mmh-badge mmh-badge-sky">{l.leaveType}</span>
+                        <span className={`mmh-badge ${STATUS_BADGE[l.status] || 'mmh-badge-gray'}`}>{l.status}</span>
+                      </div>
+                    </div>
+
+                    <div className="mmh-lhc-dates">
+                      {fmtDate(l.fromDate)} → {fmtDate(l.toDate)}
+                      <strong style={{ marginLeft: 6 }}>({l.totalDays || calcWorkingDays(l.fromDate, l.toDate)}d)</strong>
+                    </div>
+
+                    {l.reason && <div className="mmh-lhc-reason">{l.reason}</div>}
+
+                    {l.needsSubstitute && l.substituteEmployee && (
+                      <div className="mmh-lhc-substitute">
+                        🔄 Sub: {l.substituteEmployee.name}
+                        {l.substituteStatus && (
+                          <span style={{ color: l.substituteStatus === 'Accepted' ? '#34d399' : l.substituteStatus === 'Declined' ? '#fb7185' : '#fbbf24' }}>
+                            ({l.substituteStatus})
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {l.status === 'Rejected' && l.rejectedReason && (
+                      <div className="mmh-lhc-reject-reason">
+                        ❌ {l.rejectedReason}
+                      </div>
+                    )}
+
+                    {l.document && (
+                      <div style={{ marginTop: 12 }}>
+                        <div style={{ fontSize: 9, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Supporting Document</div>
+
+                        {/* Document Info Card */}
+                        <div style={{
+                          display: 'flex', alignItems: 'center', gap: '10px',
+                          padding: '10px 13px', background: 'rgba(15,23,42,0.4)',
+                          border: '1px solid rgba(139,92,246,0.15)',
+                          borderRadius: '10px', marginBottom: '8px'
+                        }}>
+                          <div style={{ fontSize: '18px' }}>
+                            {getFileIconByName(l.document.originalName)}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{
+                              fontSize: '12px', fontWeight: '600', color: '#a78bfa',
+                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                            }}>
+                              {l.document.originalName}
+                            </div>
+                            <div style={{ fontSize: '10px', color: '#475569' }}>
+                              {formatFileSize(l.document.fileSize)}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          {(() => {
+                            const { view, download } = getDocUrls(l.document);
+                            return (
+                              <>
+                                <a
+                                  href={view}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  style={{
+                                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    gap: '6px', padding: '6px 0', background: 'rgba(14,165,233,0.1)',
+                                    border: '1px solid rgba(14,165,233,0.2)', borderRadius: '8px',
+                                    color: '#38bdf8', fontSize: '11px', fontWeight: '700',
+                                    textDecoration: 'none', cursor: 'pointer'
+                                  }}
+                                >
+                                  👁️ View
+                                </a>
+                                <a
+                                  href={download}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  download={l.document.originalName}
+                                  style={{
+                                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    gap: '6px', padding: '6px 0', background: 'rgba(139,92,246,0.1)',
+                                    border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px',
+                                    color: '#a78bfa', fontSize: '11px', fontWeight: '700',
+                                    textDecoration: 'none', cursor: 'pointer'
+                                  }}
+                                >
+                                  ⬇️ Download
+                                </a>
+                              </>
+                            )
+                          })()}
+                        </div>
+                      </div>
+                    )}
+
+                    {l.status === 'Pending' && (
+                      <button
+                        className="mmh-lhc-cancel-btn"
+                        onClick={() => handleCancel(l._id)}
+                      >
+                        Cancel Leave
+                      </button>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
-
     </div>
   );
 };

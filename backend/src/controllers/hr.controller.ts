@@ -461,7 +461,7 @@ export const applyLeave = async (req: AuthRequest, res: Response): Promise<void>
   try {
     const {
       leaveType, fromDate, toDate,
-      totalDays, reason,
+      totalDays, reason, durationType,
       needsSubstitute, substituteEmployee,
     } = req.body;
 
@@ -486,19 +486,30 @@ export const applyLeave = async (req: AuthRequest, res: Response): Promise<void>
       employeeId = employee._id;
     }
 
-    // Balance checks
+    // Balance checks (including pending requests)
     const days = Number(totalDays);
     if (employee && days > 0) {
-      if (leaveType === 'Annual Leave' && days > (employee.annualLeaveBalance || 0)) {
-        res.status(400).json({ success: false, message: 'Not enough Annual Leave balance.' });
-        return;
-      }
-      if (leaveType === 'Sick Leave' && days > (employee.sickLeaveBalance || 0)) {
-        res.status(400).json({ success: false, message: 'Not enough Sick Leave balance.' });
-        return;
-      }
-      if (leaveType === 'Emergency Leave' && days > (employee.emergencyLeaveBalance || 0)) {
-        res.status(400).json({ success: false, message: 'Not enough Emergency Leave balance.' });
+      // Get all pending leaves of this type
+      const pendingLeaves = await LeaveRequest.find({
+        employee: employee._id,
+        leaveType,
+        status: 'Pending'
+      });
+      const pendingDays = pendingLeaves.reduce((sum, l) => sum + (l.totalDays || 0), 0);
+      const totalRequested = days + pendingDays;
+
+      let balance = 0;
+      if (leaveType === 'Annual Leave') balance = employee.annualLeaveBalance || 0;
+      else if (leaveType === 'Sick Leave') balance = employee.sickLeaveBalance || 0;
+      else if (leaveType === 'Emergency Leave') balance = employee.emergencyLeaveBalance || 0;
+      else if (leaveType === 'Maternity Leave') balance = employee.maternityLeaveBalance || 0;
+      else if (leaveType === 'Unpaid Leave') balance = employee.unpaidLeaveBalance || 0;
+
+      if (totalRequested > balance) {
+        res.status(400).json({
+          success: false,
+          message: `Not enough ${leaveType} balance. You have ${balance} day(s) remaining, but ${pendingDays} day(s) are already pending approval. Requested: ${days} day(s).`
+        });
         return;
       }
     }
@@ -511,6 +522,7 @@ export const applyLeave = async (req: AuthRequest, res: Response): Promise<void>
       toDate: new Date(toDate),
       totalDays: days || 0,
       reason,
+      durationType: durationType || 'Full Day',
       needsSubstitute: needsSubstitute === 'true' || needsSubstitute === true,
       substituteEmployee: substituteEmployee || null,
       substituteStatus: (needsSubstitute === 'true' || needsSubstitute === true) ? 'Pending' : 'Not Required',
@@ -679,9 +691,11 @@ export const updateLeaveStatus = async (req: AuthRequest, res: Response): Promis
   // If changing FROM Approved to something else, restore balance
   if (oldStatus === 'Approved' && status !== 'Approved') {
     if (employee && leave.totalDays) {
-      if (leave.leaveType === 'Annual Leave') employee.annualLeaveBalance += leave.totalDays;
-      else if (leave.leaveType === 'Sick Leave') employee.sickLeaveBalance += leave.totalDays;
-      else if (leave.leaveType === 'Emergency Leave') employee.emergencyLeaveBalance += leave.totalDays;
+      if (leave.leaveType === 'Annual Leave') employee.annualLeaveBalance = (employee.annualLeaveBalance || 0) + leave.totalDays;
+      else if (leave.leaveType === 'Sick Leave') employee.sickLeaveBalance = (employee.sickLeaveBalance || 0) + leave.totalDays;
+      else if (leave.leaveType === 'Emergency Leave') employee.emergencyLeaveBalance = (employee.emergencyLeaveBalance || 0) + leave.totalDays;
+      else if (leave.leaveType === 'Maternity Leave') employee.maternityLeaveBalance = (employee.maternityLeaveBalance || 0) + leave.totalDays;
+      else if (leave.leaveType === 'Unpaid Leave') employee.unpaidLeaveBalance = (employee.unpaidLeaveBalance || 0) + leave.totalDays;
       await employee.save();
     }
   }
@@ -689,9 +703,11 @@ export const updateLeaveStatus = async (req: AuthRequest, res: Response): Promis
   // If changing TO Approved from something else, deduct balance
   if (oldStatus !== 'Approved' && status === 'Approved') {
     if (employee && leave.totalDays) {
-      if (leave.leaveType === 'Annual Leave') employee.annualLeaveBalance = Math.max(0, employee.annualLeaveBalance - leave.totalDays);
-      else if (leave.leaveType === 'Sick Leave') employee.sickLeaveBalance = Math.max(0, employee.sickLeaveBalance - leave.totalDays);
-      else if (leave.leaveType === 'Emergency Leave') employee.emergencyLeaveBalance = Math.max(0, employee.emergencyLeaveBalance - leave.totalDays);
+      if (leave.leaveType === 'Annual Leave') employee.annualLeaveBalance = Math.max(0, (employee.annualLeaveBalance || 0) - leave.totalDays);
+      else if (leave.leaveType === 'Sick Leave') employee.sickLeaveBalance = Math.max(0, (employee.sickLeaveBalance || 0) - leave.totalDays);
+      else if (leave.leaveType === 'Emergency Leave') employee.emergencyLeaveBalance = Math.max(0, (employee.emergencyLeaveBalance || 0) - leave.totalDays);
+      else if (leave.leaveType === 'Maternity Leave') employee.maternityLeaveBalance = Math.max(0, (employee.maternityLeaveBalance || 0) - leave.totalDays);
+      else if (leave.leaveType === 'Unpaid Leave') employee.unpaidLeaveBalance = Math.max(0, (employee.unpaidLeaveBalance || 0) - leave.totalDays);
       await employee.save();
     }
   }

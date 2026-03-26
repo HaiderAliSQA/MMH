@@ -16,6 +16,8 @@ export interface IEmployee extends Document {
   annualLeaveBalance: number;
   sickLeaveBalance: number;
   emergencyLeaveBalance: number;
+  maternityLeaveBalance: number;
+  unpaidLeaveBalance: number;
   isActive: boolean;
 }
 
@@ -39,6 +41,8 @@ const EmployeeSchema = new Schema<IEmployee>(
     annualLeaveBalance: { type: Number, default: 24 },
     sickLeaveBalance: { type: Number, default: 10 },
     emergencyLeaveBalance: { type: Number, default: 3 },
+    maternityLeaveBalance: { type: Number, default: 90 },
+    unpaidLeaveBalance: { type: Number, default: 30 },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
