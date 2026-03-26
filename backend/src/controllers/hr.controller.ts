@@ -519,16 +519,18 @@ export const applyLeave = async (req: AuthRequest, res: Response): Promise<void>
 
     // If file was uploaded
     if (req.file) {
-      const isCloudinary = (req.file as any).path?.startsWith('http');
+      // Cloudinary automatically sets these on req.file
+      const cloudFile = req.file as any
+
       leaveData.document = {
         originalName: req.file.originalname,
-        fileName: (req.file as any).filename || '',
-        publicId: (req.file as any).filename || '',
-        url: isCloudinary ? (req.file as any).path : `/uploads/${(req.file as any).filename}`,
-        fileSize: req.file.size || 0,
-        mimeType: req.file.mimetype,
-        uploadedAt: new Date(),
-      };
+        cloudinaryId: cloudFile.filename || cloudFile.public_id,
+        viewUrl:      cloudFile.path,     // direct Cloudinary URL
+        downloadUrl:  cloudFile.path.replace('/upload/', '/upload/fl_attachment/'),
+        fileSize:     req.file.size,
+        mimeType:     req.file.mimetype,
+        uploadedAt:   new Date(),
+      }
     }
 
     const leave = await LeaveRequest.create(leaveData);
@@ -557,65 +559,6 @@ export const applyLeave = async (req: AuthRequest, res: Response): Promise<void>
   }
 };
 
-export const getLeaveDocument = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { leaveId } = req.params;
-
-  const leave = await LeaveRequest.findById(leaveId).populate('employee');
-
-  if (!leave || !leave.document) {
-    res.status(404).json({ success: false, message: 'Document not found' });
-    return;
-  }
-
-  const isDownload = req.query.download === 'true';
-
-  // If we have a Cloudinary URL, use it
-  if (leave.document?.url) {
-    if (isDownload) {
-      const downloadUrl = leave.document.url.replace('/upload/', '/upload/fl_attachment/');
-      res.redirect(downloadUrl);
-    } else {
-      res.redirect(leave.document.url);
-    }
-    return;
-  }
-
-  // Fallback for older local documents without Cloudinary URL
-  if (leave.document?.fileName) {
-    const filePath = path.join(__dirname, '../../uploads', leave.document.fileName);
-    if (fs.existsSync(filePath)) {
-      if (isDownload) {
-        res.download(filePath, leave.document.originalName || leave.document.fileName);
-      } else {
-        res.sendFile(filePath);
-      }
-      return;
-    }
-  }
-
-  // If we reach here, the file doesn't exist on disk (deleted by Render's ephemeral storage)
-  res.status(404).send(`
-    <html>
-      <head>
-        <title>Document Not Found</title>
-        <style>
-          body { font-family: system-ui, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #f8fafc; color: #334155; margin: 0; }
-          .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); text-align: center; max-width: 400px; }
-          h1 { color: #e11d48; margin-top: 0; }
-          p { line-height: 1.5; color: #64748b; }
-        </style>
-      </head>
-      <body>
-        <div class="card">
-          <h1>📄 Document Unavailable</h1>
-          <p>This is a legacy document that was uploaded before the permanent Cloudinary cloud storage system was implemented.</p>
-          <p>Because the previous server storage was temporary, this file is no longer available.</p>
-          <button onclick="window.close()" style="margin-top: 20px; padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">Close Window</button>
-        </div>
-      </body>
-    </html>
-  `);
-};
 
 export const approveLeave = async (req: AuthRequest, res: Response): Promise<void> => {
   const leave = await LeaveRequest.findById(req.params.id);

@@ -1,51 +1,40 @@
-import { v2 as cloudinary } from 'cloudinary';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary'
+import { CloudinaryStorage } from 'multer-storage-cloudinary'
+import multer from 'multer'
 
-let storage: any;
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
-if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-  // Configure Cloudinary using env vars set on Render
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key:    process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-  });
+// Cloudinary storage — files go to mmh-leave-docs folder
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (_req, file) => {
+    // Determine resource type
+    const isImage = file.mimetype.startsWith('image/')
+    const isPDF   = file.mimetype === 'application/pdf'
 
-  storage = new CloudinaryStorage({
-    cloudinary,
-    params: {
-      folder: 'mmh/leave-docs',
-      resource_type: 'auto',
-      allowed_formats: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'],
-      use_filename: false,
-    } as any,
-  });
-} else {
-  // Fallback to local storage for local development (keys are missing locally)
-  const uploadDir = path.join(__dirname, '../../uploads');
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
+    return {
+      folder: 'mmh-hospital/leave-documents',
+      resource_type: isImage ? 'image' : 'raw',
+      public_id: `leave-doc-${Date.now()}`,
+      // For PDFs and docs — raw type
+      // For images — image type (auto-optimized)
+      format: isPDF ? 'pdf' : undefined,
+      // Allow view in browser (not force download)
+      type: 'upload',
+    } as any;
+  },
+})
 
-  storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-      const ext = path.extname(file.originalname);
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, file.fieldname + '-' + uniqueSuffix + ext);
-    }
-  });
-}
-
+// File type validation
 const fileFilter = (
   _req: any,
-  file: any,
-  cb: any
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback
 ) => {
   const allowed = [
     'application/pdf',
@@ -53,19 +42,23 @@ const fileFilter = (
     'image/jpg',
     'image/png',
     'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  ];
+    'application/vnd.openxmlformats-officedocument'
+      + '.wordprocessingml.document',
+  ]
   if (allowed.includes(file.mimetype)) {
-    cb(null, true);
+    cb(null, true)
   } else {
-    cb(new Error('Invalid file type. Allowed: PDF, JPG, PNG, DOC, DOCX'));
+    cb(new Error(
+      'Invalid file type. Allowed: PDF, JPG, PNG, DOC, DOCX'
+    ))
   }
-};
+}
 
 export const uploadMiddleware = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max
-});
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+})
 
-export { cloudinary };
+// Export cloudinary instance for delete operations
+export { cloudinary }

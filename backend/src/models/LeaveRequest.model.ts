@@ -16,11 +16,11 @@ export interface ILeaveRequest extends Document {
   rejectedReason: string;
   document?: {
     originalName: string;
-    fileName: string;
+    cloudinaryId: string;
+    viewUrl: string;
+    downloadUrl: string;
     fileSize: number;
     mimeType: string;
-    url: string;
-    publicId: string;
     uploadedAt: Date;
   };
 }
@@ -54,12 +54,12 @@ const LeaveRequestSchema = new Schema<ILeaveRequest>(
     rejectedReason: { type: String },
     document: {
       originalName: { type: String },
-      fileName: { type: String },
-      fileSize: { type: Number },
-      mimeType: { type: String },
-      url: { type: String },
-      publicId: { type: String },
-      uploadedAt: { type: Date },
+      cloudinaryId:  { type: String },  // public_id
+      viewUrl:       { type: String },  // URL for viewing
+      downloadUrl:   { type: String },  // URL for download
+      fileSize:      { type: Number },
+      mimeType:      { type: String },
+      uploadedAt:    { type: Date },
     },
   },
   { timestamps: true }

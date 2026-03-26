@@ -15,7 +15,7 @@ import {
   getAttendance, getAttendanceRange, markAttendance, bulkAttendance, getAttendanceSummary,
   getLeaves, applyLeave, approveLeave, rejectLeave, substituteResponse, cancelLeave, updateLeaveStatus,
   getPayroll, generateAllPayroll, generateOnePayroll, markPaid, getPayrollSlip,
-  getMyLeaves, getMyBalance, getLeaveDocument,
+  getMyLeaves, getMyBalance,
 } from '../controllers/hr.controller';
 import { uploadMiddleware } from '../config/upload';
 import { getNotifications, markRead, markAllRead } from '../controllers/notification.controller';
@@ -98,7 +98,6 @@ router.get('/hr/attendance/summary', protect, authorize('admin', 'manager'), get
 // Leaves
 router.get('/hr/leaves', protect, authorize('admin', 'manager'), getLeaves);
 router.post('/hr/leaves', protect, uploadMiddleware.single('document'), applyLeave);
-router.get('/hr/leaves/:leaveId/document', protect, getLeaveDocument);
 router.put('/hr/leaves/:id/approve', protect, authorize('admin'), approveLeave);
 router.put('/hr/leaves/:id/reject', protect, authorize('admin'), rejectLeave);
 router.put('/hr/leaves/:id/cancel', protect, cancelLeave);

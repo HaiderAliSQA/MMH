@@ -15,27 +15,36 @@ const LEAVE_TYPE_OPTS = [
   { value: 'Maternity Leave', label: 'Maternity Leave', icon: '👶' }, { value: 'Unpaid Leave', label: 'Unpaid Leave', icon: '📝' },
 ];
 
+const getFileIcon = (mime: string): string => {
+  if (mime?.includes('pdf')) return '📄'
+  if (mime?.includes('image')) return '🖼️'
+  if (mime?.includes('word') ||
+      mime?.includes('document')) return '📝'
+  return '📎'
+}
+
+const formatSize = (bytes: number): string => {
+  if (!bytes) return ''
+  if (bytes < 1024 * 1024)
+    return `${Math.round(bytes/1024)} KB`
+  return `${(bytes/1024/1024).toFixed(1)} MB`
+}
+
 const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
-const getFileIconByName = (name: string): string => {
-  const ext = name.split('.').pop()?.toLowerCase();
-  if (ext === 'pdf') return '📄';
-  if (['jpg', 'jpeg', 'png'].includes(ext || '')) return '🖼️';
-  if (['doc', 'docx'].includes(ext || '')) return '📝';
-  return '📎';
-};
-
-const formatFileSize = (bytes: number): string => {
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-};
-
-const getTypeName = (mime: string): string => {
-  if (mime.includes('pdf')) return 'PDF Document';
-  if (mime.includes('jpeg') || mime.includes('jpg')) return 'JPEG Image';
-  if (mime.includes('png')) return 'PNG Image';
-  if (mime.includes('wordprocessingml') || mime.includes('msword')) return 'Word Document';
-  return 'Document';
+const getDocUrls = (doc: any) => {
+  if (!doc) return { view: '#', download: '#' };
+  let v = doc.viewUrl || doc.url || '';
+  if (v.includes('\\uploads\\') || v.includes('/uploads/')) {
+    v = `/uploads/${v.split(/[\\/]/).pop()}`;
+  }
+  if (v && !v.startsWith('http')) {
+    const api = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+    v = `${api}${v}`;
+  }
+  let d = doc.downloadUrl;
+  if (!d && v.includes('cloudinary.com')) d = v.replace('/upload/', '/upload/fl_attachment/');
+  return { view: v, download: d || v };
 };
 
 const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
@@ -104,53 +113,6 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
     catch (e: any) { setBanner({ type: 'error', msg: e.response?.data?.message || 'Failed' }); }
   };
 
-  const viewDocument = (l: any) => {
-    if (!l.document) return;
-    
-    let url = l.document.url;
-
-    // Fix absolute Windows paths that might have been stored during testing
-    if (url && url.includes('\\uploads\\')) {
-      const fileName = url.split('\\').pop();
-      url = `/uploads/${fileName}`;
-    }
-
-    // If it's a relative local URL (not Cloudinary), prefix it with our base API URL (removing /api)
-    if (url && !url.startsWith('http')) {
-      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
-      url = `${apiUrl}${url}`;
-    }
-
-    if (url) {
-      setPreviewDoc(url);
-    } else {
-      // Fallback for very old records that don't even have a URL property but have a fileName
-      const token = localStorage.getItem('mmh_token');
-      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
-      window.open(`${apiUrl}/api/hr/leaves/${l._id}/document?token=${token}`, '_blank');
-    }
-  };
-
-  const downloadDocument = (l: any) => {
-    if (!l.document) return;
-
-    let url = l.document.url;
-    // Fix absolute Windows paths that might have been stored during testing
-    if (url && url.includes('\\uploads\\')) {
-      const fileName = url.split('\\').pop();
-      url = `/uploads/${fileName}`;
-    }
-
-    if (url?.startsWith('http') && url.includes('cloudinary')) {
-      // Cloudinary fl_attachment forces browser download
-      const downloadUrl = url.replace('/upload/', '/upload/fl_attachment/');
-      window.open(downloadUrl, '_blank');
-    } else {
-      const token = localStorage.getItem('mmh_token');
-      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
-      window.open(`${apiUrl}/api/hr/leaves/${l._id}/document?token=${token}&download=true`, '_blank');
-    }
-  };
 
   const stats = {
     pending: leaves.filter(l => l.status === 'Pending').length,
@@ -331,30 +293,113 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
 
               {l.document ? (
                 <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>Supporting Document</div>
-                  <div className="mmh-attachment-card">
-                    <div className="mmh-attachment-icon">{getFileIconByName(l.document.originalName)}</div>
-                    <div className="mmh-attachment-info">
-                      <div className="mmh-attachment-name">{l.document.originalName}</div>
-                      <div className="mmh-attachment-meta">{formatFileSize(l.document.fileSize)}</div>
-                    </div>
-                    <div className="mmh-attachment-actions">
-                      <button 
-                        onClick={() => viewDocument(l)}
-                        className="mmh-btn mmh-btn-xs mmh-btn-primary" 
-                        title="View Document"
-                        style={{ width: 32, height: 32, padding: 0, borderRadius: 10 }}
-                      >👁️</button>
-                      <button 
-                        onClick={() => downloadDocument(l)}
-                        className="mmh-btn mmh-btn-xs mmh-btn-green" 
-                        title="Download Document"
-                        style={{ width: 32, height: 32, padding: 0, borderRadius: 10 }}
-                      >⬇️</button>
+                  <div style={{
+                    fontSize:'10px',fontWeight:'700',
+                    color:'#64748b',textTransform:'uppercase',
+                    letterSpacing:'.06em',marginBottom:'6px',
+                  }}>
+                    Attached Document
+                  </div>
+
+                  {/* Document info row */}
+                  <div style={{
+                    display:'flex',alignItems:'center',
+                    gap:'10px',padding:'10px 13px',
+                    background:'#111d35',
+                    border:'1px solid rgba(139,92,246,0.25)',
+                    borderRadius:'10px',marginBottom:'8px',
+                  }}>
+                    <span style={{fontSize:'18px'}}>
+                      {getFileIcon(l.document.mimeType)}
+                    </span>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{
+                        fontSize:'13px',fontWeight:'600',
+                        color:'#a78bfa',
+                        overflow:'hidden',textOverflow:'ellipsis',
+                        whiteSpace:'nowrap',
+                      }}>
+                        {l.document.originalName}
+                      </div>
+                      <div style={{fontSize:'11px',color:'#475569'}}>
+                        {formatSize(l.document.fileSize)}
+                      </div>
                     </div>
                   </div>
+
+                  {/* View + Download buttons */}
+                  <div style={{display:'flex',gap:'8px'}}>
+                    {(() => {
+                      const { view, download } = getDocUrls(l.document);
+                      return (
+                        <>
+                          <a
+                            href={view}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              flex:1,display:'flex',
+                              alignItems:'center',justifyContent:'center',
+                              gap:'6px',padding:'7px 0',
+                              background:'rgba(14,165,233,0.1)',
+                              border:'1px solid rgba(14,165,233,0.25)',
+                              borderRadius:'8px',
+                              color:'#38bdf8',fontSize:'12px',
+                              fontWeight:'600',textDecoration:'none',
+                              cursor:'pointer',transition:'all 0.15s',
+                            }}
+                            onMouseEnter={e =>
+                              (e.currentTarget as HTMLElement)
+                                .style.background = 'rgba(14,165,233,0.2)'
+                            }
+                            onMouseLeave={e =>
+                              (e.currentTarget as HTMLElement)
+                                .style.background = 'rgba(14,165,233,0.1)'
+                            }
+                          >
+                            👁️ View
+                          </a>
+
+                          <a
+                            href={download}
+                            target="_blank"
+                            rel="noreferrer"
+                            download={l.document.originalName}
+                            style={{
+                              flex:1,display:'flex',
+                              alignItems:'center',justifyContent:'center',
+                              gap:'6px',padding:'7px 0',
+                              background:'rgba(139,92,246,0.1)',
+                              border:'1px solid rgba(139,92,246,0.25)',
+                              borderRadius:'8px',
+                              color:'#a78bfa',fontSize:'12px',
+                              fontWeight:'600',textDecoration:'none',
+                              cursor:'pointer',transition:'all 0.15s',
+                            }}
+                            onMouseEnter={e =>
+                              (e.currentTarget as HTMLElement)
+                                .style.background = 'rgba(139,92,246,0.2)'
+                            }
+                            onMouseLeave={e =>
+                              (e.currentTarget as HTMLElement)
+                                .style.background = 'rgba(139,92,246,0.1)'
+                            }
+                          >
+                            ⬇️ Download
+                          </a>
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
-              ) : null}
+              ) : (
+                <div style={{
+                  fontSize:'11px',color:'#334155',
+                  fontStyle:'italic',marginBottom:'10px',
+                }}>
+                  No document attached
+                </div>
+              )}
 
               {l.substituteEmployee && (
                 <div style={{ padding: '8px 12px', background: 'rgba(139,92,246,0.08)', borderRadius: 10, border: '1px solid rgba(139,92,246,0.1)', marginBottom: 14 }}>
