@@ -479,9 +479,11 @@ export const applyLeave = async (req: AuthRequest, res: Response): Promise<void>
         department: getDeptByRole(user?.role || ''),
         basicSalary: 0,
         joiningDate: new Date(),
-        annualLeaveBalance: 24,
-        sickLeaveBalance: 10,
+        annualLeaveBalance: 10,
+        sickLeaveBalance: 6,
         emergencyLeaveBalance: 3,
+        maternityLeaveBalance: 30,
+        unpaidLeaveBalance: 15,
       });
       employeeId = employee._id;
     }
@@ -912,14 +914,16 @@ export const getMyLeaves = async (req: AuthRequest, res: Response): Promise<void
 export const getMyBalance = async (req: AuthRequest, res: Response): Promise<void> => {
   const employee = await Employee.findOne(
     { user: req.user?.id },
-    'annualLeaveBalance sickLeaveBalance emergencyLeaveBalance name employeeId department role'
+    'annualLeaveBalance sickLeaveBalance emergencyLeaveBalance maternityLeaveBalance unpaidLeaveBalance name employeeId department role'
   );
   if (!employee) {
     res.json({
       success: true, data: {
-        annualLeaveBalance: 24,
-        sickLeaveBalance: 10,
+        annualLeaveBalance: 10,
+        sickLeaveBalance: 6,
         emergencyLeaveBalance: 3,
+        maternityLeaveBalance: 30,
+        unpaidLeaveBalance: 15,
       }
     });
     return;

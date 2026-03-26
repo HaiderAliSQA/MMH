@@ -99,12 +99,12 @@ const seedDB = async () => {
 
     // ═══ CREATE EMPLOYEE PROFILES ═══
     const employeeSeedData = [
-      { userEmail: 'admin@mmh.pk', department: 'Administration', designation: 'Hospital Administrator', basicSalary: 120000, houseAllowance: 20000, medicalAllowance: 10000, transportAllowance: 8000, joiningDate: new Date('2020-01-01'), annualLeaveBalance: 24 },
-      { userEmail: 'reception@mmh.pk', department: 'Reception', designation: 'Senior Receptionist', basicSalary: 25000, houseAllowance: 5000, medicalAllowance: 3000, transportAllowance: 2000, joiningDate: new Date('2022-06-01'), annualLeaveBalance: 20 },
-      { userEmail: 'doctor@mmh.pk', department: 'Cardiology', designation: 'Senior Cardiologist', basicSalary: 80000, houseAllowance: 15000, medicalAllowance: 8000, transportAllowance: 5000, joiningDate: new Date('2021-03-15'), annualLeaveBalance: 22 },
-      { userEmail: 'lab@mmh.pk', department: 'Laboratory', designation: 'Lab Technician', basicSalary: 20000, houseAllowance: 4000, medicalAllowance: 2500, transportAllowance: 1500, joiningDate: new Date('2023-01-10'), annualLeaveBalance: 18 },
-      { userEmail: 'pharmacy@mmh.pk', department: 'Pharmacy', designation: 'Senior Pharmacist', basicSalary: 22000, houseAllowance: 4500, medicalAllowance: 3000, transportAllowance: 1500, joiningDate: new Date('2022-09-01'), annualLeaveBalance: 20 },
-      { userEmail: 'manager@mmh.pk', department: 'Management', designation: 'Hospital Manager', basicSalary: 60000, houseAllowance: 12000, medicalAllowance: 6000, transportAllowance: 4000, joiningDate: new Date('2021-07-01'), annualLeaveBalance: 24 },
+      { userEmail: 'admin@mmh.pk', department: 'Administration', designation: 'Hospital Administrator', basicSalary: 120000, houseAllowance: 20000, medicalAllowance: 10000, transportAllowance: 8000, joiningDate: new Date('2020-01-01'), annualLeaveBalance: 10 },
+      { userEmail: 'reception@mmh.pk', department: 'Reception', designation: 'Senior Receptionist', basicSalary: 25000, houseAllowance: 5000, medicalAllowance: 3000, transportAllowance: 2000, joiningDate: new Date('2022-06-01'), annualLeaveBalance: 10 },
+      { userEmail: 'doctor@mmh.pk', department: 'Cardiology', designation: 'Senior Cardiologist', basicSalary: 80000, houseAllowance: 15000, medicalAllowance: 8000, transportAllowance: 5000, joiningDate: new Date('2021-03-15'), annualLeaveBalance: 10 },
+      { userEmail: 'lab@mmh.pk', department: 'Laboratory', designation: 'Lab Technician', basicSalary: 20000, houseAllowance: 4000, medicalAllowance: 2500, transportAllowance: 1500, joiningDate: new Date('2023-01-10'), annualLeaveBalance: 10 },
+      { userEmail: 'pharmacy@mmh.pk', department: 'Pharmacy', designation: 'Senior Pharmacist', basicSalary: 22000, houseAllowance: 4500, medicalAllowance: 3000, transportAllowance: 1500, joiningDate: new Date('2022-09-01'), annualLeaveBalance: 10 },
+      { userEmail: 'manager@mmh.pk', department: 'Management', designation: 'Hospital Manager', basicSalary: 60000, houseAllowance: 12000, medicalAllowance: 6000, transportAllowance: 4000, joiningDate: new Date('2021-07-01'), annualLeaveBalance: 10 },
     ];
 
     const createdEmployees: any[] = [];

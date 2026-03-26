@@ -272,11 +272,11 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
     }, {} as Record<string, number>);
 
   // Leave balance data (Balance - Pending)
-  const annual = (employee?.annualLeaveBalance ?? 24) - (pendingByCard['Annual Leave'] || 0);
-  const sick = (employee?.sickLeaveBalance ?? 10) - (pendingByCard['Sick Leave'] || 0);
+  const annual = (employee?.annualLeaveBalance ?? 10) - (pendingByCard['Annual Leave'] || 0);
+  const sick = (employee?.sickLeaveBalance ?? 6) - (pendingByCard['Sick Leave'] || 0);
   const emergency = (employee?.emergencyLeaveBalance ?? 3) - (pendingByCard['Emergency Leave'] || 0);
-  const maternity = (employee?.maternityLeaveBalance ?? 90) - (pendingByCard['Maternity Leave'] || 0);
-  const unpaid = (employee?.unpaidLeaveBalance ?? 30) - (pendingByCard['Unpaid Leave'] || 0);
+  const maternity = (employee?.maternityLeaveBalance ?? 30) - (pendingByCard['Maternity Leave'] || 0);
+  const unpaid = (employee?.unpaidLeaveBalance ?? 15) - (pendingByCard['Unpaid Leave'] || 0);
 
   const activeRole = userRole || employee?.role;
   // Substitute options (doctors only, exclude self)
@@ -320,11 +320,11 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
       {/* ── Leave Balance Row ── */}
       <div className="mmh-leave-bal-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 24 }}>
         {[
-          { label: 'Annual Leave', val: annual, max: 24, icon: '📅', color: '#10b981' },
-          { label: 'Sick Leave', val: sick, max: 10, icon: '🤒', color: '#f59e0b' },
+          { label: 'Annual Leave', val: annual, max: 10, icon: '📅', color: '#10b981' },
+          { label: 'Sick Leave', val: sick, max: 6, icon: '🤒', color: '#f59e0b' },
           { label: 'Emergency Leave', val: emergency, max: 3, icon: '🚨', color: '#ef4444' },
-          { label: 'Maternity Leave', val: maternity, max: 90, icon: '👶', color: '#8b5cf6' },
-          { label: 'Unpaid Leave', val: unpaid, max: 30, icon: '📝', color: '#64748b' },
+          { label: 'Maternity Leave', val: maternity, max: 30, icon: '👶', color: '#8b5cf6' },
+          { label: 'Unpaid Leave', val: unpaid, max: 15, icon: '📝', color: '#64748b' },
         ].map((c) => (
           <div key={c.label} className="mmh-leave-bal-card" style={{ margin: 0, borderTop: `4px solid ${c.color}` }}>
             <div className="mmh-lbc-icon" style={{ fontSize: 20, marginBottom: 4 }}>{c.icon}</div>
