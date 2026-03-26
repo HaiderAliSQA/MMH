@@ -12,6 +12,7 @@ interface Patient {
   cnic?: string;
   phone?: string;
   status?: 'OPD' | 'Admitted' | 'Discharged';
+  doctor?: { _id: string; name: string };
   createdAt?: string;
 }
 
@@ -58,25 +59,66 @@ class ErrorBoundary extends React.Component<
   }
 }
 
+interface Doctor { _id: string; name: string; department?: string; }
+
 // ─── Main Component ───────────────────────────────────────────────────
 const PatientsPage: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [dateFilter, setDateFilter] = useState('');
+  const [doctorFilter, setDoctorFilter] = useState('All');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [cnicError, setCnicError] = useState('');
+
+  // Dropdown search states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Patient[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const searchTimerRef = React.useRef<any>(null);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   const [viewPatient, setViewPatient] = useState<Patient | null>(null);
   const [editPatient, setEditPatient] = useState<Patient | null>(null);
 
-  useEffect(() => { fetchPatients(); }, []);
+  useEffect(() => {
+    fetchPatients();
+    fetchDoctors();
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  const fetchPatients = async () => {
+  const fetchDoctors = async () => {
+    try {
+      const res = await api.get('/doctors');
+      setDoctors(res.data || []);
+    } catch (err) {
+      console.error('Fetch Doctors Error:', err);
+    }
+  };
+
+  const fetchPatients = async (overrideSearch?: string) => {
     setLoading(true);
     try {
-      const res = await api.get('/patients');
+      const params = new URLSearchParams();
+      const currentSearch = overrideSearch !== undefined ? overrideSearch : search;
+      if (currentSearch) params.append('search', currentSearch);
+      if (statusFilter !== 'All') params.append('status', statusFilter);
+      if (doctorFilter !== 'All') params.append('doctorId', doctorFilter);
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const res = await api.get(`/patients?${params.toString()}`);
       const data = res.data?.data ?? res.data ?? [];
       setPatients(Array.isArray(data) ? data : []);
     } catch (err: any) {
@@ -87,21 +129,50 @@ const PatientsPage: React.FC = () => {
     }
   };
 
+  // Re-fetch when single-select filters change
+  useEffect(() => {
+    if (loading) return; // avoid race
+    fetchPatients();
+  }, [statusFilter, doctorFilter, startDate, endDate]);
+
+  const handleDropdownSearch = (val: string) => {
+    setSearchQuery(val);
+    clearTimeout(searchTimerRef.current);
+    
+    if (val.trim().length < 2) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    searchTimerRef.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await api.get(`/patients/search?q=${encodeURIComponent(val)}`);
+        const data = res.data?.data ?? res.data ?? [];
+        setSearchResults(Array.isArray(data) ? data : []);
+        setShowDropdown(true);
+      } catch (err) {
+        console.error('Dropdown Search Error:', err);
+      } finally {
+        setSearching(false);
+      }
+    }, 400);
+  };
+
+  const handleSelectPatient = (p: Patient) => {
+    setSearch(p.mrNumber || p.name || '');
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowDropdown(false);
+    fetchPatients(p.mrNumber || p.name);
+  };
+
   const filteredPatients = useMemo(() => {
-    if (!Array.isArray(patients)) return [];
-    const term = search.trim();
-    return patients.filter(p => {
-      if (!p) return false;
-      const matchesSearch = !term ||
-        safeSearch(p.name, term) ||
-        safeSearch(p.mrNumber, term) ||
-        safeSearch(p.cnic, term) ||
-        safeSearch(p.phone, term);
-      const matchesStatus = statusFilter === 'All' || p.status === statusFilter;
-      const matchesDate = !dateFilter || (p.createdAt ?? '').startsWith(dateFilter);
-      return matchesSearch && matchesStatus && matchesDate;
-    });
-  }, [patients, search, statusFilter, dateFilter]);
+    // With backend filtering, we mostly just return the patients as is
+    // But we keep the frontend safety just in case
+    return Array.isArray(patients) ? patients : [];
+  }, [patients]);
 
   const stats = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -149,13 +220,68 @@ const PatientsPage: React.FC = () => {
       </div>
 
       {/* Filter Row */}
-      <div className="mmh-card" style={{ marginBottom: 24 }}>
+      <div className="mmh-card" style={{ marginBottom: 24, zIndex: 10, position: 'relative' }}>
         <div className="mmh-card-body">
-          <div className="mmh-form-grid" style={{ gridTemplateColumns: '1fr 200px 200px', gap: 16, alignItems: 'end' }}>
-            <div className="mmh-field">
+          <div className="mmh-form-grid" style={{ gridTemplateColumns: '1fr 200px 180px 150px 150px', gap: 12, alignItems: 'end' }}>
+            
+            {/* Search with Dropdown */}
+            <div className="mmh-field" style={{ position: 'relative' }} ref={dropdownRef}>
               <label className="mmh-label">Search (Name / MR# / CNIC)</label>
-              <input type="text" className="mmh-input" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} />
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }}>🔍</span>
+                <input 
+                  type="text" 
+                  className="mmh-input" 
+                  style={{ paddingLeft: 38, paddingRight: 38 }}
+                  placeholder={search || "Search patients..."} 
+                  value={searchQuery} 
+                  onChange={e => handleDropdownSearch(e.target.value)}
+                  onFocus={() => searchQuery.length >= 2 && setShowDropdown(true)}
+                />
+                {(searchQuery || search) && (
+                  <button 
+                    type="button"
+                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 18 }}
+                    onClick={() => { setSearch(''); setSearchQuery(''); fetchPatients(''); }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+
+            {/* Dropdown Results */}
+            {showDropdown && (searchResults.length > 0 || searching) && (
+              <div className="mmh-patient-dropdown" style={{ top: '100%', left: 0, right: 0, marginTop: 4, zIndex: 100 }}>
+                  {searching ? (
+                    <div className="mmh-empty" style={{ padding: 12 }}>Searching...</div>
+                  ) : (
+                    searchResults.map(p => (
+                      <div key={p._id} className="mmh-patient-dropdown-item" onClick={() => handleSelectPatient(p)}>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--mmh-sky-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 900, color: 'white' }}>
+                          {p.name?.charAt(0)}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div className="mmh-dropdown-name" style={{ fontSize: 13, fontWeight: 700 }}>{p.name}</div>
+                          <div className="mmh-dropdown-mr" style={{ fontSize: 11, opacity: 0.7 }}>{p.mrNumber}</div>
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--mmh-sky)' }}>{p.status}</div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
+
+            <div className="mmh-field">
+              <label className="mmh-label">Doctor Filter</label>
+              <select className="mmh-input-select" value={doctorFilter} onChange={e => setDoctorFilter(e.target.value)}>
+                <option value="All">All Doctors</option>
+                {doctors.map(d => (
+                  <option key={d._id} value={d._id}>{d.name}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="mmh-field">
               <label className="mmh-label">Status Filter</label>
               <select className="mmh-input-select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
@@ -165,9 +291,15 @@ const PatientsPage: React.FC = () => {
                 <option value="Discharged">Discharged</option>
               </select>
             </div>
+
             <div className="mmh-field">
-              <label className="mmh-label">Registration Date</label>
-              <input type="date" className="mmh-input" value={dateFilter} onChange={e => setDateFilter(e.target.value)} />
+              <label className="mmh-label">Start Date</label>
+              <input type="date" className="mmh-input" value={startDate} onChange={e => setStartDate(e.target.value)} />
+            </div>
+
+            <div className="mmh-field">
+              <label className="mmh-label">End Date</label>
+              <input type="date" className="mmh-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
             </div>
           </div>
         </div>
@@ -209,14 +341,14 @@ const PatientsPage: React.FC = () => {
               <thead>
                 <tr>
                   <th>#</th><th>MR#</th><th>Name</th><th>Age/Gender</th>
-                  <th>CNIC</th><th>Phone</th><th>Status</th><th>Registered</th><th>Actions</th>
+                  <th>CNIC</th><th>Phone</th><th>Status</th><th>Doctor</th><th>Registered</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={9} className="mmh-empty">Loading patients...</td></tr>
+                  <tr><td colSpan={10} className="mmh-empty">Loading patients...</td></tr>
                 ) : filteredPatients.length === 0 ? (
-                  <tr><td colSpan={9} className="mmh-empty">No patients found</td></tr>
+                  <tr><td colSpan={10} className="mmh-empty">No patients found</td></tr>
                 ) : (
                   filteredPatients.map((p, idx) => (
                     <tr key={p._id}>
@@ -234,6 +366,7 @@ const PatientsPage: React.FC = () => {
                           {p.status || '—'}
                         </span>
                       </td>
+                      <td style={{ color: 'var(--mmh-sky)', fontWeight: 600 }}>{p.doctor?.name || '—'}</td>
                       <td>{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—'}</td>
                       <td>
                         <div style={{ display: 'flex', gap: 8 }}>

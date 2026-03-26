@@ -10,6 +10,7 @@ export interface IPatient extends Document {
   address?: string;
   bloodGroup?: string;
   status: 'OPD' | 'Admitted' | 'Discharged' | 'Waiting';
+  doctor?: mongoose.Types.ObjectId;
   createdBy?: mongoose.Types.ObjectId;
 }
 
@@ -28,6 +29,7 @@ const PatientSchema = new Schema<IPatient>(
       enum: ['OPD', 'Admitted', 'Discharged', 'Waiting'],
       default: 'OPD',
     },
+    doctor: { type: Schema.Types.ObjectId, ref: 'Doctor' },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
   },
   { timestamps: true }

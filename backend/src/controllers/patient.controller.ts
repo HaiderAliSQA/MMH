@@ -3,7 +3,7 @@ import Patient from '../models/Patient.model';
 import OpdVisit from '../models/OpdVisit.model';
 
 export const getPatients = async (req: Request, res: Response) => {
-  const { search, status } = req.query;
+  const { search, status, doctorId, startDate, endDate } = req.query;
   const query: any = {};
 
   if (search) {
@@ -15,12 +15,33 @@ export const getPatients = async (req: Request, res: Response) => {
     ];
   }
 
-  if (status) {
+  if (status && status !== 'All') {
     query.status = status;
+  }
+
+  // Doctor Filter
+  if (doctorId && doctorId !== 'All') {
+    query.doctor = doctorId;
+  }
+
+  // Date Range Filter
+  if (startDate || endDate) {
+    query.createdAt = {};
+    if (startDate) {
+      const start = new Date(startDate as string);
+      start.setHours(0, 0, 0, 0);
+      query.createdAt.$gte = start;
+    }
+    if (endDate) {
+      const end = new Date(endDate as string);
+      end.setHours(23, 59, 59, 999);
+      query.createdAt.$lte = end;
+    }
   }
 
   const patients = await Patient.find(query)
     .populate('createdBy', 'name')
+    .populate('doctor', 'name')
     .sort({ createdAt: -1 });
 
   res.status(200).json(patients);
@@ -39,14 +60,17 @@ const generateMRNumber = async (): Promise<string> => {
 export const createPatient = async (req: Request, res: Response) => {
   const mrNumber = await generateMRNumber();
 
-  const patient = new Patient({
-    ...req.body,
-    mrNumber,
-    // @ts-ignore
-    createdBy: req.user?.id,
-  });
+  const patientData: any = { ...req.body, mrNumber };
+  if (req.body.doctorId) patientData.doctor = req.body.doctorId;
+
+  const patient = new Patient(patientData);
+  // @ts-ignore
+  patient.createdBy = req.user?.id;
 
   await patient.save();
+
+  // Populate doctor name for the response
+  const populatedPatient = await Patient.findById(patient._id).populate('doctor', 'name');
 
   // If doctorId is provided, create an OpdVisit with a token
   if (req.body.doctorId) {
@@ -68,7 +92,7 @@ export const createPatient = async (req: Request, res: Response) => {
 
   res.status(201).json({
     success: true,
-    data: patient,
+    data: populatedPatient,
     mrNumber: patient.mrNumber,
   });
 };
