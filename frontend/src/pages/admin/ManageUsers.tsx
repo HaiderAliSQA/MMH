@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../api';
 import '../../styles/mmh.css';
+import { formatPhone, validatePhone } from '../../utils/validation';
 
 interface UserRecord {
   _id: string;
@@ -11,6 +12,10 @@ interface UserRecord {
   isActive: boolean;
   department?: string;
   specialization?: string;
+  qualification?: string;
+  fee?: number;
+  opdTiming?: string;
+  opdDays?: string[];
   createdAt?: string;
 }
 
@@ -29,6 +34,16 @@ type FormData = {
   role: string;
   phone: string;
   isActive: boolean;
+  joiningDate: string;
+  basicSalary: number;
+  houseAllowance: number;
+  medicalAllowance: number;
+  transportAllowance: number;
+  annualLeaveBalance: number;
+  sickLeaveBalance: number;
+  emergencyLeaveBalance: number;
+  maternityLeaveBalance: number;
+  unpaidLeaveBalance: number;
   doctorInfo: DoctorInfo;
 };
 
@@ -75,6 +90,16 @@ const emptyForm = (): FormData => ({
   role: 'receptionist',
   phone: '',
   isActive: true,
+  joiningDate: new Date().toISOString().split('T')[0],
+  basicSalary: 0,
+  houseAllowance: 0,
+  medicalAllowance: 0,
+  transportAllowance: 0,
+  annualLeaveBalance: 10,
+  sickLeaveBalance: 6,
+  emergencyLeaveBalance: 3,
+  maternityLeaveBalance: 30,
+  unpaidLeaveBalance: 15,
   doctorInfo: {
     department: '',
     specialization: '',
@@ -99,6 +124,7 @@ const ManageUsers: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const [defaultPwd, setDefaultPwd] = useState('');
   const [toggling, setToggling] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState('');
 
   useEffect(() => { fetchUsers(); }, []);
 
@@ -131,29 +157,70 @@ const ManageUsers: React.FC = () => {
     setSuccessMsg('');
     setDefaultPwd('');
     setModalOpen(true);
+    setPhoneError('');
   };
 
-  const openEdit = (u: UserRecord) => {
+  const openEdit = async (u: UserRecord) => {
     setEditingUser(u);
+    setSaveError('');
+    setSuccessMsg('');
+    setDefaultPwd('');
+
+    // Fetch detailed employee info for editing if it's not a patient
+    let empData = {
+      basicSalary: 0,
+      houseAllowance: 0,
+      medicalAllowance: 0,
+      transportAllowance: 0,
+      annualLeaveBalance: 10,
+      sickLeaveBalance: 6,
+      emergencyLeaveBalance: 3,
+      maternityLeaveBalance: 30,
+      unpaidLeaveBalance: 15,
+      joiningDate: new Date().toISOString().split('T')[0]
+    };
+
+    try {
+      if (u.role !== 'patient') {
+        const res = await api.get(`/hr/employees?userId=${u._id}`);
+        const emp = res.data?.data?.[0] || res.data?.[0];
+        if (emp) {
+          empData = {
+            basicSalary: emp.basicSalary || 0,
+            houseAllowance: emp.houseAllowance || 0,
+            medicalAllowance: emp.medicalAllowance || 0,
+            transportAllowance: emp.transportAllowance || 0,
+            annualLeaveBalance: emp.annualLeaveBalance || 10,
+            sickLeaveBalance: emp.sickLeaveBalance || 6,
+            emergencyLeaveBalance: emp.emergencyLeaveBalance || 3,
+            maternityLeaveBalance: emp.maternityLeaveBalance || 30,
+            unpaidLeaveBalance: emp.unpaidLeaveBalance || 15,
+            joiningDate: emp.joiningDate ? new Date(emp.joiningDate).toISOString().split('T')[0] : empData.joiningDate
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('Could not fetch employee details for edit', e);
+    }
+
     setFormData({
       name: u.name,
       email: u.email,
       role: u.role,
       phone: u.phone || '',
       isActive: u.isActive,
+      ...empData,
       doctorInfo: {
         department: u.department || '',
         specialization: u.specialization || '',
-        qualification: '',
-        fee: 0,
-        opdTiming: '9:00 AM - 2:00 PM',
-        opdDays: [],
+        qualification: u.qualification || '',
+        fee: u.fee || 0,
+        opdTiming: u.opdTiming || '9:00 AM - 2:00 PM',
+        opdDays: u.opdDays || [],
       },
     });
-    setSaveError('');
-    setSuccessMsg('');
-    setDefaultPwd('');
     setModalOpen(true);
+    setPhoneError(validatePhone(u.phone || ''));
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -163,6 +230,14 @@ const ManageUsers: React.FC = () => {
     setSuccessMsg('');
     setDefaultPwd('');
 
+    const phoneErr = validatePhone(formData.phone);
+    if (phoneErr) {
+      setPhoneError(phoneErr);
+      setSaveError(phoneErr);
+      setSaving(false);
+      return;
+    }
+
     try {
       if (editingUser) {
         await api.put(`/users/${editingUser._id}`, {
@@ -170,6 +245,16 @@ const ManageUsers: React.FC = () => {
           phone: formData.phone,
           role: formData.role,
           isActive: formData.isActive,
+          joiningDate: formData.joiningDate,
+          basicSalary: formData.basicSalary,
+          houseAllowance: formData.houseAllowance,
+          medicalAllowance: formData.medicalAllowance,
+          transportAllowance: formData.transportAllowance,
+          annualLeaveBalance: formData.annualLeaveBalance,
+          sickLeaveBalance: formData.sickLeaveBalance,
+          emergencyLeaveBalance: formData.emergencyLeaveBalance,
+          maternityLeaveBalance: formData.maternityLeaveBalance,
+          unpaidLeaveBalance: formData.unpaidLeaveBalance,
           ...(formData.role === 'doctor' ? formData.doctorInfo : {}),
         });
         setModalOpen(false);
@@ -180,6 +265,16 @@ const ManageUsers: React.FC = () => {
           email: formData.email,
           role: formData.role,
           phone: formData.phone,
+          joiningDate: formData.joiningDate,
+          basicSalary: formData.basicSalary,
+          houseAllowance: formData.houseAllowance,
+          medicalAllowance: formData.medicalAllowance,
+          transportAllowance: formData.transportAllowance,
+          annualLeaveBalance: formData.annualLeaveBalance,
+          sickLeaveBalance: formData.sickLeaveBalance,
+          emergencyLeaveBalance: formData.emergencyLeaveBalance,
+          maternityLeaveBalance: formData.maternityLeaveBalance,
+          unpaidLeaveBalance: formData.unpaidLeaveBalance,
           ...(formData.role === 'doctor' ? formData.doctorInfo : {}),
         });
         setModalOpen(false);
@@ -514,11 +609,35 @@ const ManageUsers: React.FC = () => {
                 {/* Phone */}
                 <div className="mmh-field">
                   <label className="mmh-label">Phone</label>
+                  <div style={{ position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>📞</span>
+                    <input
+                      className="mmh-input"
+                      style={{ paddingLeft: 40, borderColor: phoneError ? '#f43f5e' : undefined }}
+                      placeholder="e.g. 0300-1234567"
+                      value={formData.phone}
+                      onChange={e => {
+                        const formatted = formatPhone(e.target.value);
+                        setFormData(f => ({ ...f, phone: formatted }));
+                        setPhoneError(validatePhone(formatted));
+                      }}
+                    />
+                  </div>
+                  {phoneError
+                    ? <span className="mmh-field-error">⚠️ {phoneError}</span>
+                    : <span className="mmh-input-hint">Format: 03XX-XXXXXXX (11 digits)</span>
+                  }
+                </div>
+
+                {/* Joining Date */}
+                <div className="mmh-field">
+                  <label className="mmh-label">Joining Date</label>
                   <input
+                    type="date"
                     className="mmh-input"
-                    placeholder="e.g. 0300-1234567"
-                    value={formData.phone}
-                    onChange={e => setFormData(f => ({ ...f, phone: e.target.value }))}
+                    style={{ colorScheme: 'dark' }}
+                    value={formData.joiningDate}
+                    onChange={e => setFormData(f => ({ ...f, joiningDate: e.target.value }))}
                   />
                 </div>
 
@@ -539,12 +658,130 @@ const ManageUsers: React.FC = () => {
                   </div>
                 )}
 
+                {/* Salary Section (Exclude patients) */}
+                {formData.role !== 'patient' && (
+                  <>
+                    <div className="mmh-section-divider" style={{ gridColumn: '1 / -1' }}>
+                      <div className="mmh-section-line" />
+                      <div className="mmh-section-text">💰 Salary Setup</div>
+                      <div className="mmh-section-line" />
+                    </div>
+
+                    <div className="mmh-field">
+                      <label className="mmh-label">Basic Salary (PKR)</label>
+                      <input
+                        type="number"
+                        className="mmh-input"
+                        value={formData.basicSalary}
+                        onChange={e => setFormData(f => ({ ...f, basicSalary: Number(e.target.value) || 0 }))}
+                      />
+                    </div>
+                    <div className="mmh-field">
+                      <label className="mmh-label">House Allowance</label>
+                      <input
+                        type="number"
+                        className="mmh-input"
+                        value={formData.houseAllowance}
+                        onChange={e => setFormData(f => ({ ...f, houseAllowance: Number(e.target.value) || 0 }))}
+                      />
+                    </div>
+                    <div className="mmh-field">
+                      <label className="mmh-label">Medical Allowance</label>
+                      <input
+                        type="number"
+                        className="mmh-input"
+                        value={formData.medicalAllowance}
+                        onChange={e => setFormData(f => ({ ...f, medicalAllowance: Number(e.target.value) || 0 }))}
+                      />
+                    </div>
+                    <div className="mmh-field">
+                      <label className="mmh-label">Transport Allowance</label>
+                      <input
+                        type="number"
+                        className="mmh-input"
+                        value={formData.transportAllowance}
+                        onChange={e => setFormData(f => ({ ...f, transportAllowance: Number(e.target.value) || 0 }))}
+                      />
+                    </div>
+
+                    <div className="mmh-field" style={{ gridColumn: '1 / -1' }}>
+                      <div style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        padding: '12px 16px',
+                        borderRadius: '12px',
+                        border: '1px solid var(--mmh-border1)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <span style={{ fontSize: '13px', color: 'var(--mmh-muted)' }}>Gross Monthly Package:</span>
+                        <span style={{ fontSize: '18px', fontWeight: 700, color: '#10b981' }}>
+                          PKR {(formData.basicSalary + formData.houseAllowance + formData.medicalAllowance + formData.transportAllowance).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Leaves Section */}
+                    <div className="mmh-section-divider" style={{ gridColumn: '1 / -1' }}>
+                      <div className="mmh-section-line" />
+                      <div className="mmh-section-text">🗓️ Leave Balances (Days)</div>
+                      <div className="mmh-section-line" />
+                    </div>
+
+                    <div className="mmh-field">
+                      <label className="mmh-label">Annual Leave</label>
+                      <input
+                        type="number"
+                        className="mmh-input"
+                        value={formData.annualLeaveBalance}
+                        onChange={e => setFormData(f => ({ ...f, annualLeaveBalance: Number(e.target.value) || 0 }))}
+                      />
+                    </div>
+                    <div className="mmh-field">
+                      <label className="mmh-label">Sick Leave</label>
+                      <input
+                        type="number"
+                        className="mmh-input"
+                        value={formData.sickLeaveBalance}
+                        onChange={e => setFormData(f => ({ ...f, sickLeaveBalance: Number(e.target.value) || 0 }))}
+                      />
+                    </div>
+                    <div className="mmh-field">
+                      <label className="mmh-label">Emergency Leave</label>
+                      <input
+                        type="number"
+                        className="mmh-input"
+                        value={formData.emergencyLeaveBalance}
+                        onChange={e => setFormData(f => ({ ...f, emergencyLeaveBalance: Number(e.target.value) || 0 }))}
+                      />
+                    </div>
+                    <div className="mmh-field">
+                      <label className="mmh-label">Maternity Leave</label>
+                      <input
+                        type="number"
+                        className="mmh-input"
+                        value={formData.maternityLeaveBalance}
+                        onChange={e => setFormData(f => ({ ...f, maternityLeaveBalance: Number(e.target.value) || 0 }))}
+                      />
+                    </div>
+                    <div className="mmh-field">
+                      <label className="mmh-label">Unpaid Leave</label>
+                      <input
+                        type="number"
+                        className="mmh-input"
+                        value={formData.unpaidLeaveBalance}
+                        onChange={e => setFormData(f => ({ ...f, unpaidLeaveBalance: Number(e.target.value) || 0 }))}
+                      />
+                    </div>
+                  </>
+                )}
+
                 {/* Doctor-specific fields */}
                 {formData.role === 'doctor' && (
                   <>
-                    <div className="mmh-section-divider">
+                    <div className="mmh-section-divider" style={{ gridColumn: '1 / -1' }}>
                       <div className="mmh-section-line" />
-                      <div className="mmh-section-text">Medical Department Info</div>
+                      <div className="mmh-section-text">🏥 Medical Department Info</div>
                       <div className="mmh-section-line" />
                     </div>
 
@@ -573,22 +810,6 @@ const ManageUsers: React.FC = () => {
                           setFormData(f => ({
                             ...f,
                             doctorInfo: { ...f.doctorInfo, specialization: e.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-
-                    <div className="mmh-field">
-                      <label className="mmh-label">Consultation Fee (PKR)</label>
-                      <input
-                        type="number"
-                        className="mmh-input"
-                        min={0}
-                        value={formData.doctorInfo.fee}
-                        onChange={e =>
-                          setFormData(f => ({
-                            ...f,
-                            doctorInfo: { ...f.doctorInfo, fee: parseInt(e.target.value) || 0 },
                           }))
                         }
                       />

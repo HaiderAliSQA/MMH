@@ -4,6 +4,7 @@ import '../../styles/mmh.css';
 import PatientSearch, { PatientResult as PSPatientResult } from '../../components/PatientSearch';
 import MyLeaveTab from '../../components/MyLeaveTab';
 import { useSearchParams } from 'react-router-dom';
+import { formatPhone, validatePhone, formatCNIC } from '../../utils/validation';
 
 // ─── Types ──────────────────────────────────────────────────────────
 interface PatientResult {
@@ -29,29 +30,7 @@ const RELATIONS = [
   'Brother', 'Sister', 'Uncle', 'Aunt', 'Grandfather', 'Grandmother', 'Friend', 'Other', 'Self', 'Cousin', 'Niece', 'Nephew'
 ];
 
-// ─── Phone & CNIC formatters ─────────────────────────────────────────
-const formatPhone = (value: string): string => {
-  const digits = value.replace(/\D/g, '');
-  const limited = digits.slice(0, 11);
-  if (limited.length > 4) return `${limited.slice(0, 4)}-${limited.slice(4)}`;
-  return limited;
-};
-
-const validatePhone = (phone: string): string => {
-  const digits = phone.replace(/\D/g, '');
-  if (!phone) return 'Phone number is required';
-  if (digits.length !== 11) return 'Phone number must be 11 digits';
-  if (!digits.startsWith('0')) return 'Phone must start with 0';
-  return '';
-};
-
-const formatCNIC = (value: string): string => {
-  const digits = value.replace(/\D/g, '');
-  const limited = digits.slice(0, 13);
-  if (limited.length > 12) return `${limited.slice(0, 5)}-${limited.slice(5, 12)}-${limited.slice(12)}`;
-  if (limited.length > 5) return `${limited.slice(0, 5)}-${limited.slice(5)}`;
-  return limited;
-};
+// ─── Print Functions & Fonts ──────────────────────────────────────────
 
 // ─── OPD Slip print function ──────────────────────────────────────────
 const SLIP_FONTS = `https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap`;
@@ -660,6 +639,7 @@ const AdmissionTab: React.FC = () => {
     warisName: '', warisPhone: '', warisRelation: '',
     paymentType: 'Cash', policyNumber: '',
   });
+  const [phoneError, setPhoneError] = useState('');
 
   useEffect(() => {
     Promise.allSettled([
@@ -680,6 +660,12 @@ const AdmissionTab: React.FC = () => {
     } catch { setBeds([]); }
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhone(e.target.value);
+    setForm(f => ({ ...f, warisPhone: formatted }));
+    setPhoneError(validatePhone(formatted));
+  };
+
   const s = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement | HTMLTextAreaElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
 
@@ -688,7 +674,8 @@ const AdmissionTab: React.FC = () => {
     if (!selectedPatient) { setError('Please search and select a patient.'); return; }
     if (!form.doctorId) { setError('Please select an admitting doctor.'); return; }
     if (!form.warisName.trim()) { setError('Waris (Guardian) Name is required.'); return; }
-    if (!form.warisPhone.trim()) { setError('Waris (Guardian) Phone is required.'); return; }
+    const phoneErr = validatePhone(form.warisPhone);
+    if (phoneErr) { setPhoneError(phoneErr); setError(phoneErr); return; }
     if (!form.warisRelation.trim()) { setError('Please select the relation with patient.'); return; }
 
     setLoading(true); setError('');
@@ -730,6 +717,7 @@ const AdmissionTab: React.FC = () => {
 
       setSelectedPatient(null);
       setForm({ doctorId: '', wardId: '', bedId: '', history: '', symptoms: '', warisName: '', warisPhone: '', warisRelation: '', paymentType: 'Cash', policyNumber: '' });
+      setPhoneError('');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Admission failed.');
     } finally { setLoading(false); }
@@ -821,7 +809,21 @@ const AdmissionTab: React.FC = () => {
               </div>
               <div className="mmh-field">
                 <label className="mmh-label">Waris Phone <span className="mmh-required">*</span></label>
-                <input className="mmh-input" placeholder="03XX-XXXXXXX" value={form.warisPhone} onChange={s('warisPhone')} required />
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>📞</span>
+                  <input
+                    className="mmh-input"
+                    style={{ paddingLeft: 40, borderColor: phoneError ? '#f43f5e' : undefined }}
+                    placeholder="03XX-XXXXXXX"
+                    value={form.warisPhone}
+                    onChange={handlePhoneChange}
+                    required
+                  />
+                </div>
+                {phoneError
+                  ? <span className="mmh-field-error">⚠️ {phoneError}</span>
+                  : <span className="mmh-input-hint">Format: 0312-4422004 (11 digits)</span>
+                }
               </div>
               <div className="mmh-field">
                 <label className="mmh-label">Relation with Patient <span className="mmh-required">*</span></label>

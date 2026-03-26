@@ -135,10 +135,12 @@ const generatePayrollData = async (employeeId: string, month: number, year: numb
 // ═══════════════════════════════════════════════════════════
 
 export const getEmployees = async (req: Request, res: Response): Promise<void> => {
-  const { role, department } = req.query;
-  const query: Record<string, unknown> = { isActive: true };
+  const { role, department, user, userId } = req.query;
+  const query: Record<string, unknown> = {};
+  if (!user && !userId) query.isActive = true;
   if (role) query.role = role;
   if (department) query.department = department;
+  if (user || userId) query.user = user || userId;
 
   const employees = await Employee.find(query)
     .populate('user', 'name email role phone')

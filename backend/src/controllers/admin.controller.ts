@@ -8,6 +8,16 @@ import Medicine from '../models/Medicine.model';
 import Payment from '../models/Payment.model';
 import Ward from '../models/Ward.model';
 import Bed from '../models/Bed.model';
+import Employee, { generateEmployeeId } from '../models/Employee.model';
+
+const deptMap: Record<string, string> = {
+  admin: 'Administration',
+  receptionist: 'Reception',
+  lab: 'Laboratory',
+  pharmacist: 'Pharmacy',
+  manager: 'Management',
+  patient: 'Patient',
+};
 
 export const getStats = async (req: Request, res: Response) => {
   const today = new Date();
@@ -57,14 +67,6 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
     .sort({ createdAt: -1 });
 
   // Add department info per user
-  const deptMap: Record<string, string> = {
-    admin: 'Administration',
-    receptionist: 'Reception',
-    lab: 'Laboratory',
-    pharmacist: 'Pharmacy',
-    manager: 'Management',
-    patient: 'Patient',
-  };
 
   const usersWithDept = await Promise.all(
     users.map(async (user) => {
@@ -73,12 +75,14 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
       if (user.role === 'doctor') {
         const doctor = await Doctor.findOne(
           { user: user._id },
-
-          'department specialization fee'
+          'department specialization fee qualification opdDays opdTiming'
         );
         userData.department = doctor?.department || 'Medical';
         userData.specialization = doctor?.specialization || '';
         userData.fee = doctor?.fee || 0;
+        userData.qualification = doctor?.qualification || '';
+        userData.opdDays = doctor?.opdDays || [];
+        userData.opdTiming = doctor?.opdTiming || '9:00 AM - 2:00 PM';
       } else {
         userData.department = deptMap[user.role] || 'General';
       }
@@ -116,6 +120,27 @@ export const createUser = async (req: any, res: Response): Promise<void> => {
       password: DEFAULT_PASSWORD,
       role,
       phone,
+      isActive: isActive ?? true,
+    });
+
+    // Create Employee record immediately
+    await Employee.create({
+      user: user._id,
+      employeeId: await generateEmployeeId(),
+      name,
+      role,
+      department: department || 'General',
+      phone: phone || '',
+      joiningDate: req.body.joiningDate || new Date(),
+      basicSalary: req.body.basicSalary || 0,
+      houseAllowance: req.body.houseAllowance || 0,
+      medicalAllowance: req.body.medicalAllowance || 0,
+      transportAllowance: req.body.transportAllowance || 0,
+      annualLeaveBalance: req.body.annualLeaveBalance ?? 10,
+      sickLeaveBalance: req.body.sickLeaveBalance ?? 6,
+      emergencyLeaveBalance: req.body.emergencyLeaveBalance ?? 3,
+      maternityLeaveBalance: req.body.maternityLeaveBalance ?? 30,
+      unpaidLeaveBalance: req.body.unpaidLeaveBalance ?? 15,
       isActive: isActive ?? true,
     });
 
@@ -183,12 +208,48 @@ export const updateUser = async (req: any, res: Response): Promise<void> => {
 
   await user.save();
 
-  // If role doctor and isActive changed, sync Doctor record too
+  // Update Employee record if it exists, or create if missing (upsert)
+  const employeeId = await Employee.findOne({ user: id }).select('employeeId');
+  const nextId = employeeId ? employeeId.employeeId : await generateEmployeeId();
+
+  await Employee.findOneAndUpdate(
+    { user: id },
+    {
+      name: name ?? user.name,
+      phone: phone ?? user.phone,
+      role: role ?? user.role,
+      isActive: activeValue ?? user.isActive,
+      department: req.body.department || user.role === 'doctor' ? req.body.department : (deptMap[user.role] || 'General'),
+      joiningDate: req.body.joiningDate || new Date(),
+      basicSalary: req.body.basicSalary || 0,
+      houseAllowance: req.body.houseAllowance || 0,
+      medicalAllowance: req.body.medicalAllowance || 0,
+      transportAllowance: req.body.transportAllowance || 0,
+      annualLeaveBalance: req.body.annualLeaveBalance ?? 10,
+      sickLeaveBalance: req.body.sickLeaveBalance ?? 6,
+      emergencyLeaveBalance: req.body.emergencyLeaveBalance ?? 3,
+      maternityLeaveBalance: req.body.maternityLeaveBalance ?? 30,
+      unpaidLeaveBalance: req.body.unpaidLeaveBalance ?? 15,
+      employeeId: nextId,
+    },
+    { new: true, upsert: true }
+  );
+
+  // If role doctor, sync Doctor record too
   if (role === 'doctor' || user.role === 'doctor') {
     await Doctor.findOneAndUpdate(
       { user: id },
-      { isActive: activeValue ?? user.isActive },
-      { returnDocument: 'after' }
+      {
+        name: name ?? user.name,
+        isActive: activeValue ?? user.isActive,
+        department: req.body.department || 'General',
+        specialization: req.body.specialization || '',
+        qualification: req.body.qualification || '',
+        fee: req.body.fee || 500,
+        opdDays: req.body.opdDays || [],
+        opdTiming: req.body.opdTiming || '9:00 AM - 2:00 PM',
+      },
+      { new: true, upsert: true }
     );
   }
 

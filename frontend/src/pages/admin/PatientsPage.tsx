@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../api';
 import '../../styles/mmh.css';
+import { formatPhone, validatePhone, formatCNIC, validateCNIC } from '../../utils/validation';
 
 interface Patient {
   _id: string;
@@ -64,6 +65,8 @@ const PatientsPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [dateFilter, setDateFilter] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [cnicError, setCnicError] = useState('');
 
   const [viewPatient, setViewPatient] = useState<Patient | null>(null);
   const [editPatient, setEditPatient] = useState<Patient | null>(null);
@@ -113,6 +116,15 @@ const PatientsPage: React.FC = () => {
   const handleUpdatePatient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editPatient) return;
+
+    const pErr = validatePhone(editPatient.phone || '');
+    const cErr = validateCNIC(editPatient.cnic || '');
+    if (pErr || cErr) {
+      setPhoneError(pErr);
+      setCnicError(cErr);
+      return;
+    }
+
     setLoading(true);
     try {
       await api.put(`/patients/${editPatient._id}`, editPatient);
@@ -286,6 +298,21 @@ const PatientsPage: React.FC = () => {
                   <input type="text" className="mmh-input" value={editPatient.name || ''}
                     onChange={e => setEditPatient({ ...editPatient, name: e.target.value })} />
                 </div>
+                <div className="mmh-field">
+                  <label className="mmh-label">CNIC</label>
+                  <input
+                    className="mmh-input"
+                    style={{ borderColor: cnicError ? '#f43f5e' : undefined }}
+                    placeholder="XXXXX-XXXXXXX-X"
+                    value={editPatient.cnic || ''}
+                    onChange={e => {
+                      const formatted = formatCNIC(e.target.value);
+                      setEditPatient({ ...editPatient, cnic: formatted });
+                      setCnicError(validateCNIC(formatted));
+                    }}
+                  />
+                  {cnicError && <span className="mmh-field-error">⚠️ {cnicError}</span>}
+                </div>
                 <div className="mmh-form-grid">
                   <div className="mmh-field">
                     <label className="mmh-label">Age</label>
@@ -294,8 +321,18 @@ const PatientsPage: React.FC = () => {
                   </div>
                   <div className="mmh-field">
                     <label className="mmh-label">Phone</label>
-                    <input type="text" className="mmh-input" value={editPatient.phone || ''}
-                      onChange={e => setEditPatient({ ...editPatient, phone: e.target.value })} />
+                    <input
+                      className="mmh-input"
+                      style={{ borderColor: phoneError ? '#f43f5e' : undefined }}
+                      placeholder="03XX-XXXXXXX"
+                      value={editPatient.phone || ''}
+                      onChange={e => {
+                        const formatted = formatPhone(e.target.value);
+                        setEditPatient({ ...editPatient, phone: formatted });
+                        setPhoneError(validatePhone(formatted));
+                      }}
+                    />
+                    {phoneError && <span className="mmh-field-error">⚠️ {phoneError}</span>}
                   </div>
                 </div>
               </div>
