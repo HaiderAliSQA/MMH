@@ -38,19 +38,19 @@ interface LeaveRecord {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const LEAVE_TYPES = [
-  { value: 'Annual Leave',    label: 'Annual Leave',    icon: '📅' },
-  { value: 'Sick Leave',      label: 'Sick Leave',      icon: '🤒' },
+  { value: 'Annual Leave', label: 'Annual Leave', icon: '📅' },
+  { value: 'Sick Leave', label: 'Sick Leave', icon: '🤒' },
   { value: 'Emergency Leave', label: 'Emergency Leave', icon: '🚨' },
   { value: 'Maternity Leave', label: 'Maternity Leave', icon: '👶' },
-  { value: 'Unpaid Leave',    label: 'Unpaid Leave',    icon: '📝' },
+  { value: 'Unpaid Leave', label: 'Unpaid Leave', icon: '📝' },
 ];
 
 const STATUS_OPTS = [
-  { value: '',          label: 'All Statuses', icon: '📋' },
-  { value: 'Pending',   label: 'Pending',      icon: '⏳' },
-  { value: 'Approved',  label: 'Approved',     icon: '✅' },
-  { value: 'Rejected',  label: 'Rejected',     icon: '❌' },
-  { value: 'Cancelled', label: 'Cancelled',    icon: '🚫' },
+  { value: '', label: 'All Statuses', icon: '📋' },
+  { value: 'Pending', label: 'Pending', icon: '⏳' },
+  { value: 'Approved', label: 'Approved', icon: '✅' },
+  { value: 'Rejected', label: 'Rejected', icon: '❌' },
+  { value: 'Cancelled', label: 'Cancelled', icon: '🚫' },
 ];
 
 const STATUS_BADGE: Record<string, string> = {
@@ -99,7 +99,20 @@ const formatFileSize = (bytes: number): string => {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
+const getDocUrls = (doc: any) => {
+  if (!doc) return { view: '#', download: '#' };
+  let v = doc.viewUrl || doc.url || '';
+  if (v.includes('\\uploads\\') || v.includes('/uploads/')) {
+    v = `/uploads/${v.split(/[\\/]/).pop()}`;
+  }
+  if (v && !v.startsWith('http')) {
+    const api = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+    v = `${api}${v}`;
+  }
+  let d = doc.downloadUrl;
+  if (!d && v.includes('cloudinary.com')) d = v.replace('/upload/', '/upload/fl_attachment/');
+  return { view: v, download: d || v };
+};
 const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [leaves, setLeaves] = useState<LeaveRecord[]>([]);
@@ -196,11 +209,7 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
         formData.append('document', selectedFile);
       }
 
-      await api.post('/hr/leaves', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      await api.post('/hr/leaves', formData);
 
       setBanner({ type: 'success', msg: `✅ Leave request submitted${selectedFile ? ' with document' : ''}! (${days} working day${days !== 1 ? 's' : ''})` });
       setLeaveType('');
@@ -229,38 +238,13 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
     }
   };
 
-  const viewDocument = (l: LeaveRecord) => {
-    if (!l.document) return;
-    
-    let url = l.document.url;
 
-    // Fix absolute Windows paths that might have been stored during testing
-    if (url && url.includes('\\uploads\\')) {
-      const fileName = url.split('\\').pop();
-      url = `/uploads/${fileName}`;
-    }
-
-    // If it's a relative local URL (not Cloudinary), prefix it with our base API URL (removing /api)
-    if (url && !url.startsWith('http')) {
-      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
-      url = `${apiUrl}${url}`;
-    }
-
-    if (url) {
-      setPreviewDoc(url);
-    } else {
-      // Fallback for very old records that only have fileName
-      const token = localStorage.getItem('mmh_token');
-      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
-      window.open(`${apiUrl}/api/hr/leaves/${l._id}/document?token=${token}`, '_blank');
-    }
-  };
 
   const workingDays = Math.max(0, calcWorkingDays(fromDate, toDate));
 
   // Leave balance data
-  const annual    = employee?.annualLeaveBalance ?? 24;
-  const sick      = employee?.sickLeaveBalance ?? 10;
+  const annual = employee?.annualLeaveBalance ?? 24;
+  const sick = employee?.sickLeaveBalance ?? 10;
   const emergency = employee?.emergencyLeaveBalance ?? 3;
 
   const activeRole = userRole || employee?.role;
@@ -337,7 +321,7 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
         {/* LEFT — Apply Leave Form */}
         <div className="mmh-leave-form-card">
           <div className="mmh-leave-card-title">📝 Apply for Leave</div>
-          
+
           <form onSubmit={handleSubmit}>
             <TypeSearch
               options={LEAVE_TYPES}
@@ -501,12 +485,12 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
                       <span className={`mmh-badge ${STATUS_BADGE[l.status] || 'mmh-badge-gray'}`}>{l.status}</span>
                     </div>
                   </div>
-                  
+
                   <div className="mmh-lhc-dates">
-                    {fmtDate(l.fromDate)} → {fmtDate(l.toDate)} 
+                    {fmtDate(l.fromDate)} → {fmtDate(l.toDate)}
                     <strong style={{ marginLeft: 6 }}>({l.totalDays || calcWorkingDays(l.fromDate, l.toDate)}d)</strong>
                   </div>
-                  
+
                   {l.reason && <div className="mmh-lhc-reason">{l.reason}</div>}
 
                   {l.needsSubstitute && l.substituteEmployee && (
@@ -529,21 +513,74 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
                   {l.document && (
                     <div style={{ marginTop: 12 }}>
                       <div style={{ fontSize: 9, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>Supporting Document</div>
-                      <div className="mmh-attachment-card" onClick={() => viewDocument(l)}>
-                        <div className="mmh-attachment-icon">{getFileIconByName(l.document.originalName)}</div>
-                        <div className="mmh-attachment-info">
-                          <div className="mmh-attachment-name">{l.document.originalName}</div>
-                          <div className="mmh-attachment-meta">{formatFileSize(l.document.fileSize)}</div>
+
+                      {/* Document Info Card */}
+                      <div style={{
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        padding: '10px 13px', background: 'rgba(15,23,42,0.4)',
+                        border: '1px solid rgba(139,92,246,0.15)',
+                        borderRadius: '10px', marginBottom: '8px'
+                      }}>
+                        <div style={{ fontSize: '18px' }}>
+                          {getFileIconByName(l.document.originalName)}
                         </div>
-                        <div className="mmh-attachment-actions">
-                          <span style={{ fontSize: 10, color: '#0ea5e9', fontWeight: 800 }}>VIEW ↗</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{
+                            fontSize: '12px', fontWeight: '600', color: '#a78bfa',
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                          }}>
+                            {l.document.originalName}
+                          </div>
+                          <div style={{ fontSize: '10px', color: '#475569' }}>
+                            {formatFileSize(l.document.fileSize)}
+                          </div>
                         </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {(() => {
+                          const { view, download } = getDocUrls(l.document);
+                          return (
+                            <>
+                              <a
+                                href={view}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{
+                                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  gap: '6px', padding: '6px 0', background: 'rgba(14,165,233,0.1)',
+                                  border: '1px solid rgba(14,165,233,0.2)', borderRadius: '8px',
+                                  color: '#38bdf8', fontSize: '11px', fontWeight: '700',
+                                  textDecoration: 'none', cursor: 'pointer'
+                                }}
+                              >
+                                👁️ View
+                              </a>
+                              <a
+                                href={download}
+                                target="_blank"
+                                rel="noreferrer"
+                                download={l.document.originalName}
+                                style={{
+                                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  gap: '6px', padding: '6px 0', background: 'rgba(139,92,246,0.1)',
+                                  border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px',
+                                  color: '#a78bfa', fontSize: '11px', fontWeight: '700',
+                                  textDecoration: 'none', cursor: 'pointer'
+                                }}
+                              >
+                                ⬇️ Download
+                              </a>
+                            </>
+                          )
+                        })()}
                       </div>
                     </div>
                   )}
 
                   {l.status === 'Pending' && (
-                    <button 
+                    <button
                       className="mmh-lhc-cancel-btn"
                       onClick={() => handleCancel(l._id)}
                     >
@@ -557,23 +594,6 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
         </div>
       </div>
 
-      {previewDoc && (
-        <div className="mmh-overlay" style={{ zIndex: 10000 }} onClick={() => setPreviewDoc(null)}>
-          <div className="mmh-modal" style={{ width: '800px', maxWidth: '95vw', maxHeight: '95vh', background: 'transparent', border: 'none', boxShadow: 'none' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-              <button onClick={() => window.open(previewDoc, '_blank')} className="mmh-btn mmh-btn-xs mmh-btn-sky" style={{ marginRight: 8 }}>Open Original ↗</button>
-              <button onClick={() => setPreviewDoc(null)} className="mmh-btn mmh-btn-xs mmh-btn-rose" style={{ width: 32, height: 32, padding: 0 }}>×</button>
-            </div>
-            <div className="mmh-card" style={{ padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400, background: '#0f172a' }}>
-              {previewDoc.toLowerCase().endsWith('.pdf') ? (
-                <iframe src={previewDoc} style={{ width: '100%', height: '75vh', border: 'none' }} />
-              ) : (
-                <img src={previewDoc} alt="Preview" style={{ maxWidth: '100%', maxHeight: '75vh', objectFit: 'contain' }} />
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

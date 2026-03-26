@@ -49,11 +49,11 @@ const shiftTimesMap: Record<string, { start: string; end: string }> = {
 const getDeptByRole = (role: string): string => {
   const map: Record<string, string> = {
     receptionist: 'Reception',
-    doctor:       'Medical',
-    lab:          'Laboratory',
-    pharmacist:   'Pharmacy',
-    manager:      'Management',
-    admin:        'Administration',
+    doctor: 'Medical',
+    lab: 'Laboratory',
+    pharmacist: 'Pharmacy',
+    manager: 'Management',
+    admin: 'Administration',
   };
   return map[role] || 'General';
 };
@@ -436,9 +436,9 @@ export const getLeaves = async (req: Request, res: Response): Promise<void> => {
         { employeeId: { $regex: search, $options: 'i' } },
       ],
     })
-    .select('_id')
-    .lean();
-    
+      .select('_id')
+      .lean();
+
     query.employee = { $in: matchingEmployees.map((e) => e._id) };
   }
 
@@ -525,11 +525,11 @@ export const applyLeave = async (req: AuthRequest, res: Response): Promise<void>
       leaveData.document = {
         originalName: req.file.originalname,
         cloudinaryId: cloudFile.filename || cloudFile.public_id,
-        viewUrl:      cloudFile.path,     // direct Cloudinary URL
-        downloadUrl:  cloudFile.path.replace('/upload/', '/upload/fl_attachment/'),
-        fileSize:     req.file.size,
-        mimeType:     req.file.mimetype,
-        uploadedAt:   new Date(),
+        viewUrl: cloudFile.path,     // direct Cloudinary URL
+        downloadUrl: cloudFile.path.replace('/upload/', '/upload/fl_attachment/'),
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+        uploadedAt: new Date(),
       }
     }
 
@@ -537,7 +537,7 @@ export const applyLeave = async (req: AuthRequest, res: Response): Promise<void>
 
     // Create admin notification
     const empName = employee?.name || 'Employee';
-    
+
     await Notification.create({
       type: 'leave_request',
       title: 'New Leave Request',

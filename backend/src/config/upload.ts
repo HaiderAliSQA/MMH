@@ -5,7 +5,7 @@ import multer from 'multer'
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
@@ -15,7 +15,7 @@ const storage = new CloudinaryStorage({
   params: async (_req, file) => {
     // Determine resource type
     const isImage = file.mimetype.startsWith('image/')
-    const isPDF   = file.mimetype === 'application/pdf'
+    const isPDF = file.mimetype === 'application/pdf'
 
     return {
       folder: 'mmh-hospital/leave-documents',
@@ -43,7 +43,7 @@ const fileFilter = (
     'image/png',
     'application/msword',
     'application/vnd.openxmlformats-officedocument'
-      + '.wordprocessingml.document',
+    + '.wordprocessingml.document',
   ]
   if (allowed.includes(file.mimetype)) {
     cb(null, true)
