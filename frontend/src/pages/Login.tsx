@@ -132,8 +132,8 @@ const Login: React.FC = () => {
         <div className="mmh-login-logo-row">
           <div className="mmh-login-logo-box">🏥</div>
           <div>
-            <div className="mmh-login-hospital-name" style={{ textAlign: 'center' }}>MMH</div>
-            <div className="mmh-login-hospital-sab" style={{ color: 'var(--mmh-text)', textAlign: 'center', opacity: 0.8 }}>Majida Memorial Hospital</div>
+            <div className="mmh-login-hospital-name">MMH</div>
+            <div className="mmh-login-hospital-sab">Majida Memorial Hospital</div>
           </div>
         </div>
 
