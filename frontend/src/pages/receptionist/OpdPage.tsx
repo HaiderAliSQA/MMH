@@ -5,6 +5,7 @@ import PatientSearch, { PatientResult as PSPatientResult } from '../../component
 import MyLeaveTab from '../../components/MyLeaveTab';
 import { useSearchParams } from 'react-router-dom';
 import { formatPhone, validatePhone, formatCNIC } from '../../utils/validation';
+import Pagination from '../../components/Pagination';
 
 // ─── Types ──────────────────────────────────────────────────────────
 interface PatientResult {
@@ -1268,6 +1269,7 @@ const PaymentTab: React.FC = () => {
   const [pPage, setPPage] = useState(0);
   const [pTotalPages, setPTotalPages] = useState(0);
   const [pTotalCount, setPTotalCount] = useState(0);
+  const [pTotalRevenue, setPTotalRevenue] = useState(0);
   const pLimit = 10;
 
   const fetchRecent = async (page = pPage) => {
@@ -1282,6 +1284,7 @@ const PaymentTab: React.FC = () => {
       setRecentPayments(r.data?.payments || []);
       setPTotalPages(r.data?.totalPages || 0);
       setPTotalCount(r.data?.total || 0);
+      setPTotalRevenue(r.data?.totalRevenue || 0);
       setPPage(page);
     } catch { }
     finally { setFetchLoading(false); }
@@ -1399,7 +1402,13 @@ const PaymentTab: React.FC = () => {
                <div className="mmh-card-title" style={{ fontSize: 14 }}>🗓️ Recent Transactions</div>
                <div style={{ fontSize: 10, color: 'var(--mmh-text3)' }}>Showing {recentPayments.length} of {pTotalCount} total</div>
             </div>
-            <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" onClick={() => fetchRecent(pPage)}>🔄 Refresh</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 9, color: 'var(--mmh-success)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Filtered Total</div>
+                <div style={{ fontSize: 17, fontWeight: 900, color: 'var(--mmh-success)', fontFamily: 'JetBrains Mono, monospace' }}>Rs. {pTotalRevenue.toLocaleString()}</div>
+              </div>
+              <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" onClick={() => fetchRecent(pPage)}>🔄 Refresh</button>
+            </div>
           </div>
           
           {/* Filters Bar */}
@@ -1457,16 +1466,13 @@ const PaymentTab: React.FC = () => {
             </table>
           </div>
 
-          {/* Pagination Footer */}
-          {pTotalPages > 1 && (
-            <div style={{ padding: '12px 20px', borderTop: '1px solid var(--mmh-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--mmh-bg2)' }}>
-                <div style={{ fontSize: 11, color: 'var(--mmh-text3)' }}>Page {pPage + 1} of {pTotalPages}</div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" disabled={pPage === 0} onClick={() => fetchRecent(pPage - 1)}>◀ Prev</button>
-                    <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" disabled={pPage >= pTotalPages - 1} onClick={() => fetchRecent(pPage + 1)}>Next ▶</button>
-                </div>
-            </div>
-          )}
+          <Pagination 
+            totalResults={pTotalCount}
+            currentPage={pPage + 1}
+            rowsPerPage={pLimit}
+            onPageChange={(p) => fetchRecent(p - 1)}
+            onRowsPerPageChange={() => {}} 
+          />
         </div>
       </div>
     </div>
