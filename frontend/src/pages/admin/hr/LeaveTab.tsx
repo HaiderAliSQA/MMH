@@ -8,6 +8,7 @@ const LHC_CLASS: Record<string, string> = { Pending: 'mmh-lhc-pending', Approved
 const STATUS_OPTS = [
   { value: '', label: 'All Statuses', icon: '📋' }, { value: 'Pending', label: 'Pending', icon: '⏳' },
   { value: 'Approved', label: 'Approved', icon: '✅' }, { value: 'Rejected', label: 'Rejected', icon: '❌' },
+  { value: 'Cancelled', label: 'Cancelled', icon: '🚫' },
 ];
 const LEAVE_TYPE_OPTS = [
   { value: '', label: 'All Types', icon: '📃' }, { value: 'Annual Leave', label: 'Annual Leave', icon: '📅' },
@@ -116,9 +117,9 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
 
   const stats = {
     pending: leaves.filter(l => l.status === 'Pending').length,
-    approvedMonth: leaves.filter(l => l.status === 'Approved').length,
+    approved: leaves.filter(l => l.status === 'Approved').length,
     rejected: leaves.filter(l => l.status === 'Rejected').length,
-    onLeaveToday: 0,
+    cancelled: leaves.filter(l => l.status === 'Cancelled').length,
   };
 
   const filtered = leaves.filter(l => {
@@ -135,9 +136,9 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
       <div className="mmh-stats-grid" style={{ marginBottom: 24 }}>
         {[
           { label: 'Pending', value: stats.pending, icon: '⏳', accent: 'linear-gradient(90deg,#f59e0b,#fbbf24)' },
-          { label: 'Approved This Month', value: stats.approvedMonth, icon: '✅', accent: 'linear-gradient(90deg,#10b981,#34d399)' },
+          { label: 'Approved', value: stats.approved, icon: '✅', accent: 'linear-gradient(90deg,#10b981,#34d399)' },
           { label: 'Rejected', value: stats.rejected, icon: '❌', accent: 'linear-gradient(90deg,#f43f5e,#fb7185)' },
-          { label: 'On Leave Today', value: stats.onLeaveToday, icon: '🏖️', accent: 'linear-gradient(90deg,#8b5cf6,#a78bfa)' },
+          { label: 'Cancelled', value: stats.cancelled, icon: '🚫', accent: 'linear-gradient(90deg,#64748b,#94a3b8)' },
         ].map(c => (
           <div className="mmh-stat-card" key={c.label}>
             <div className="mmh-stat-accent" style={{ background: c.accent }} />
