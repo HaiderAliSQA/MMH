@@ -5,6 +5,7 @@ interface User {
   name: string;
   email: string;
   role: 'admin' | 'receptionist' | 'doctor' | 'lab' | 'pharmacist' | 'manager' | 'patient';
+  phone?: string;
 }
 
 interface AuthContextType {

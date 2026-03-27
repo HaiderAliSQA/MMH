@@ -40,8 +40,8 @@ const Receptionist: React.FC<ReceptionistProps> = ({ onLogout }) => {
           </div>
           <div className="mmh-topbar-right">
             <div className="mmh-topbar-info">
-              <div style={{ color: 'white', fontWeight: 600 }}>{dateStr}</div>
-              <div>Server: <span style={{ color: 'var(--mmh-green)' }}>Online ✓</span></div>
+              <div style={{ color: 'var(--mmh-text)', fontWeight: 600 }}>{dateStr}</div>
+              <div>Server: <span style={{ color: 'var(--mmh-success)' }}>Online ✓</span></div>
             </div>
           </div>
         </header>

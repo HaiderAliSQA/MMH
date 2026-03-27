@@ -96,9 +96,9 @@ const ManagePayments: React.FC = () => {
           <p className="mmh-page-subtitle">Track hospital income and filter transaction history</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <div className="mmh-stat-card-mini" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', padding: '8px 15px', borderRadius: 10 }}>
-             <div style={{ fontSize: 11, color: '#10b981', fontWeight: 700, textTransform: 'uppercase' }}>Period Revenue</div>
-             <div style={{ fontSize: 18, fontWeight: 900, color: '#34d399' }}>Rs. {totalRevenue.toLocaleString()}</div>
+          <div className="mmh-stat-card-mini" style={{ background: 'var(--mmh-success-soft)', border: '1px solid var(--mmh-success-soft)', padding: '8px 15px', borderRadius: 10 }}>
+             <div style={{ fontSize: 11, color: 'var(--mmh-success)', fontWeight: 700, textTransform: 'uppercase' }}>Period Revenue</div>
+             <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--mmh-success)' }}>Rs. {totalRevenue.toLocaleString()}</div>
           </div>
         </div>
       </div>
@@ -174,22 +174,22 @@ const ManagePayments: React.FC = () => {
                 </td></tr>
               ) : payments.map(p => (
                 <tr key={p._id}>
-                  <td style={{ fontFamily: 'JetBrains Mono', color: '#0ea5e9', fontSize: 13, fontWeight: 700 }}>
+                  <td style={{ fontFamily: 'JetBrains Mono', color: 'var(--mmh-accent)', fontSize: 13, fontWeight: 700 }}>
                     {p.invoiceNumber}
                   </td>
                   <td>
                     <div className="mmh-td-name">{p.patient?.name || p.patientName}</div>
-                    <div style={{ fontSize: 10, color: '#475569', fontFamily: 'JetBrains Mono' }}>{p.patient?.mrNumber || 'Walk-in'}</div>
+                    <div style={{ fontSize: 10, color: 'var(--mmh-text3)', fontFamily: 'JetBrains Mono' }}>{p.patient?.mrNumber || 'Walk-in'}</div>
                   </td>
-                  <td style={{ fontWeight: 900, color: '#10b981' }}>
+                  <td style={{ fontWeight: 900, color: 'var(--mmh-success)' }}>
                     Rs. {p.amount.toLocaleString()}
                   </td>
                   <td>{getMethodBadge(p.method)}</td>
-                  <td style={{ fontSize: 12, color: '#94a3b8' }}>{p.purpose}</td>
-                  <td style={{ fontSize: 11, color: '#64748b' }}>
+                  <td style={{ fontSize: 12, color: 'var(--mmh-text3)' }}>{p.purpose}</td>
+                  <td style={{ fontSize: 11, color: 'var(--mmh-text3)' }}>
                     {new Date(p.createdAt).toLocaleString('en-PK', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                   </td>
-                  <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11, color: '#475569' }}>
+                  <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 11, color: 'var(--mmh-text3)' }}>
                     {p.notes || '—'}
                   </td>
                 </tr>

@@ -142,7 +142,7 @@ const Doctor: React.FC<DoctorProps> = ({ user }) => {
           </div>
 
           <div className="mmh-table-card">
-            <div className="mmh-table-card-top" style={{ background: tab === 'assigned' ? '#0ea5e9' : '#8b5cf6' }} />
+            <div className="mmh-table-card-top" style={{ background: 'var(--mmh-accent)' }} />
             <div className="mmh-table-scroll">
               <table className="mmh-table">
                 <thead>
@@ -163,18 +163,18 @@ const Doctor: React.FC<DoctorProps> = ({ user }) => {
                   ) : visits.map(v => (
                     <tr key={v._id}>
                       <td style={{ verticalAlign: 'middle' }}>
-                        <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '20px', fontWeight: '900', color: '#0ea5e9' }}>
+                        <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '20px', fontWeight: '900', color: 'var(--mmh-accent)' }}>
                           #{v.tokenNumber?.padStart(4, '0') || '0000'}
                         </div>
                       </td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#111d35', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '14px', color: '#0ea5e9', border: '1px solid #1e3050' }}>
+                          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--mmh-bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '14px', color: 'var(--mmh-accent)', border: '1px solid var(--mmh-border)' }}>
                             {v.patient?.name?.charAt(0)}
                           </div>
                           <div>
                             <div className="mmh-td-name">{v.patient?.name}</div>
-                            <div style={{ fontSize: '11px', color: '#64748b' }}>{v.patient?.age}y • {v.patient?.gender}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--mmh-text3)' }}>{v.patient?.age}y • {v.patient?.gender}</div>
                           </div>
                         </div>
                       </td>
@@ -319,13 +319,13 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
   return (
     <div className="mmh-overlay" onClick={onClose}>
       <div className="mmh-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '1000px', height: '95vh', display: 'flex', flexDirection: 'column' }}>
-        <div className="mmh-modal-header" style={{ padding: '16px 24px', background: '#0b1425' }}>
+        <div className="mmh-modal-header" style={{ padding: '16px 24px', background: 'var(--mmh-bg3)' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div className="mmh-modal-title" style={{ fontSize: '18px' }}>Examine Patient: {visit.patient?.name}</div>
               <span className="mmh-badge mmh-badge-sky">Token #{visit.tokenNumber}</span>
             </div>
-            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--mmh-text3)', marginTop: '4px' }}>
               Complaints: {visit.chiefComplaint || 'No recorded complaint'}
             </div>
           </div>
@@ -336,13 +336,13 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
           <div className="mmh-examine-2col">
             {/* Left: Patient Info & Quick History Link */}
             <div>
-              <div style={{ background: '#0f1e38', border: '1px solid #1e3050', borderRadius: '15px', padding: '16px', marginBottom: '16px' }}>
-                <div style={{ fontSize: '13px', fontWeight: '800', color: 'white', marginBottom: '12px', display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ background: 'var(--mmh-bg2)', border: '1px solid var(--mmh-border)', borderRadius: '15px', padding: '16px', marginBottom: '16px' }}>
+                <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--mmh-text)', marginBottom: '12px', display: 'flex', justifyContent: 'space-between' }}>
                   Patient Bio Data
                   <button className="mmh-mr-link" onClick={() => onHistoryClick({ id: visit.patient?._id, mr: visit.patient?.mrNumber })}>View Full History →</button>
                 </div>
                 <div className="mmh-info-list">
-                  <div className="mmh-info-row"><span className="mmh-info-key">MR Number</span><span className="mmh-info-val" style={{ color: '#0ea5e9' }}>{visit.patient?.mrNumber}</span></div>
+                  <div className="mmh-info-row"><span className="mmh-info-key">MR Number</span><span className="mmh-info-val" style={{ color: 'var(--mmh-accent)' }}>{visit.patient?.mrNumber}</span></div>
                   <div className="mmh-info-row"><span className="mmh-info-key">Age / Sex</span><span className="mmh-info-val">{visit.patient?.age}y / {visit.patient?.gender}</span></div>
                   <div className="mmh-info-row"><span className="mmh-info-key">Blood Group</span><span className="mmh-info-val">{visit.patient?.bloodGroup || 'Not Known'}</span></div>
                   <div className="mmh-info-row"><span className="mmh-info-key">Weight / BP</span><span className="mmh-info-val">{visit.weight || '--'} kg / {visit.bp || '--'}</span></div>
@@ -350,7 +350,7 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label className="mmh-label">Final Diagnosis <span style={{ color: '#f43f5e' }}>*</span></label>
+                <label className="mmh-label">Final Diagnosis <span style={{ color: 'var(--mmh-danger)' }}>*</span></label>
                 <textarea 
                   className="mmh-textarea" 
                   placeholder="Clinical assessment and diagnosis..." 
@@ -373,7 +373,7 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
             </div>
 
             {/* Right: Prescription Cart */}
-            <div style={{ borderLeft: '1px solid #1e3050', paddingLeft: '20px' }}>
+            <div style={{ borderLeft: '1px solid var(--mmh-border)', paddingLeft: '20px' }}>
               <label className="mmh-label">💊 Prescription Cart</label>
               
               <div style={{ position: 'relative', marginBottom: '14px' }}>
@@ -387,11 +387,11 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
                 {searchingMed && <div className="mmh-spinner-sm" style={{ position: 'absolute', right: '14px', top: '14px' }} />}
                 
                 {medResults.length > 0 && (
-                  <div style={{ position: 'absolute', top: '50px', left: 0, right: 0, background: '#0f1e38', border: '1px solid #1e3050', borderRadius: '12px', zIndex: 10, maxHeight: '200px', overflowY: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+                  <div style={{ position: 'absolute', top: '50px', left: 0, right: 0, background: 'var(--mmh-bg2)', border: '1px solid var(--mmh-border)', borderRadius: '12px', zIndex: 10, maxHeight: '200px', overflowY: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
                     {medResults.map(m => (
-                      <div key={m._id} className="mmh-select-item" onClick={() => addMedicine(m)} style={{ padding: '10px 15px', cursor: 'pointer', borderBottom: '1px solid #1e3050', fontSize: '13px' }}>
-                        <div style={{ fontWeight: '700', color: 'white' }}>{m.name}</div>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>{m.unit} • In Stock: {m.quantity}</div>
+                      <div key={m._id} className="mmh-select-item" onClick={() => addMedicine(m)} style={{ padding: '10px 15px', cursor: 'pointer', borderBottom: '1px solid var(--mmh-border)', fontSize: '13px' }}>
+                        <div style={{ fontWeight: '700', color: 'var(--mmh-text)' }}>{m.name}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--mmh-text3)' }}>{m.unit} • In Stock: {m.quantity}</div>
                       </div>
                     ))}
                   </div>
@@ -400,7 +400,7 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {prescribedItems.length === 0 ? (
-                  <div style={{ padding: '30px', textAlign: 'center', background: '#0b1425', borderRadius: '12px', border: '1px dashed #1e3050', color: '#475569', fontSize: '13px' }}>
+                  <div style={{ padding: '30px', textAlign: 'center', background: 'var(--mmh-bg3)', borderRadius: '12px', border: '1px dashed var(--mmh-border)', color: 'var(--mmh-text3)', fontSize: '13px' }}>
                     No medicines added yet.
                   </div>
                 ) : (

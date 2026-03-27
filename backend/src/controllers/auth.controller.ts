@@ -66,16 +66,79 @@ export const changePassword = async (req: Request, res: Response) => {
   // @ts-ignore
   const userId = req.user?.id;
 
-  if (!userId) return res.status(401).json({ message: 'Not authorized' });
+  if (!userId) {
+    res.status(401).json({
+      success: false,
+      message: 'Not authorized'
+    });
+    return;
+  }
 
   const user = await User.findById(userId);
-  if (!user) return res.status(404).json({ message: 'User not found' });
+  if (!user) {
+    res.status(404).json({
+      success: false,
+      message: 'User not found'
+    });
+    return;
+  }
 
+  // Check current password
   const isMatch = await user.comparePassword(currentPassword);
-  if (!isMatch) return res.status(400).json({ message: 'Current password is wrong' });
+  if (!isMatch) {
+    res.status(400).json({
+      success: false,
+      message: 'Current password is incorrect'
+    });
+    return;
+  }
 
-  user.password = newPassword;
-  await user.save(); // Pre-save hook will hash it
+  if (newPassword.length < 6) {
+    res.status(400).json({
+      success: false,
+      message: 'New password must be at least 6 characters'
+    });
+    return;
+  }
 
-  res.status(200).json({ message: 'Password updated successfully' });
+  user.password = newPassword; // Pre-save hook will hash it
+  await user.save();
+
+  res.json({
+    success: true,
+    message: 'Password changed successfully'
+  });
+};
+
+export const updateProfile = async (req: Request, res: Response) => {
+  const { name, phone } = req.body;
+  // @ts-ignore
+  const userId = req.user?.id;
+
+  if (!userId) {
+    res.status(401).json({
+      success: false,
+      message: 'Not authorized'
+    });
+    return;
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { name, phone },
+    { new: true }
+  ).select('-password');
+
+  if (!user) {
+    res.status(404).json({
+      success: false,
+      message: 'User not found'
+    });
+    return;
+  }
+
+  res.json({
+    success: true,
+    data: user
+  });
 };

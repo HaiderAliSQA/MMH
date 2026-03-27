@@ -62,10 +62,10 @@ const PayrollTab: React.FC<{ employees: any[] }> = ({ employees }) => {
 
       <div className="mmh-stats-grid" style={{marginBottom:24}}>
         {[
-          { label:'Total Gross', value:fmt(totalGross), icon:'💰', accent:'linear-gradient(90deg,#0ea5e9,#38bdf8)' },
-          { label:'Deductions', value:fmt(totalDeduct), icon:'📉', accent:'linear-gradient(90deg,#f43f5e,#fb7185)' },
-          { label:'Net Payable', value:fmt(totalNet), icon:'💵', accent:'linear-gradient(90deg,#10b981,#34d399)' },
-          { label:'Employees', value:payroll.length, icon:'👥', accent:'linear-gradient(90deg,#8b5cf6,#a78bfa)' },
+          { label:'Total Gross', value:fmt(totalGross), icon:'💰', accent:'var(--mmh-accent)' },
+          { label:'Deductions', value:fmt(totalDeduct), icon:'📉', accent:'var(--mmh-danger)' },
+          { label:'Net Payable', value:fmt(totalNet), icon:'💵', accent:'var(--mmh-success)' },
+          { label:'Employees', value:payroll.length, icon:'👥', accent:'var(--mmh-accent)' },
         ].map(c => (
           <div className="mmh-stat-card" key={c.label}>
             <div className="mmh-stat-accent" style={{background:c.accent}} />
@@ -106,31 +106,31 @@ const PayrollTab: React.FC<{ employees: any[] }> = ({ employees }) => {
           ) : payroll.map(p => (
             <div key={p._id} className="mmh-payroll-table-row" style={{position:'relative'}}>
               <div>
-                <div style={{fontWeight:700,color:'white',fontSize:13}}>{p.employee?.name}</div>
-                <div style={{fontSize:11,color:'#64748b'}}>{p.employee?.employeeId} · {p.employee?.department}</div>
+                <div style={{fontWeight:700,color:'var(--mmh-text)',fontSize:13}}>{p.employee?.name}</div>
+                <div style={{fontSize:11,color:'var(--mmh-text3)'}}>{p.employee?.employeeId} · {p.employee?.department}</div>
               </div>
               <div style={{fontFamily:'JetBrains Mono,monospace',fontWeight:700,fontSize:13}}>{fmt(p.basicSalary||0)}</div>
-              <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:12,color:'#34d399'}}>+{fmt((p.houseAllowance||0)+(p.medicalAllowance||0)+(p.transportAllowance||0))}</div>
-              <div style={{fontFamily:'JetBrains Mono,monospace',fontWeight:800,fontSize:14,color:'#38bdf8'}}>{fmt(p.grossSalary||0)}</div>
+              <div style={{fontFamily:'JetBrains Mono,monospace',fontSize:12,color:'var(--mmh-success)'}}>+{fmt((p.houseAllowance||0)+(p.medicalAllowance||0)+(p.transportAllowance||0))}</div>
+              <div style={{fontFamily:'JetBrains Mono,monospace',fontWeight:800,fontSize:14,color:'var(--mmh-accent)'}}>{fmt(p.grossSalary||0)}</div>
               <div style={{position:'relative'}}>
-                <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" style={{color:'#fb7185',fontFamily:'JetBrains Mono,monospace',fontWeight:700}} onClick={()=>setDeductPopup(deductPopup===p._id?null:p._id)}>
+                <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" style={{color:'var(--mmh-danger)',fontFamily:'JetBrains Mono,monospace',fontWeight:700}} onClick={()=>setDeductPopup(deductPopup===p._id?null:p._id)}>
                   -{fmt(p.totalDeductions||0)}
                 </button>
                 {deductPopup === p._id && (
                   <div className="mmh-payroll-deduct-popup" style={{top:'100%',left:0}} onClick={e=>e.stopPropagation()}>
-                    <div style={{fontWeight:700,color:'white',marginBottom:8,fontSize:13}}>Deduction Breakdown</div>
+                    <div style={{fontWeight:700,color:'var(--mmh-text)',marginBottom:8,fontSize:13}}>Deduction Breakdown</div>
                     {[{l:'Tax',v:p.incomeTax},{l:'EOBI',v:p.eobi},{l:'Late',v:p.lateDeduction},{l:'Absent',v:p.absentDeduction},{l:'Half-Day',v:p.halfDayDeduction},{l:'Loan',v:p.loanDeduction}].map(d=>(
-                      d.v > 0 && <div key={d.l} style={{display:'flex',justifyContent:'space-between',padding:'3px 0',fontSize:12}}><span style={{color:'#94a3b8'}}>{d.l}</span><span style={{color:'#fb7185',fontWeight:700,fontFamily:'JetBrains Mono,monospace'}}>{fmt(d.v)}</span></div>
+                      d.v > 0 && <div key={d.l} style={{display:'flex',justifyContent:'space-between',padding:'3px 0',fontSize:12}}><span style={{color:'var(--mmh-text3)'}}>{d.l}</span><span style={{color:'var(--mmh-danger)',fontWeight:700,fontFamily:'JetBrains Mono,monospace'}}>{fmt(d.v)}</span></div>
                     ))}
-                    <div style={{height:1,background:'#1e3050',margin:'6px 0'}} />
-                    <div style={{display:'flex',justifyContent:'space-between',fontWeight:800}}><span>Net:</span><span style={{color:'#34d399',fontFamily:'JetBrains Mono,monospace'}}>{fmt(p.netSalary||0)}</span></div>
+                    <div style={{height:1,background:'var(--mmh-border)',margin:'6px 0'}} />
+                    <div style={{display:'flex',justifyContent:'space-between',fontWeight:800}}><span>Net:</span><span style={{color:'var(--mmh-success)',fontFamily:'JetBrains Mono,monospace'}}>{fmt(p.netSalary||0)}</span></div>
                   </div>
                 )}
               </div>
               <div><span className={`mmh-badge ${p.status==='Paid'?'mmh-badge-green':p.status==='Generated'?'mmh-badge-amber':'mmh-badge-gray'}`}>{p.status||'N/A'}</span></div>
               <div>
                 {p.status === 'Generated' && <button className="mmh-btn mmh-btn-green mmh-btn-xs" onClick={()=>handleMarkPaid(p._id)}>💰 Pay</button>}
-                {p.status === 'Paid' && <span style={{fontSize:11,color:'#34d399'}}>✅ Paid</span>}
+                {p.status === 'Paid' && <span style={{fontSize:11,color:'var(--mmh-success)'}}>✅ Paid</span>}
               </div>
             </div>
           ))}

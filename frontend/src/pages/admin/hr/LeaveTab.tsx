@@ -159,10 +159,10 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
 
       <div className="mmh-stats-grid" style={{ marginBottom: 24 }}>
         {[
-          { label: 'Pending', value: stats.pending, icon: '⏳', accent: 'linear-gradient(90deg,#f59e0b,#fbbf24)' },
-          { label: 'Approved', value: stats.approved, icon: '✅', accent: 'linear-gradient(90deg,#10b981,#34d399)' },
-          { label: 'Rejected', value: stats.rejected, icon: '❌', accent: 'linear-gradient(90deg,#f43f5e,#fb7185)' },
-          { label: 'Cancelled', value: stats.cancelled, icon: '🚫', accent: 'linear-gradient(90deg,#64748b,#94a3b8)' },
+          { label: 'Pending', value: stats.pending, icon: '⏳', accent: 'var(--mmh-warning)' },
+          { label: 'Approved', value: stats.approved, icon: '✅', accent: 'var(--mmh-success)' },
+          { label: 'Rejected', value: stats.rejected, icon: '❌', accent: 'var(--mmh-danger)' },
+          { label: 'Cancelled', value: stats.cancelled, icon: '🚫', accent: 'var(--mmh-text3)' },
         ].map(c => (
           <div className="mmh-stat-card" key={c.label}>
             <div className="mmh-stat-accent" style={{ background: c.accent }} />
@@ -202,7 +202,7 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                 }}
                 style={{
                   position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                  background: 'rgba(244,63,94,0.1)', color: '#fb7185', border: 'none',
+                  background: 'var(--mmh-danger-soft)', color: 'var(--mmh-danger)', border: 'none',
                   borderRadius: 6, padding: '2px 8px', fontSize: 10, fontWeight: 700, cursor: 'pointer'
                 }}
               >✕ Clear</button>
@@ -242,24 +242,24 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
           <div className="mmh-loader" />
         </div>
       ) : leaves.length === 0 ? (
-        <div className="mmh-empty" style={{ padding: '60px 20px', background: 'rgba(30,41,59,0.2)', borderRadius: 20, border: '1px dashed rgba(255,255,255,0.05)' }}>
+        <div className="mmh-empty" style={{ padding: '60px 20px', background: 'var(--mmh-bg2)', borderRadius: 20, border: '1px dashed var(--mmh-border)' }}>
           <div className="mmh-empty-icon" style={{ fontSize: 48, marginBottom: 16 }}>🏖️</div>
-          <div className="mmh-empty-text" style={{ fontSize: 16, color: '#94a3b8' }}>No leave requests found matching criteria</div>
+          <div className="mmh-empty-text" style={{ fontSize: 16, color: 'var(--mmh-text3)' }}>No leave requests found matching criteria</div>
         </div>
       ) : (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 24, marginBottom: 24 }}>
             {paginatedLeaves.map(l => (
             <div key={l._id} className={`mmh-leave-card ${LHC_CLASS[l.status] || ''}`} style={{
-              background: l.status === 'Pending' ? 'rgba(245, 158, 11, 0.05)' :
-                l.status === 'Approved' ? 'rgba(16, 185, 129, 0.05)' :
-                  l.status === 'Rejected' ? 'rgba(244, 63, 94, 0.05)' :
-                    'rgba(30,41,59,0.4)',
+              background: l.status === 'Pending' ? 'var(--mmh-warning-soft)' :
+                l.status === 'Approved' ? 'var(--mmh-success-soft)' :
+                  l.status === 'Rejected' ? 'var(--mmh-danger-soft)' :
+                    'var(--mmh-card2)',
               backdropFilter: 'blur(10px)',
-              border: `1px solid ${l.status === 'Pending' ? 'rgba(245,158,11,0.2)' :
-                  l.status === 'Approved' ? 'rgba(16,185,129,0.2)' :
-                    l.status === 'Rejected' ? 'rgba(244,63,94,0.2)' :
-                      'rgba(255,255,255,0.05)'
+              border: `1px solid ${l.status === 'Pending' ? 'var(--mmh-warning-soft)' :
+                  l.status === 'Approved' ? 'var(--mmh-success-soft)' :
+                    l.status === 'Rejected' ? 'var(--mmh-danger-soft)' :
+                      'var(--mmh-border)'
                 }`,
               borderRadius: 20,
               padding: 20,
@@ -275,7 +275,7 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                 left: 0,
                 width: 4,
                 height: '100%',
-                background: l.status === 'Pending' ? '#f59e0b' : l.status === 'Approved' ? '#10b981' : l.status === 'Rejected' ? '#f43f5e' : '#64748b'
+                background: l.status === 'Pending' ? 'var(--mmh-warning)' : l.status === 'Approved' ? 'var(--mmh-success)' : l.status === 'Rejected' ? 'var(--mmh-danger)' : 'var(--mmh-text3)'
               }} />
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
@@ -284,20 +284,20 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                     width: 44,
                     height: 44,
                     borderRadius: 12,
-                    background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                    background: 'var(--mmh-accent)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: 18,
                     fontWeight: 900,
-                    color: 'white',
-                    boxShadow: '0 4px 12px rgba(99,102,241,0.3)'
+                    color: 'var(--mmh-text-inverted)',
+                    boxShadow: 'var(--mmh-shadow-sm)'
                   }}>
                     {(l.employee?.name || '?').charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 800, color: 'white', fontSize: 15 }}>{l.employee?.name}</div>
-                    <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>{l.employee?.department} · {l.employee?.employeeId}</div>
+                    <div style={{ fontWeight: 800, color: 'var(--mmh-text)', fontSize: 15 }}>{l.employee?.name}</div>
+                    <div style={{ fontSize: 12, color: 'var(--mmh-text3)', fontWeight: 500 }}>{l.employee?.department} · {l.employee?.employeeId}</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
@@ -306,21 +306,21 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 20, padding: '12px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: 12, marginBottom: 14 }}>
+              <div style={{ display: 'flex', gap: 20, padding: '12px 14px', background: 'var(--mmh-bg3)', borderRadius: 12, marginBottom: 14 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <span style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Duration</span>
-                  <span style={{ fontSize: 13, color: 'white', fontWeight: 700 }}>📅 {fmtDate(l.fromDate)} → {fmtDate(l.toDate)}</span>
+                  <span style={{ fontSize: 10, color: 'var(--mmh-text3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Duration</span>
+                  <span style={{ fontSize: 13, color: 'var(--mmh-text)', fontWeight: 700 }}>📅 {fmtDate(l.fromDate)} → {fmtDate(l.toDate)}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <span style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Days</span>
-                  <span style={{ fontSize: 13, color: '#38bdf8', fontWeight: 800 }}>{l.totalDays || 0} Day{(l.totalDays || 0) !== 1 ? 's' : ''}</span>
+                  <span style={{ fontSize: 10, color: 'var(--mmh-text3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Days</span>
+                  <span style={{ fontSize: 13, color: 'var(--mmh-accent)', fontWeight: 800 }}>{l.totalDays || 0} Day{(l.totalDays || 0) !== 1 ? 's' : ''}</span>
                 </div>
               </div>
 
               {l.reason && (
                 <div style={{ marginBottom: 14 }}>
-                  <span style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>Reason</span>
-                  <div style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.6, fontStyle: 'italic' }}>"{l.reason}"</div>
+                  <span style={{ fontSize: 10, color: 'var(--mmh-text3)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 4 }}>Reason</span>
+                  <div style={{ fontSize: 13, color: 'var(--mmh-text2)', lineHeight: 1.6, fontStyle: 'italic' }}>"{l.reason}"</div>
                 </div>
               )}
 
@@ -328,7 +328,7 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                 <div style={{ marginBottom: 16 }}>
                   <div style={{
                     fontSize: '10px', fontWeight: '700',
-                    color: '#64748b', textTransform: 'uppercase',
+                    color: 'var(--mmh-text3)', textTransform: 'uppercase',
                     letterSpacing: '.06em', marginBottom: '6px',
                   }}>
                     Attached Document
@@ -338,8 +338,8 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                   <div style={{
                     display: 'flex', alignItems: 'center',
                     gap: '10px', padding: '10px 13px',
-                    background: '#111d35',
-                    border: '1px solid rgba(139,92,246,0.25)',
+                    background: 'var(--mmh-card2)',
+                    border: '1px solid var(--mmh-accent-border)',
                     borderRadius: '10px', marginBottom: '8px',
                   }}>
                     <span style={{ fontSize: '18px' }}>
@@ -348,13 +348,13 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{
                         fontSize: '13px', fontWeight: '600',
-                        color: '#a78bfa',
+                        color: 'var(--mmh-accent)',
                         overflow: 'hidden', textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                       }}>
                         {l.document.originalName}
                       </div>
-                      <div style={{ fontSize: '11px', color: '#475569' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--mmh-text3)' }}>
                         {formatSize(l.document.fileSize)}
                       </div>
                     </div>
@@ -374,10 +374,10 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                               flex: 1, display: 'flex',
                               alignItems: 'center', justifyContent: 'center',
                               gap: '6px', padding: '7px 0',
-                              background: 'rgba(14,165,233,0.1)',
-                              border: '1px solid rgba(14,165,233,0.25)',
+                              background: 'var(--mmh-info-soft)',
+                              border: '1px solid var(--mmh-info-soft)',
                               borderRadius: '8px',
-                              color: '#38bdf8', fontSize: '12px',
+                              color: 'var(--mmh-info)', fontSize: '12px',
                               fontWeight: '600', textDecoration: 'none',
                               cursor: 'pointer', transition: 'all 0.15s',
                             }}
@@ -402,10 +402,10 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                               flex: 1, display: 'flex',
                               alignItems: 'center', justifyContent: 'center',
                               gap: '6px', padding: '7px 0',
-                              background: 'rgba(139,92,246,0.1)',
-                              border: '1px solid rgba(139,92,246,0.25)',
+                              background: 'var(--mmh-accent-soft)',
+                              border: '1px solid var(--mmh-accent-soft)',
                               borderRadius: '8px',
-                              color: '#a78bfa', fontSize: '12px',
+                              color: 'var(--mmh-accent)', fontSize: '12px',
                               fontWeight: '600', textDecoration: 'none',
                               cursor: 'pointer', transition: 'all 0.15s',
                             }}
@@ -427,7 +427,7 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                 </div>
               ) : (
                 <div style={{
-                  fontSize: '11px', color: '#334155',
+                  fontSize: '11px', color: 'var(--mmh-text3)',
                   fontStyle: 'italic', marginBottom: '10px',
                 }}>
                   No document attached
@@ -435,26 +435,26 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
               )}
 
               {l.substituteEmployee && (
-                <div style={{ padding: '8px 12px', background: 'rgba(139,92,246,0.08)', borderRadius: 10, border: '1px solid rgba(139,92,246,0.1)', marginBottom: 14 }}>
+                <div style={{ padding: '8px 12px', background: 'var(--mmh-accent-soft)', borderRadius: 10, border: '1px solid var(--mmh-accent-border)', marginBottom: 14 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: 11, color: '#a78bfa', fontWeight: 600 }}>🔄 Substitute Requirement</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: l.substituteStatus === 'Accepted' ? '#10b981' : l.substituteStatus === 'Declined' ? '#f43f5e' : '#f59e0b' }}>
+                    <span style={{ fontSize: 11, color: 'var(--mmh-accent)', fontWeight: 600 }}>🔄 Substitute Requirement</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: l.substituteStatus === 'Accepted' ? 'var(--mmh-success)' : l.substituteStatus === 'Declined' ? 'var(--mmh-danger)' : 'var(--mmh-warning)' }}>
                       {l.substituteStatus || 'Pending'}
                     </span>
                   </div>
-                  <div style={{ fontSize: 12, color: 'white', marginTop: 4, fontWeight: 500 }}>{l.substituteEmployee?.name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--mmh-text)', marginTop: 4, fontWeight: 500 }}>{l.substituteEmployee?.name}</div>
                 </div>
               )}
 
               {l.status === 'Rejected' && l.rejectedReason && (
-                <div style={{ padding: '10px 14px', background: 'rgba(244,63,94,0.08)', borderRadius: 12, border: '1px solid rgba(244,63,94,0.15)', marginTop: 'auto' }}>
-                  <span style={{ fontSize: 11, color: '#fb7185', fontWeight: 700, display: 'block', marginBottom: 2 }}>❌ Rejection Reason</span>
-                  <div style={{ fontSize: 12, color: '#fda4af' }}>{l.rejectedReason}</div>
+                <div style={{ padding: '10px 14px', background: 'var(--mmh-danger-soft)', borderRadius: 12, border: '1px solid var(--mmh-danger-soft)', marginTop: 'auto' }}>
+                  <span style={{ fontSize: 11, color: 'var(--mmh-danger)', fontWeight: 700, display: 'block', marginBottom: 2 }}>❌ Rejection Reason</span>
+                  <div style={{ fontSize: 12, color: 'var(--mmh-text2)' }}>{l.rejectedReason}</div>
                 </div>
               )}
 
-              <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Update Status:</span>
+              <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid var(--mmh-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 11, color: 'var(--mmh-text3)', fontWeight: 600 }}>Update Status:</span>
                 <select
                   className="mmh-input-select"
                   style={{
@@ -463,28 +463,28 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                     padding: '0 10px',
                     fontSize: 12,
                     borderRadius: 8,
-                    background: l.status === 'Pending' ? 'rgba(245, 158, 11, 0.15)' :
-                      l.status === 'Approved' ? 'rgba(16, 185, 129, 0.15)' :
-                        l.status === 'Rejected' ? 'rgba(244, 63, 94, 0.15)' :
-                          'rgba(15,23,42,0.8)',
-                    color: l.status === 'Pending' ? '#f59e0b' :
-                      l.status === 'Approved' ? '#10b981' :
-                        l.status === 'Rejected' ? '#f43f5e' :
-                          'white',
-                    border: `1px solid ${l.status === 'Pending' ? '#f59e0b' :
-                        l.status === 'Approved' ? '#10b981' :
-                          l.status === 'Rejected' ? '#f43f5e' :
-                            'rgba(255,255,255,0.1)'
+                    background: l.status === 'Pending' ? 'var(--mmh-warning-soft)' :
+                      l.status === 'Approved' ? 'var(--mmh-success-soft)' :
+                        l.status === 'Rejected' ? 'var(--mmh-danger-soft)' :
+                          'var(--mmh-card2)',
+                    color: l.status === 'Pending' ? 'var(--mmh-warning)' :
+                      l.status === 'Approved' ? 'var(--mmh-success)' :
+                        l.status === 'Rejected' ? 'var(--mmh-danger)' :
+                          'var(--mmh-text)',
+                    border: `1px solid ${l.status === 'Pending' ? 'var(--mmh-warning)' :
+                        l.status === 'Approved' ? 'var(--mmh-success)' :
+                          l.status === 'Rejected' ? 'var(--mmh-danger)' :
+                            'var(--mmh-border)'
                       }`,
                     fontWeight: 700
                   }}
                   value={l.status}
                   onChange={(e) => handleStatusChange(l._id, e.target.value)}
                 >
-                  <option value="Pending" style={{ background: '#0f172a', color: '#f59e0b' }}>Pending</option>
-                  <option value="Approved" style={{ background: '#0f172a', color: '#10b981' }}>Approved</option>
-                  <option value="Rejected" style={{ background: '#0f172a', color: '#f43f5e' }}>Rejected</option>
-                  <option value="Cancelled" style={{ background: '#0f172a', color: '#64748b' }}>Cancelled</option>
+                  <option value="Pending" style={{ background: 'var(--mmh-bg)', color: 'var(--mmh-warning)' }}>Pending</option>
+                  <option value="Approved" style={{ background: 'var(--mmh-bg)', color: 'var(--mmh-success)' }}>Approved</option>
+                  <option value="Rejected" style={{ background: 'var(--mmh-bg)', color: 'var(--mmh-danger)' }}>Rejected</option>
+                  <option value="Cancelled" style={{ background: 'var(--mmh-bg)', color: 'var(--mmh-text3)' }}>Cancelled</option>
                 </select>
               </div>
             </div>
@@ -531,9 +531,9 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
               <button onClick={() => window.open(previewDoc, '_blank')} className="mmh-btn mmh-btn-xs mmh-btn-sky" style={{ marginRight: 8 }}>Open Original ↗</button>
               <button onClick={() => setPreviewDoc(null)} className="mmh-btn mmh-btn-xs mmh-btn-rose" style={{ width: 32, height: 32, padding: 0 }}>×</button>
             </div>
-            <div className="mmh-card" style={{ padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400, background: '#0f172a' }}>
+            <div className="mmh-card" style={{ padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400, background: 'var(--mmh-bg)' }}>
               {previewDoc.toLowerCase().endsWith('.pdf') ? (
-                <iframe src={previewDoc} style={{ width: '100%', height: '75vh', border: 'none' }} />
+                <iframe src={previewDoc} title="PDF Preview" style={{ width: '100%', height: '75vh', border: 'none' }} />
               ) : (
                 <img src={previewDoc} alt="Preview" style={{ maxWidth: '100%', maxHeight: '75vh', objectFit: 'contain' }} />
               )}

@@ -45,6 +45,8 @@ export const authAPI = {
   getMe: () => api.get('/auth/me'),
   changePassword: (data: object) =>
     api.post('/auth/change-password', data),
+  updateProfile: (data: object) =>
+    api.put('/auth/profile', data),
 }
 
 // All other APIs same as before...

@@ -33,21 +33,34 @@ const SlipTab: React.FC<{ employees: any[] }> = ({ employees }) => {
 
   const printSlip = () => {
     if (!slip) return;
+    const root = document.documentElement;
+    const accent = getComputedStyle(root).getPropertyValue('--mmh-accent').trim() || '#0ea5e9';
+    const text = getComputedStyle(root).getPropertyValue('--mmh-text').trim() || '#0f172a';
+    const border = getComputedStyle(root).getPropertyValue('--mmh-border').trim() || '#e2e8f0';
+    const bg2 = getComputedStyle(root).getPropertyValue('--mmh-bg2').trim() || '#f8fafc';
+
     const pw = window.open('', 'Print', 'width=520,height=800');
     if (!pw) return;
     const s = slip;
     const allw = (s.houseAllowance||0) + (s.medicalAllowance||0) + (s.transportAllowance||0);
     pw.document.write(`<!DOCTYPE html><html><head><title>Salary Slip</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
-    <style>*{box-sizing:border-box;margin:0;padding:0}body{background:white;display:flex;justify-content:center;padding:20px;font-family:'Plus Jakarta Sans',sans-serif}
-    .w{width:420px;background:white;color:#0f172a;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden}
-    .hd{background:#312e81;color:white;padding:18px 22px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .hd-h{font-size:18px;font-weight:900;font-style:italic}.hd-s{font-size:11px;opacity:.75;margin-top:3px}.hd-t{font-size:10px;text-transform:uppercase;letter-spacing:.15em;opacity:.7;margin-top:5px}
-    .bd{padding:18px 22px}.st{font-size:10px;font-weight:800;color:#312e81;text-transform:uppercase;letter-spacing:.1em;margin:12px 0 8px;padding-bottom:4px;border-bottom:1.5px solid #e0e7ff}
-    .row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px dotted #f1f5f9}.lbl{color:#64748b}.val{font-weight:600;color:#0f172a}.grn{color:#059669;font-weight:600}.red{color:#dc2626;font-weight:600}
-    .net{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#f0f0ff;border:2px solid #312e81;border-radius:10px;margin-top:12px}.net-l{font-size:15px;font-weight:800;color:#312e81}.net-v{font-size:22px;font-weight:900;font-family:'JetBrains Mono',monospace;color:#312e81}
-    .ft{background:#f8fafc;padding:10px 14px;text-align:center;font-size:9px;color:#94a3b8;border-top:1px solid #e2e8f0}
-    @media print{body{padding:0}}</style></head><body><div class="w">
+    <style>
+      :root {
+        --mmh-accent: ${accent};
+        --mmh-text: ${text};
+        --mmh-border: ${border};
+        --mmh-bg2: ${bg2};
+      }
+      *{box-sizing:border-box;margin:0;padding:0}body{background:white;display:flex;justify-content:center;padding:20px;font-family:'Plus Jakarta Sans',sans-serif}
+      .w{width:420px;background:white;color:var(--mmh-text);border:1px solid var(--mmh-border);border-radius:14px;overflow:hidden}
+      .hd{background:var(--mmh-accent);color:white;padding:18px 22px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      .hd-h{font-size:18px;font-weight:900;font-style:italic}.hd-s{font-size:11px;opacity:.75;margin-top:3px}.hd-t{font-size:10px;text-transform:uppercase;letter-spacing:.15em;opacity:.7;margin-top:5px}
+      .bd{padding:18px 22px}.st{font-size:10px;font-weight:800;color:var(--mmh-accent);text-transform:uppercase;letter-spacing:.1em;margin:12px 0 8px;padding-bottom:4px;border-bottom:1.5px solid var(--mmh-border)}
+      .row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px dotted var(--mmh-bg2);color:var(--mmh-text)}.lbl{color:#64748b}.val{font-weight:600;color:var(--mmh-text)}.grn{color:#059669;font-weight:600}.red{color:#dc2626;font-weight:600}
+      .net{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(14,165,233,0.05);border:2px solid var(--mmh-accent);border-radius:10px;margin-top:12px}.net-l{font-size:15px;font-weight:800;color:var(--mmh-accent)}.net-v{font-size:22px;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--mmh-accent)}
+      .ft{background:var(--mmh-bg2);padding:10px 14px;text-align:center;font-size:9px;color:#94a3b8;border-top:1px solid var(--mmh-border)}
+      @media print{body{padding:0}}</style></head><body><div class="w">
     <div class="hd"><div class="hd-h">🏥 Majida Memorial Hospital</div><div class="hd-s">Chiniot, Punjab</div><div class="hd-t">— Salary Slip — ${MONTHS[month-1]} ${year}</div></div>
     <div class="bd">
     <div class="st">Employee Details</div>
@@ -67,7 +80,7 @@ const SlipTab: React.FC<{ employees: any[] }> = ({ employees }) => {
   return (
     <div>
       <div className="mmh-card" style={{marginBottom:24,overflow:'visible'}}>
-        <div className="mmh-card-accent-top" style={{background:'linear-gradient(90deg,#312e81,#7c3aed)'}} />
+        <div className="mmh-card-accent-top" style={{background:'var(--mmh-accent)'}} />
         <div className="mmh-card-header"><div className="mmh-card-title">📄 Salary Slip Generator</div></div>
         <div className="mmh-card-body" style={{overflow:'visible'}}>
           <div style={{display:'flex',gap:16,flexWrap:'wrap',alignItems:'flex-end',overflow:'visible'}}>

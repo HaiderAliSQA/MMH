@@ -92,12 +92,12 @@ const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({ patientId, mr
       <div className="mmh-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px', height: '90vh', display: 'flex', flexDirection: 'column' }}>
         <div className="mmh-modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #0ea5e9, #0284c7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: '900', color: 'white' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--mmh-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: '900', color: 'var(--mmh-text-inverted)' }}>
               {patient?.name?.charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="mmh-modal-title" style={{ fontSize: '18px' }}>{patient?.name}</div>
-              <div style={{ fontSize: '12px', color: '#64748b', fontFamily: 'JetBrains Mono, monospace', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--mmh-text3)', fontFamily: 'JetBrains Mono, monospace', marginTop: '2px' }}>
                 {mrNumber} • {patient?.age}y • {patient?.gender} • {patient?.phone}
               </div>
             </div>
@@ -109,14 +109,14 @@ const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({ patientId, mr
           {/* Stats Row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
             {[
-              { label: 'Visits', value: stats.visits, color: '#0ea5e9', icon: '👨‍⚕️' },
-              { label: 'Labs', value: stats.labs, color: '#8b5cf6', icon: '🔬' },
-              { label: 'Prescriptions', value: stats.prescriptions, color: '#10b981', icon: '💊' },
-              { label: 'Admissions', value: stats.admissions, color: '#f43f5e', icon: '🏥' },
+              { label: 'Visits', value: stats.visits, color: 'var(--mmh-info)', icon: '👨‍⚕️' },
+              { label: 'Labs', value: stats.labs, color: 'var(--mmh-accent)', icon: '🔬' },
+              { label: 'Prescriptions', value: stats.prescriptions, color: 'var(--mmh-success)', icon: '💊' },
+              { label: 'Admissions', value: stats.admissions, color: 'var(--mmh-danger)', icon: '🏥' },
             ].map(s => (
-              <div key={s.label} style={{ background: '#0f1e38', border: '1px solid #1e3050', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+              <div key={s.label} style={{ background: 'var(--mmh-bg3)', border: '1px solid var(--mmh-border)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
                 <div style={{ fontSize: '18px', fontWeight: '900', color: s.color, fontFamily: 'JetBrains Mono, monospace' }}>{s.value}</div>
-                <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '2px' }}>{s.icon} {s.label}</div>
+                <div style={{ fontSize: '10px', color: 'var(--mmh-text3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '2px' }}>{s.icon} {s.label}</div>
               </div>
             ))}
           </div>
@@ -141,9 +141,9 @@ const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({ patientId, mr
                   whiteSpace: 'nowrap',
                   cursor: 'pointer',
                   transition: 'all 0.15s',
-                  background: activeFilter === f.id ? 'rgba(14,165,233,0.1)' : 'transparent',
-                  border: `1px solid ${activeFilter === f.id ? '#0ea5e9' : '#1e3050'}`,
-                  color: activeFilter === f.id ? '#38bdf8' : '#64748b',
+                  background: activeFilter === f.id ? 'var(--mmh-accent-soft)' : 'transparent',
+                  border: `1px solid ${activeFilter === f.id ? 'var(--mmh-accent)' : 'var(--mmh-border)'}`,
+                  color: activeFilter === f.id ? 'var(--mmh-accent)' : 'var(--mmh-text3)',
                 }}
               >
                 {f.label}
@@ -175,7 +175,7 @@ const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({ patientId, mr
 
                       <div style={{ marginTop: '8px' }}>
                         {item.type === 'opd' && item.chiefComplaint && (
-                          <div style={{ fontSize: '12px', color: '#cbd5e1' }}>Complaint: {item.chiefComplaint}</div>
+                          <div style={{ fontSize: '12px', color: 'var(--mmh-text2)' }}>Complaint: {item.chiefComplaint}</div>
                         )}
                         {item.type === 'lab' && (
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
@@ -183,14 +183,14 @@ const PatientHistoryModal: React.FC<PatientHistoryModalProps> = ({ patientId, mr
                           </div>
                         )}
                         {item.type === 'rx' && (
-                          <div style={{ fontSize: '12px', color: '#cbd5e1' }}>
+                          <div style={{ fontSize: '12px', color: 'var(--mmh-text2)' }}>
                             {item.items?.length} medicines prescribed
                           </div>
                         )}
                       </div>
                     </div>
                     {item.type === 'opd' && item.tokenNumber && (
-                      <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '14px', fontWeight: '900', color: '#0ea5e9' }}>
+                      <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '14px', fontWeight: '900', color: 'var(--mmh-accent)' }}>
                         #{String(item.tokenNumber).padStart(4, '0')}
                       </div>
                     )}

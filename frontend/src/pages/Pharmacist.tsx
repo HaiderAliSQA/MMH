@@ -113,8 +113,8 @@ const Pharmacist: React.FC = () => {
                             {cart.length > 0 && (
                                 <div style={{ marginTop: '32px', borderTop: '1px solid var(--mmh-border)', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div>
-                                        <div style={{ fontSize: '12px', color: 'var(--mmh-muted)' }}>Payable Amount</div>
-                                        <div style={{ fontSize: '28px', fontWeight: 900, color: 'white', fontFamily: 'JetBrains Mono' }}>
+                                        <div style={{ fontSize: '12px', color: 'var(--mmh-text3)' }}>Payable Amount</div>
+                                        <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--mmh-text)', fontFamily: 'JetBrains Mono' }}>
                                             RS {cart.reduce((sum, item) => sum + item.total, 0).toFixed(2)}
                                         </div>
                                     </div>
@@ -150,9 +150,9 @@ const Pharmacist: React.FC = () => {
                                         <td className="mmh-td-name">{m.name}</td>
                                         <td><span className="mmh-badge mmh-badge-gray">{m.category}</span></td>
                                         <td>
-                                            <div style={{ fontWeight: 800 }}>{m.quantity} <span style={{ fontSize: '10px', color: 'var(--mmh-muted)' }}>{m.unit}</span></div>
+                                            <div style={{ fontWeight: 800 }}>{m.quantity} <span style={{ fontSize: '10px', color: 'var(--mmh-text3)' }}>{m.unit}</span></div>
                                             <div style={{ height: '3px', background: 'var(--mmh-bg3)', width: '100px', marginTop: '5px', borderRadius: '10px', overflow: 'hidden' }}>
-                                                <div style={{ height: '100%', background: m.quantity <= 20 ? 'var(--mmh-rose)' : 'var(--mmh-green)', width: `${Math.min(100, (m.quantity/100)*100)}%` }} />
+                                                <div style={{ height: '100%', background: m.quantity <= 20 ? 'var(--mmh-danger)' : 'var(--mmh-success)', width: `${Math.min(100, (m.quantity/100)*100)}%` }} />
                                             </div>
                                         </td>
                                         <td style={{ fontFamily: 'JetBrains Mono', fontWeight: 700 }}>{m.price?.toFixed(2)}</td>

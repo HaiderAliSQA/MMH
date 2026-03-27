@@ -47,19 +47,19 @@ const ManageWards: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Available': return 'rgba(16, 185, 129, 0.15)'; // Green
-      case 'Occupied': return 'rgba(244, 63, 94, 0.15)';  // Rose
-      case 'Maintenance': return 'rgba(245, 158, 11, 0.15)'; // Amber
-      default: return 'rgba(100, 116, 139, 0.15)';
+      case 'Available': return 'var(--mmh-success-soft)';
+      case 'Occupied': return 'var(--mmh-danger-soft)';
+      case 'Maintenance': return 'var(--mmh-warning-soft)';
+      default: return 'var(--mmh-bg3)';
     }
   };
 
   const getStatusBorder = (status: string) => {
     switch (status) {
-      case 'Available': return '#10b981';
-      case 'Occupied': return '#f43f5e';
-      case 'Maintenance': return '#f59e0b';
-      default: return '#64748b';
+      case 'Available': return 'var(--mmh-success)';
+      case 'Occupied': return 'var(--mmh-danger)';
+      case 'Maintenance': return 'var(--mmh-warning)';
+      default: return 'var(--mmh-text3)';
     }
   };
 
@@ -93,46 +93,46 @@ const ManageWards: React.FC = () => {
             const occupied = wardBeds.filter(b => b.status === 'Occupied').length;
             
             return (
-              <div key={ward._id} className="mmh-card" style={{ overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div key={ward._id} className="mmh-card" style={{ overflow: 'hidden', border: '1px solid var(--mmh-border)' }}>
                 {/* WARD HEADER */}
-                <div style={{ 
-                  background: 'linear-gradient(90deg, rgba(15,23,42,1) 0%, rgba(30,41,59,1) 100%)', 
-                  padding: '16px 20px', 
-                  borderBottom: '1px solid rgba(255,255,255,0.05)',
+                <div style={{
+                  background: 'var(--mmh-accent)',
+                  padding: '16px 20px',
+                  borderBottom: '1px solid var(--mmh-border)',
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 12, background: 'linear-gradient(135deg, #0ea5e9, #3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, boxShadow: '0 4px 12px rgba(14,165,233,0.3)' }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--mmh-bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, border: '1px solid var(--mmh-border)' }}>
                       🏥
                     </div>
                     <div>
                       <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>{ward.name}</h2>
-                      <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, marginTop: 2 }}>{ward.department} Department</div>
+                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', fontWeight: 500, marginTop: 2 }}>{ward.department} Department</div>
                     </div>
                   </div>
                   
                   <div style={{ display: 'flex', gap: 16 }}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 20, fontWeight: 900, color: '#10b981', fontFamily: 'JetBrains Mono, monospace' }}>{available}</div>
-                      <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Available</div>
+                      <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--mmh-success)', fontFamily: 'JetBrains Mono, monospace' }}>{available}</div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Available</div>
                     </div>
                     <div style={{ width: 1, background: 'rgba(255,255,255,0.1)' }} />
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 20, fontWeight: 900, color: '#f43f5e', fontFamily: 'JetBrains Mono, monospace' }}>{occupied}</div>
-                      <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Occupied</div>
+                      <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--mmh-danger)', fontFamily: 'JetBrains Mono, monospace' }}>{occupied}</div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Occupied</div>
                     </div>
                     <div style={{ width: 1, background: 'rgba(255,255,255,0.1)' }} />
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 20, fontWeight: 900, color: '#e2e8f0', fontFamily: 'JetBrains Mono, monospace' }}>{wardBeds.length}</div>
-                      <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Beds</div>
+                      <div style={{ fontSize: 20, fontWeight: 900, color: 'white', fontFamily: 'JetBrains Mono, monospace' }}>{wardBeds.length}</div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Beds</div>
                     </div>
                   </div>
                 </div>
 
                 {/* BEDS GRID */}
-                <div style={{ padding: '24px', background: 'rgba(15,23,42,0.4)' }}>
+                <div style={{ padding: '24px', background: 'var(--mmh-bg2)' }}>
                   {wardBeds.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '20px', color: '#64748b', fontSize: 13, fontStyle: 'italic' }}>No beds assigned to this ward yet.</div>
+                    <div style={{ textAlign: 'center', padding: '20px', color: 'var(--mmh-text3)', fontSize: 13, fontStyle: 'italic' }}>No beds assigned to this ward yet.</div>
                   ) : (
                     <div style={{ 
                       display: 'grid', 
@@ -155,7 +155,6 @@ const ManageWards: React.FC = () => {
                             gap: 6,
                             transition: 'all 0.2s',
                             cursor: 'default',
-                            boxShadow: `0 4px 12px ${getStatusColor(bed.status).replace('0.15', '0.2')}`
                           }}
                           onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
                           onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}

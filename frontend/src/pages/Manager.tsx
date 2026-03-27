@@ -59,10 +59,10 @@ const Manager: React.FC<ManagerProps> = ({ onLogout }) => {
         <div style={{ animation: 'mmh-fade-in 0.3s ease' }}>
           <div className="mmh-stats-grid">
             {[
-              { label:'Total Patients', icon:'👥', value: stats.totalPatients, accent:'linear-gradient(90deg,#0ea5e9,#38bdf8)' },
-              { label:'Active Doctors', icon:'👨‍⚕️', value: stats.totalDoctors,  accent:'linear-gradient(90deg,#10b981,#34d399)' },
-              { label:'Pending Labs',  icon:'🔬', value: stats.pendingLabs,  accent:'linear-gradient(90deg,#8b5cf6,#a78bfa)' },
-              { label:'Total Revenue',  icon:'💰', value: `PKR ${stats.revenue.toLocaleString()}`, accent:'linear-gradient(90deg,#f59e0b,#fbbf24)' },
+              { label:'Total Patients', icon:'👥', value: stats.totalPatients, accent:'var(--mmh-accent)' },
+              { label:'Active Doctors', icon:'👨‍⚕️', value: stats.totalDoctors,  accent:'var(--mmh-success)' },
+              { label:'Pending Labs',  icon:'🔬', value: stats.pendingLabs,  accent:'var(--mmh-info)' },
+              { label:'Total Revenue',  icon:'💰', value: `PKR ${stats.revenue.toLocaleString()}`, accent:'var(--mmh-warning)' },
             ].map(c => (
               <div className="mmh-stat-card" key={c.label}>
                 <div className="mmh-stat-accent" style={{ background: c.accent }} />
@@ -76,7 +76,7 @@ const Manager: React.FC<ManagerProps> = ({ onLogout }) => {
           </div>
 
           <div className="mmh-card" style={{ marginTop: 24 }}>
-            <div className="mmh-card-accent-top" style={{ background:'linear-gradient(90deg,#0ea5e9,#10b981)' }} />
+            <div className="mmh-card-accent-top" style={{ background:'var(--mmh-accent)' }} />
             <div className="mmh-card-header">
               <div className="mmh-card-title">📋 Department Status</div>
               <div className="mmh-badge mmh-badge-green">All Systems Operational</div>

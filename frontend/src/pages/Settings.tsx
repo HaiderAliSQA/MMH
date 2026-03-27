@@ -83,21 +83,21 @@ const Settings: React.FC = () => {
 
     const strength = getStrength(form.newPassword);
     const strengthLabels = ['Too Short', 'Weak', 'Fair', 'Good', 'Strong'];
-    const strengthColors = ['#475569', '#ef4444', '#f59e0b', '#10b981', '#10b981'];
+    const strengthColors = ['var(--mmh-text3)', 'var(--mmh-danger)', 'var(--mmh-warning)', 'var(--mmh-success)', 'var(--mmh-success)'];
 
     return (
         <div style={{ padding: '0', animation: 'mmh-fade-in 0.4s ease' }}>
             {/* Page Header (Optional, simplified) */}
             <div className="mmh-page-header" style={{ marginBottom: '24px' }}>
-                <h1 className="mmh-page-title" style={{ fontSize: '24px', fontWeight: 700, color: 'white' }}>⚙️ Security & Profile</h1>
-                <p className="mmh-page-sub" style={{ color: '#64748b' }}>Manage your account settings and update password</p>
+                <h1 className="mmh-page-title" style={{ fontSize: '24px', fontWeight: 700, color: 'var(--mmh-text)' }}>⚙️ Security & Profile</h1>
+                <p className="mmh-page-sub" style={{ color: 'var(--mmh-text3)' }}>Manage your account settings and update password</p>
             </div>
 
             <div className="mmh-settings-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
                 
                 {/* Profile Overview */}
                 <div className="mmh-card" style={{ height: 'fit-content' }}>
-                    <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }} />
+                    <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-accent)' }} />
                     <div className="mmh-card-header">
                         <div className="mmh-card-title">👤 My Profile</div>
                     </div>
@@ -106,20 +106,20 @@ const Settings: React.FC = () => {
                             width: '100px', 
                             height: '100px', 
                             borderRadius: '50%', 
-                            background: 'linear-gradient(135deg, #0ea5e9, #6366f1)', 
+                            background: 'var(--mmh-accent)', 
                             display: 'flex', 
                             alignItems: 'center', 
                             justifyContent: 'center',
                             fontSize: '40px',
-                            color: 'white',
+                            color: 'var(--mmh-text-inverted)',
                             fontWeight: 700,
                             marginBottom: '20px',
-                            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                            boxShadow: 'var(--mmh-shadow-lg)'
                         }}>
                             {user.name.charAt(0).toUpperCase()}
                         </div>
-                        <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>{user.name}</h2>
-                        <p style={{ color: '#94a3b8', fontSize: '16px', marginBottom: '32px' }}>{user.email}</p>
+                        <h2 style={{ color: 'var(--mmh-text)', fontSize: '24px', fontWeight: 700, marginBottom: '4px' }}>{user.name}</h2>
+                        <p style={{ color: 'var(--mmh-text3)', fontSize: '16px', marginBottom: '32px' }}>{user.email}</p>
                         
                         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {[
@@ -128,12 +128,12 @@ const Settings: React.FC = () => {
                                 { label: 'Access Level', value: user.role === 'admin' ? 'Root' : 'Standard' },
                                 { label: 'Status', value: 'Active ✅', isSuccess: true }
                             ].map((item, idx) => (
-                                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px' }}>
-                                    <span style={{ color: '#64748b', fontSize: '14px' }}>{item.label}</span>
+                                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--mmh-bg3)', borderRadius: '12px' }}>
+                                    <span style={{ color: 'var(--mmh-text3)', fontSize: '14px' }}>{item.label}</span>
                                     {item.isBadge ? (
                                         <span className="mmh-badge mmh-badge-sky" style={{ textTransform: 'capitalize' }}>{item.value}</span>
                                     ) : (
-                                        <span style={{ color: item.isSuccess ? '#10b981' : 'white', fontWeight: 600, fontSize: '14px' }}>{item.value}</span>
+                                        <span style={{ color: item.isSuccess ? 'var(--mmh-success)' : 'var(--mmh-text)', fontWeight: 600, fontSize: '14px' }}>{item.value}</span>
                                     )}
                                 </div>
                             ))}
@@ -143,7 +143,7 @@ const Settings: React.FC = () => {
 
                 {/* Password Change Form */}
                 <div className="mmh-card">
-                    <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg, #f59e0b, #ef4444)' }} />
+                    <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-accent)' }} />
                     <div className="mmh-card-header">
                         <div className="mmh-card-title">🔐 Change Password</div>
                     </div>
@@ -202,10 +202,10 @@ const Settings: React.FC = () => {
                             {form.newPassword && (
                                 <div style={{ marginTop: '12px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                                        <span style={{ fontSize: '12px', color: '#64748b' }}>Security Strength</span>
+                                        <span style={{ fontSize: '12px', color: 'var(--mmh-text3)' }}>Security Strength</span>
                                         <span style={{ fontSize: '12px', fontWeight: 700, color: strengthColors[strength] }}>{strengthLabels[strength]}</span>
                                     </div>
-                                    <div style={{ height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden', display: 'flex', gap: '4px' }}>
+                                    <div style={{ height: '4px', background: 'var(--mmh-border)', borderRadius: '2px', overflow: 'hidden', display: 'flex', gap: '4px' }}>
                                         {[1, 2, 3, 4].map(i => (
                                             <div key={i} style={{ 
                                                 flex: 1, 
@@ -242,7 +242,7 @@ const Settings: React.FC = () => {
                                 </button>
                             </div>
                             {form.confirmPassword && form.confirmPassword !== form.newPassword && (
-                                <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '6px' }}>⚠️ Passwords do not match</div>
+                                <div style={{ color: 'var(--mmh-danger)', fontSize: '12px', marginTop: '6px' }}>⚠️ Passwords do not match</div>
                             )}
                         </div>
 

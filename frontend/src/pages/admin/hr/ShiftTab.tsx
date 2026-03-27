@@ -62,10 +62,10 @@ const ShiftTab: React.FC<Props> = ({ employees }) => {
   const shiftBadge = (type: string) => { const m: Record<string,string> = {Morning:'M',Evening:'E',Night:'N',Off:'—'}; const c: Record<string,string> = {Morning:'mmh-shift-M',Evening:'mmh-shift-E',Night:'mmh-shift-N',Off:'mmh-shift-off'}; return <span className={c[type]||'mmh-shift-off'}>{m[type]||'—'}</span>; };
 
   const stats = [
-    { icon:'👥', label:'Total Staff', value: employees.length, color:'#0ea5e9' },
-    { icon:'☀️', label:'Morning Shifts', value: countByShift('Morning'), color:'#38bdf8' },
-    { icon:'🌤', label:'Evening Shifts', value: countByShift('Evening'), color:'#f59e0b' },
-    { icon:'🌙', label:'Night Shifts', value: countByShift('Night'), color:'#8b5cf6' },
+    { icon:'👥', label:'Total Staff', value: employees.length, color:'var(--mmh-accent)' },
+    { icon:'☀️', label:'Morning Shifts', value: countByShift('Morning'), color:'var(--mmh-info)' },
+    { icon:'🌤', label:'Evening Shifts', value: countByShift('Evening'), color:'var(--mmh-warning)' },
+    { icon:'🌙', label:'Night Shifts', value: countByShift('Night'), color:'var(--mmh-info)' },
   ];
 
   return (
@@ -89,7 +89,7 @@ const ShiftTab: React.FC<Props> = ({ employees }) => {
             <thead><tr><th>Staff</th><th>Role</th>{DAYS.map(d=><th key={d}>{d}</th>)}<th>Hrs</th></tr></thead>
             <tbody>
               {loading ? <tr><td colSpan={10} style={{textAlign:'center',padding:40}}>Loading...</td></tr> :
-               shifts.length===0 ? <tr><td colSpan={10} style={{textAlign:'center',padding:40,color:'#475569'}}>No shifts assigned for this week</td></tr> :
+               shifts.length===0 ? <tr><td colSpan={10} style={{textAlign:'center',padding:40,color:'var(--mmh-text3)'}}>No shifts assigned for this week</td></tr> :
                shifts.map((s,si) => (
                 <tr key={si}>
                   <td><div className="mmh-td-name">{s.employee?.name||'—'}</div><div className="mmh-td-sub">{s.employee?.employeeId||''}</div></td>
@@ -135,16 +135,16 @@ const ShiftTab: React.FC<Props> = ({ employees }) => {
               <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:8}}>
                 {modalSchedule.map((s,i)=>(
                   <div key={s.day} style={{textAlign:'center'}}>
-                    <div style={{fontSize:11,fontWeight:700,color:'#64748b',marginBottom:6}}>{s.day}</div>
+                    <div style={{fontSize:11,fontWeight:700,color:'var(--mmh-text3)',marginBottom:6}}>{s.day}</div>
                     <select className="mmh-input-select" style={{height:38,fontSize:12,padding:'0 8px'}} value={s.shiftType} onChange={e=>{const ns=[...modalSchedule];ns[i]={...ns[i],shiftType:e.target.value};setModalSchedule(ns);}}>
                       {SHIFT_TYPES.map(t=><option key={t} value={t}>{t}</option>)}
                     </select>
                   </div>
                 ))}
               </div>
-              <div style={{marginTop:16,padding:12,background:'#111d35',borderRadius:10,display:'flex',justifyContent:'space-between',fontSize:13}}>
-                <span style={{color:'#64748b'}}>Total Hours</span>
-                <span style={{fontWeight:800,color:'white',fontFamily:'JetBrains Mono,monospace'}}>{modalSchedule.reduce((s,d)=>s+(SHIFT_HOURS[d.shiftType]||0),0)}h</span>
+              <div style={{marginTop:16,padding:12,background:'var(--mmh-bg3)',borderRadius:10,display:'flex',justifyContent:'space-between',fontSize:13,border:'1px solid var(--mmh-border)'}}>
+                <span style={{color:'var(--mmh-text3)'}}>Total Hours</span>
+                <span style={{fontWeight:800,color:'var(--mmh-text)',fontFamily:'JetBrains Mono,monospace'}}>{modalSchedule.reduce((s,d)=>s+(SHIFT_HOURS[d.shiftType]||0),0)}h</span>
               </div>
             </div>
             <div className="mmh-modal-footer"><button className="mmh-btn mmh-btn-ghost" onClick={()=>setShowModal(false)}>Cancel</button><button className="mmh-btn mmh-btn-primary" disabled={!modalEmp||saving} onClick={saveNewShift}>{saving?'Saving...':'Save Shift'}</button></div>

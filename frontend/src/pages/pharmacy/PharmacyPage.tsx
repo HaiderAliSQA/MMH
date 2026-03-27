@@ -341,10 +341,10 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
       {activeTab === 'dispense' && (
         <div className="mmh-tab-content">
           {stockErrors.length > 0 && (
-            <div className="mmh-alert mmh-alert-warning" style={{ background: 'rgba(244,63,94,0.1)', borderColor: 'rgba(244,63,94,0.3)', color: '#fb7185', marginBottom: '24px' }}>
+            <div className="mmh-alert mmh-alert-warning" style={{ background: 'var(--mmh-danger-soft)', borderColor: 'var(--mmh-danger-soft)', color: 'var(--mmh-danger)', marginBottom: '24px' }}>
               <div style={{ fontWeight: 800, marginBottom: 8 }}>⚠️ Stock Problem:</div>
               {stockErrors.map((err, i) => (
-                <div key={i} style={{ fontSize: '13px', padding: '5px 0', borderBottom: '1px solid rgba(244,63,94,0.15)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div key={i} style={{ fontSize: '13px', padding: '5px 0', borderBottom: '1px solid var(--mmh-danger-soft)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span>❌</span>
                   <span>{err}</span>
                 </div>
@@ -377,14 +377,14 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                         {(patientResults.length > 0 || patientLoading) ? (
                           <div className="mmh-patient-dropdown" style={{ zIndex: 99999 }}>
                             {patientLoading
-                              ? <div style={{ padding: '12px 16px', color: '#64748b', fontSize: 12 }}>Searching…</div>
+                              ? <div style={{ padding: '12px 16px', color: 'var(--mmh-text3)', fontSize: 12 }}>Searching…</div>
                               : patientResults.map(p => (
                                 <div
                                   key={p._id}
                                   className="mmh-patient-dropdown-item"
                                   onMouseDown={e => { e.preventDefault(); selectPatient(p); }}
                                 >
-                                  <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg,#0ea5e9,#0284c7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 900, color: 'white', flexShrink: 0 }}>
+                                  <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--mmh-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 900, color: 'white', flexShrink: 0 }}>
                                     {p.name.charAt(0).toUpperCase()}
                                   </div>
                                   <span className="mmh-dropdown-mr">{p.mrNumber}</span>
@@ -395,7 +395,7 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                             }
                           </div>
                         ) : (patientSearch.length >= 2 && !patientLoading && (
-                          <div className="mmh-patient-dropdown" style={{ zIndex: 99999, padding: '18px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+                          <div className="mmh-patient-dropdown" style={{ zIndex: 99999, padding: '18px', textAlign: 'center', color: 'var(--mmh-text3)', fontSize: '13px' }}>
                             No patient found for "{patientSearch}"
                           </div>
                         ))}
@@ -441,8 +441,8 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                       ))}
                     </select>
                     {selectedMedicine && (
-                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
-                        Stock: <strong style={{ color: 'white' }}>{selectedMedicine.quantity} {selectedMedicine.unit}s</strong> available
+                      <div style={{ fontSize: '12px', color: 'var(--mmh-text3)', marginTop: '6px' }}>
+                        Stock: <strong style={{ color: 'var(--mmh-text)' }}>{selectedMedicine.quantity} {selectedMedicine.unit}s</strong> available
                       </div>
                     )}
                   </div>
@@ -453,7 +453,7 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                         <div className="mmh-field">
                           <label className="mmh-label">
                             Quantity
-                            <span style={{ color: '#64748b', marginLeft: 8, fontWeight: 400, textTransform: 'none' }}>
+                            <span style={{ color: 'var(--mmh-text3)', marginLeft: 8, fontWeight: 400, textTransform: 'none' }}>
                               (Max: {selectedMedicine.quantity})
                             </span>
                           </label>
@@ -465,7 +465,7 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                             value={selectedQty}
                             onChange={(e) => setSelectedQty(parseInt(e.target.value) || 0)}
                             style={{
-                              borderColor: selectedQty > selectedMedicine.quantity ? '#f43f5e' : undefined,
+                              borderColor: selectedQty > selectedMedicine.quantity ? 'var(--mmh-danger)' : undefined,
                               fontFamily: 'JetBrains Mono, monospace',
                               fontSize: '16px',
                             }}
@@ -474,22 +474,22 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                             <div className="mmh-stock-usage-fill" style={{
                               width: `${Math.min(100, (selectedQty / Math.max(1, selectedMedicine.quantity)) * 100)}%`,
                               background: selectedQty > selectedMedicine.quantity
-                                ? '#f43f5e'
+                                ? 'var(--mmh-danger)'
                                 : selectedQty > selectedMedicine.quantity * 0.8
-                                  ? '#f59e0b' : '#0ea5e9'
+                                  ? 'var(--mmh-warning)' : 'var(--mmh-accent)'
                             }} />
                           </div>
                           {selectedQty > selectedMedicine.quantity && (
-                            <span className="mmh-field-error" style={{ color: '#fb7185', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                            <span className="mmh-field-error" style={{ color: 'var(--mmh-danger)', fontSize: '11px', marginTop: '4px', display: 'block' }}>
                               ⚠️ Max available: {selectedMedicine.quantity} {selectedMedicine.unit}s
                             </span>
                           )}
                         </div>
                         <div className="mmh-field">
                           <label className="mmh-label">Subtotal Estimate</label>
-                          <div style={{ padding: '12px 16px', background: '#111d35', borderRadius: '12px', border: '1px solid #1e3050' }}>
-                            <div style={{ fontSize: '12px', color: '#64748b' }}>PKR {selectedMedicine.pricePerUnit} / {selectedMedicine.unit}</div>
-                            <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--mmh-green)', fontFamily: 'JetBrains Mono, monospace', marginTop: '2px' }}>
+                          <div style={{ padding: '12px 16px', background: 'var(--mmh-bg2)', borderRadius: '12px', border: '1px solid var(--mmh-border)' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--mmh-text3)' }}>PKR {selectedMedicine.pricePerUnit} / {selectedMedicine.unit}</div>
+                            <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--mmh-success)', fontFamily: 'JetBrains Mono, monospace', marginTop: '2px' }}>
                               PKR {selectedMedicine.pricePerUnit * (selectedQty || 0)}
                             </div>
                           </div>
@@ -521,7 +521,7 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                   <div className="mmh-empty" style={{ padding: '40px 0' }}>
                     <div style={{ fontSize: '32px', marginBottom: '12px', opacity: 0.5 }}>🛒</div>
                     <div>Cart is empty</div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Add medicines to proceed</div>
+                    <div style={{ fontSize: '12px', color: 'var(--mmh-text3)', marginTop: '4px' }}>Add medicines to proceed</div>
                   </div>
                 ) : (
                   <>
@@ -759,7 +759,7 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                       filteredInventory.map((m, idx) => {
                         const minQty = m.minQty || 1; // Prevent division by zero
                         const stockPct = (m.quantity / (minQty * 3)) * 100;
-                        const progressColor = m.quantity === 0 ? 'var(--mmh-rose)' : m.quantity <= (m.minQty || 0) ? 'var(--mmh-amber)' : 'var(--mmh-green)';
+                        const progressColor = m.quantity === 0 ? 'var(--mmh-danger)' : m.quantity <= (m.minQty || 0) ? 'var(--mmh-warning)' : 'var(--mmh-success)';
 
                         return (
                           <tr key={m._id}>
@@ -806,7 +806,7 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
       {dispenseRecord && (
         <div className="mmh-overlay">
           <div className="mmh-modal mmh-modal-sm" style={{ padding: '0', animation: 'mmh-scale-in 0.3s ease' }}>
-            <div style={{ padding: '20px', background: 'var(--mmh-green)', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '22px 22px 0 0' }}>
+            <div style={{ padding: '20px', background: 'var(--mmh-success)', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '22px 22px 0 0' }}>
               <h2 style={{ fontSize: '16px', fontWeight: 800, margin: 0 }}>✅ Dispensed Successfully!</h2>
               <button
                 className="mmh-modal-close"
@@ -814,11 +814,11 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                 onClick={() => setDispenseRecord(null)}
               >×</button>
             </div>
-            <div style={{ background: '#f8fafc', padding: '20px', maxHeight: '60vh', overflowY: 'auto' }}>
+            <div style={{ background: 'var(--mmh-bg)', padding: '20px', maxHeight: '60vh', overflowY: 'auto' }}>
               <DispensingSlip dispense={dispenseRecord} />
             </div>
-            <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #e2e8f0', background: 'white' }}>
-              <button type="button" className="mmh-btn mmh-btn-ghost" style={{ color: '#64748b', borderColor: '#cbd5e1' }} onClick={() => setDispenseRecord(null)}>Close</button>
+            <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid var(--mmh-border)', background: 'var(--mmh-card)' }}>
+              <button type="button" className="mmh-btn mmh-btn-ghost" style={{ color: 'var(--mmh-text3)', borderColor: 'var(--mmh-border)' }} onClick={() => setDispenseRecord(null)}>Close</button>
               <button type="button" className="mmh-btn mmh-btn-primary" onClick={printSlip}>🖨️ Print Slip</button>
             </div>
           </div>

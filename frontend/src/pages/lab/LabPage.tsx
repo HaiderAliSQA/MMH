@@ -33,82 +33,102 @@ interface LabReq {
 type Flag = 'Normal' | 'High' | 'Low' | 'Critical';
 
 const CARD_ACCENT: Record<string, string> = {
-  Pending:    'linear-gradient(90deg,#f59e0b,#fbbf24)',
-  Processing: 'linear-gradient(90deg,#0ea5e9,#38bdf8)',
-  Done:       'linear-gradient(90deg,#10b981,#34d399)',
+  Pending:    'var(--mmh-warning)',
+  Processing: 'var(--mmh-accent)',
+  Done:       'var(--mmh-success)',
 };
 
 const FLAG_COLORS: Record<Flag, string> = {
-  Normal:   '#34d399',
-  High:     '#fbbf24',
-  Low:      '#fbbf24',
-  Critical: '#fb7185',
+  Normal:   'var(--mmh-success)',
+  High:     'var(--mmh-warning)',
+  Low:      'var(--mmh-warning)',
+  Critical: 'var(--mmh-danger)',
 };
 
 // --- Print Lab Report (dedicated popup window) ----------------------
 const printLabReport = (lab: LabReq) => {
+  const root = document.documentElement;
+  const accent = getComputedStyle(root).getPropertyValue('--mmh-accent').trim() || '#0ea5e9';
+  const text = getComputedStyle(root).getPropertyValue('--mmh-text').trim() || '#0f172a';
+  const border = getComputedStyle(root).getPropertyValue('--mmh-border').trim() || '#e2e8f0';
+  const bg2 = getComputedStyle(root).getPropertyValue('--mmh-bg2').trim() || '#f8fafc';
+  const success = getComputedStyle(root).getPropertyValue('--mmh-success').trim() || '#10b981';
+  const danger = getComputedStyle(root).getPropertyValue('--mmh-danger').trim() || '#f43f5e';
+  const warning = getComputedStyle(root).getPropertyValue('--mmh-warning').trim() || '#f59e0b';
+
   const pw = window.open('', '_blank', 'width=700,height=900,menubar=no,toolbar=no,location=no,status=no');
   if (!pw) { alert('Please allow popups for printing'); return; }
 
   const patient = lab.patient as any;
   const doctor  = lab.doctor  as any;
 
-  const flagBg    = (f?: string) => f === 'Critical' ? '#fee2e2' : (f === 'High' || f === 'Low') ? '#fef3c7' : '#dcfce7';
-  const flagColor = (f?: string) => f === 'Critical' ? '#dc2626' : (f === 'High' || f === 'Low') ? '#d97706' : '#059669';
-  const valColor  = (f?: string) => f === 'Critical' ? '#dc2626' : (f === 'High' || f === 'Low') ? '#d97706' : '#059669';
+  const flagBg    = (f?: string) => f === 'Critical' ? 'rgba(244,63,94,0.1)' : (f === 'High' || f === 'Low') ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)';
+  const flagColor = (f?: string) => f === 'Critical' ? danger : (f === 'High' || f === 'Low') ? warning : success;
+  const valColor  = (f?: string) => f === 'Critical' ? danger : (f === 'High' || f === 'Low') ? warning : success;
 
   const resultsHTML = lab.results && lab.results.length > 0
     ? lab.results.map(r =>
-        '<tr style="background:' + (r.flag === 'Critical' ? '#fef2f2' : 'white') + ';border-bottom:1px solid #e2e8f0;">'
-        + '<td style="padding:8px 12px;font-size:12px;font-weight:600;color:#0f172a;">' + (r.testName || '-') + '</td>'
-        + '<td style="padding:8px 12px;font-size:12px;font-weight:800;text-align:center;color:' + valColor(r.flag) + ';">' + (r.value || '-') + '</td>'
-        + '<td style="padding:8px 12px;font-size:11px;color:#64748b;text-align:center;">' + (r.normalRange || '-') + '</td>'
-        + '<td style="padding:8px 12px;font-size:11px;color:#64748b;text-align:center;">' + (r.unit || '-') + '</td>'
-        + '<td style="padding:8px 12px;text-align:center;"><span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:800;background:' + flagBg(r.flag) + ';color:' + flagColor(r.flag) + ';">' + (r.flag || 'Normal') + '</span></td>'
+        `<tr style="background:${r.flag === 'Critical' ? 'rgba(244,63,94,0.05)' : 'white'};border-bottom:1px solid var(--mmh-border);">`
+        + `<td style="padding:8px 12px;font-size:12px;font-weight:600;color:var(--mmh-text);">${r.testName || '-'}</td>`
+        + `<td style="padding:8px 12px;font-size:12px;font-weight:800;text-align:center;color:${valColor(r.flag)};">${r.value || '-'}</td>`
+        + `<td style="padding:8px 12px;font-size:11px;color:#64748b;text-align:center;">${r.normalRange || '-'}</td>`
+        + `<td style="padding:8px 12px;font-size:11px;color:#64748b;text-align:center;">${r.unit || '-'}</td>`
+        + `<td style="padding:8px 12px;text-align:center;"><span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:800;background:${flagBg(r.flag)};color:${flagColor(r.flag)};">${r.flag || 'Normal'}</span></td>`
         + '</tr>'
       ).join('')
     : '<tr><td colspan="5" style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">No results entered yet</td></tr>';
 
   const testsHTML = (lab.tests || [])
-    .map(t => '<span style="display:inline-block;padding:3px 10px;margin:2px;background:#e0e7ff;color:#3730a3;border-radius:6px;font-size:11px;font-weight:700;">' + t + '</span>')
+    .map(t => `<span style="display:inline-block;padding:3px 10px;margin:2px;background:rgba(14,165,233,0.1);color:var(--mmh-accent);border-radius:6px;font-size:11px;font-weight:700;">${t}</span>`)
     .join('');
 
   const labDate    = new Date().toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
   const labTime    = new Date().toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
-  const statusColor = lab.status === 'Done' ? '#059669' : lab.status === 'Processing' ? '#0284c7' : '#d97706';
+  const statusColor = lab.status === 'Done' ? success : lab.status === 'Processing' ? accent : warning;
 
   pw.document.write(
-    '<!DOCTYPE html><html lang="en"><head>'
+    `<!DOCTYPE html><html lang="en"><head>`
     + '<meta charset="UTF-8">'
     + '<title>Lab Report - ' + lab.labId + '</title>'
     + '<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">'
-    + '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Plus Jakarta Sans",sans-serif;background:white;color:#0f172a;padding:24px;max-width:700px;margin:0 auto;}@page{size:A4;margin:15mm}@media print{body{padding:0;max-width:none}.no-print{display:none!important}}</style>'
+    + `<style>
+      :root {
+        --mmh-accent: ${accent};
+        --mmh-text: ${text};
+        --mmh-border: ${border};
+        --mmh-bg2: ${bg2};
+        --mmh-success: ${success};
+        --mmh-danger: ${danger};
+        --mmh-warning: ${warning};
+      }
+      *{box-sizing:border-box;margin:0;padding:0}body{font-family:"Plus Jakarta Sans",sans-serif;background:white;color:var(--mmh-text);padding:24px;max-width:700px;margin:0 auto;}@page{size:A4;margin:15mm}@media print{body{padding:0;max-width:none}.no-print{display:none!important}}.hd{background:var(--mmh-accent);color:white;padding:20px 24px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:flex-start;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    </style>`
     + '</head><body>'
-    + '<div style="background:#312e81;color:white;padding:20px 24px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:flex-start;-webkit-print-color-adjust:exact;print-color-adjust:exact;">'
+    + '<div class="hd">'
     +   '<div><div style="font-size:20px;font-weight:900;font-style:italic;">Majida Memorial Hospital</div><div style="font-size:11px;opacity:.75;margin-top:3px;">Chiniot, Punjab - Laboratory Report</div></div>'
     +   '<div style="text-align:right;"><div style="font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:900;background:rgba(255,255,255,.15);padding:4px 12px;border-radius:6px;">' + lab.labId + '</div><div style="font-size:11px;opacity:.7;margin-top:4px;">' + labDate + ' ' + labTime + '</div></div>'
     + '</div>'
-    + (lab.isUrgent ? '<div style="background:#fef2f2;border:2px solid #fca5a5;padding:8px 16px;text-align:center;font-size:12px;font-weight:800;color:#dc2626;-webkit-print-color-adjust:exact;print-color-adjust:exact;">URGENT SAMPLE - PRIORITY PROCESSING</div>' : '')
-    + '<div style="border:1px solid #e2e8f0;border-top:none;padding:16px 20px;background:#f8fafc;display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
-    +   '<div><div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">Patient Information</div><div style="font-size:15px;font-weight:800;">' + (patient?.name || '-') + '</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:#312e81;margin-top:4px;">' + (patient?.mrNumber || '-') + '</div><div style="font-size:12px;color:#64748b;margin-top:3px;">' + (patient?.age || '-') + ' yrs / ' + (patient?.gender || '-') + '</div></div>'
+    + (lab.isUrgent ? `<div style="background:rgba(244,63,94,0.05);border:2px solid var(--mmh-danger);padding:8px 16px;text-align:center;font-size:12px;font-weight:800;color:var(--mmh-danger);-webkit-print-color-adjust:exact;print-color-adjust:exact;">URGENT SAMPLE - PRIORITY PROCESSING</div>` : '')
+    + '<div style="border:1px solid var(--mmh-border);border-top:none;padding:16px 20px;background:var(--mmh-bg2);display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
+    +   '<div><div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">Patient Information</div><div style="font-size:15px;font-weight:800;">' + (patient?.name || '-') + '</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:var(--mmh-accent);margin-top:4px;">' + (patient?.mrNumber || '-') + '</div><div style="font-size:12px;color:#64748b;margin-top:3px;">' + (patient?.age || '-') + ' yrs / ' + (patient?.gender || '-') + '</div></div>'
     +   '<div><div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">Referred By</div><div style="font-size:14px;font-weight:700;">' + (doctor?.name || 'Reception') + '</div><div style="font-size:12px;color:#64748b;margin-top:3px;">' + (doctor?.department || 'General') + '</div><div style="font-size:11px;color:#94a3b8;margin-top:6px;">Status: <span style="font-weight:700;color:' + statusColor + ';">' + lab.status + '</span></div></div>'
     + '</div>'
-    + '<div style="border:1px solid #e2e8f0;border-top:none;padding:14px 20px;background:white;"><div style="font-size:10px;font-weight:800;color:#312e81;text-transform:uppercase;margin-bottom:10px;">Tests Requested</div><div>' + testsHTML + '</div></div>'
-    + '<div style="border:1px solid #e2e8f0;border-top:none;"><div style="padding:12px 20px;background:#f1f5f9;border-bottom:1px solid #e2e8f0;"><div style="font-size:10px;font-weight:800;color:#312e81;text-transform:uppercase;">Test Results</div></div>'
-    + '<table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#f8fafc;">'
-    + '<th style="text-align:left;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e2e8f0;">Test Name</th>'
-    + '<th style="text-align:center;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e2e8f0;">Result</th>'
-    + '<th style="text-align:center;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e2e8f0;">Normal Range</th>'
-    + '<th style="text-align:center;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e2e8f0;">Unit</th>'
-    + '<th style="text-align:center;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e2e8f0;">Flag</th>'
+    + '<div style="border:1px solid var(--mmh-border);border-top:none;padding:14px 20px;background:white;"><div style="font-size:10px;font-weight:800;color:var(--mmh-accent);text-transform:uppercase;margin-bottom:10px;">Tests Requested</div><div>' + testsHTML + '</div></div>'
+    + '<div style="border:1px solid var(--mmh-border);border-top:none;"><div style="padding:12px 20px;background:#f1f5f9;border-bottom:1px solid var(--mmh-border);"><div style="font-size:10px;font-weight:800;color:var(--mmh-accent);text-transform:uppercase;">Test Results</div></div>'
+    + '<table style="width:100%;border-collapse:collapse;"><thead><tr style="background:var(--mmh-bg2);">'
+    + '<th style="text-align:left;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid var(--mmh-border);">Test Name</th>'
+    + '<th style="text-align:center;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid var(--mmh-border);">Result</th>'
+    + '<th style="text-align:center;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid var(--mmh-border);">Normal Range</th>'
+    + '<th style="text-align:center;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid var(--mmh-border);">Unit</th>'
+    + '<th style="text-align:center;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid var(--mmh-border);">Flag</th>'
     + '</tr></thead><tbody>' + resultsHTML + '</tbody></table></div>'
-    + '<div style="margin-top:16px;border:1px solid #e2e8f0;border-radius:0 0 12px 12px;padding:14px 20px;background:#f8fafc;display:flex;justify-content:space-between;align-items:center;">'
+    + '<div style="margin-top:16px;border:1px solid var(--mmh-border);border-radius:0 0 12px 12px;padding:14px 20px;background:var(--mmh-bg2);display:flex;justify-content:space-between;align-items:center;">'
     +   '<div style="font-size:10px;color:#94a3b8;">Generated: ' + new Date().toLocaleString('en-PK') + '<br/>MMH Laboratory Information System</div>'
     +   '<div style="text-align:right;font-size:11px;color:#64748b;">Lab Technician Signature<br/><div style="margin-top:24px;border-top:1px solid #cbd5e1;padding-top:4px;min-width:150px;">___________________</div></div>'
     + '</div>'
     + '<div class="no-print" style="text-align:center;margin-top:20px;">'
-    +   '<button onclick="window.print()" style="padding:12px 32px;background:#312e81;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Print Report</button>'
-    +   '<button onclick="window.close()" style="padding:12px 24px;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-left:10px;font-family:inherit;">Close</button>'
+    +   '<button onclick="window.print()" style="padding:12px 32px;background:var(--mmh-accent);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Print Report</button>'
+    +   '<button onclick="window.close()" style="padding:12px 24px;background:#f1f5f9;color:#64748b;border:1px solid var(--mmh-border);border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-left:10px;font-family:inherit;">Close</button>'
     + '</div>'
     + '</body></html>'
   );
@@ -242,7 +262,7 @@ const PendingTab: React.FC = () => {
                 <div className="mmh-lab-card-body">
                   {/* Header row */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontFamily: 'JetBrains Mono, monospace', color: '#a78bfa', fontWeight: 800, fontSize: 12 }}>
+                    <span style={{ fontFamily: 'JetBrains Mono, monospace', color: 'var(--mmh-info)', fontWeight: 800, fontSize: 12 }}>
                       {lab.labId || `#${lab._id.slice(-6).toUpperCase()}`}
                     </span>
                     <div style={{ display: 'flex', gap: 5 }}>
@@ -256,14 +276,14 @@ const PendingTab: React.FC = () => {
 
                   {/* Patient */}
                   <div>
-                    <div style={{ fontWeight: 800, color: 'white', fontSize: 14 }}>
+                    <div style={{ fontWeight: 800, color: 'var(--mmh-text)', fontSize: 14 }}>
                       {lab.patient?.name || 'Unknown Patient'}
                     </div>
-                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#0ea5e9', marginTop: 2 }}>
+                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--mmh-accent)', marginTop: 2 }}>
                       {lab.patient?.mrNumber || '—'}
                     </div>
                     {lab.doctor && (
-                      <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                      <div style={{ fontSize: 11, color: 'var(--mmh-text3)', marginTop: 2 }}>
                         Dr. {lab.doctor.name}
                       </div>
                     )}
@@ -285,14 +305,14 @@ const PendingTab: React.FC = () => {
 
                   {/* Total */}
                   {total > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: 8 }}>
-                      <span style={{ fontSize: 11, color: '#64748b' }}>{td.length} tests · Total</span>
-                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 900, color: '#34d399', fontSize: 13 }}>PKR {total.toLocaleString()}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: 'var(--mmh-success-soft)', border: '1px solid var(--mmh-success-soft)', borderRadius: 8 }}>
+                      <span style={{ fontSize: 11, color: 'var(--mmh-text3)' }}>{td.length} tests · Total</span>
+                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 900, color: 'var(--mmh-success)', fontSize: 13 }}>PKR {total.toLocaleString()}</span>
                     </div>
                   )}
 
                   {/* Time */}
-                  <div style={{ fontSize: 11, color: '#475569' }}>
+                  <div style={{ fontSize: 11, color: 'var(--mmh-text3)' }}>
                     {lab.createdAt ? new Date(lab.createdAt).toLocaleString('en-PK') : '—'}
                   </div>
                 </div>
@@ -387,10 +407,10 @@ const ResultsModal: React.FC<ResultsModalProps> = ({ lab, onClose, onSaved }) =>
         {/* Header */}
         <div className="mmh-results-modal-header">
           <div>
-            <div style={{ fontWeight: 800, fontSize: 16, color: 'white' }}>
+            <div style={{ fontWeight: 800, fontSize: 16, color: 'var(--mmh-text)' }}>
               {isDone ? '👁️ View Results' : '📝 Enter Results'} — {lab.labId || lab._id.slice(-6).toUpperCase()}
             </div>
-            <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+            <div style={{ fontSize: 12, color: 'var(--mmh-text3)', marginTop: 4 }}>
               {lab.patient?.name} · {lab.patient?.mrNumber} · {lab.tests.length} tests
             </div>
           </div>
@@ -398,13 +418,13 @@ const ResultsModal: React.FC<ResultsModalProps> = ({ lab, onClose, onSaved }) =>
         </div>
 
         {/* Patient info card */}
-        <div style={{ padding: '14px 22px', background: 'rgba(14,165,233,0.04)', borderBottom: '1px solid #1e3050', display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg,#0ea5e9,#0284c7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 900, color: 'white', flexShrink: 0 }}>
+        <div style={{ padding: '14px 22px', background: 'var(--mmh-bg2)', borderBottom: '1px solid var(--mmh-border)', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 42, height: 42, borderRadius: 12, background: 'var(--mmh-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, fontWeight: 900, color: 'white', flexShrink: 0 }}>
             {(lab.patient?.name || 'P').charAt(0).toUpperCase()}
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 800, fontSize: 15, color: 'white' }}>{lab.patient?.name || 'Unknown'}</div>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#0ea5e9', marginTop: 2 }}>{lab.patient?.mrNumber}</div>
+            <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--mmh-text)' }}>{lab.patient?.name || 'Unknown'}</div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--mmh-accent)', marginTop: 2 }}>{lab.patient?.mrNumber}</div>
           </div>
           {lab.isUrgent && <span className="mmh-badge mmh-badge-rose">🚨 URGENT</span>}
           <span className={`mmh-badge ${lab.status === 'Done' ? 'mmh-badge-green' : 'mmh-badge-sky'}`}>{lab.status}</span>
@@ -429,8 +449,8 @@ const ResultsModal: React.FC<ResultsModalProps> = ({ lab, onClose, onSaved }) =>
                   const r = results[test] || { value: '', normalRange: '', unit: '', flag: 'Normal' as Flag };
                   const isCrit = r.flag === 'Critical';
                   return (
-                    <tr key={test} className={isCrit ? 'mmh-row-critical' : ''} style={{ background: isCrit ? 'rgba(244,63,94,0.05)' : undefined }}>
-                      <td style={{ fontWeight: 600, color: 'white' }}>{test}</td>
+                    <tr key={test} className={isCrit ? 'mmh-row-critical' : ''} style={{ background: isCrit ? 'var(--mmh-danger-soft)' : undefined }}>
+                      <td style={{ fontWeight: 600, color: 'var(--mmh-text)' }}>{test}</td>
                       <td>
                         <input className="mmh-result-input" placeholder="e.g. 5.2" value={r.value} disabled={isDone}
                           onChange={e => update(test, 'value', e.target.value)} />
@@ -448,7 +468,7 @@ const ResultsModal: React.FC<ResultsModalProps> = ({ lab, onClose, onSaved }) =>
                           className="mmh-flag-select"
                           value={r.flag}
                           disabled={isDone}
-                          style={{ color: FLAG_COLORS[r.flag as Flag] || 'white' }}
+                          style={{ color: FLAG_COLORS[r.flag as Flag] }}
                           onChange={e => update(test, 'flag', e.target.value)}
                         >
                           <option value="Normal">Normal</option>
@@ -608,7 +628,7 @@ const ResultsTab: React.FC = () => {
                     const isCrit = r.flag === 'Critical';
                     return (
                       <tr key={test} className={isCrit ? 'mmh-row-critical' : ''}>
-                        <td style={{ fontWeight: 600, color: 'white' }}>{test}</td>
+                        <td style={{ fontWeight: 600, color: 'var(--mmh-text)' }}>{test}</td>
                         <td><input className="mmh-result-input" placeholder="e.g. 5.2" value={r.value} onChange={e => updateResult(test, 'value', e.target.value)} /></td>
                         <td><input className="mmh-result-input" placeholder="e.g. 4.5–6.0" value={r.normalRange} onChange={e => updateResult(test, 'normalRange', e.target.value)} /></td>
                         <td><input className="mmh-result-input" placeholder="mg/dL" value={r.unit} onChange={e => updateResult(test, 'unit', e.target.value)} /></td>
@@ -631,7 +651,7 @@ const ResultsTab: React.FC = () => {
                 </tbody>
               </table>
             </div>
-            <div style={{ padding: '16px 20px', borderTop: '1px solid #1e3050', display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+            <div style={{ padding: '16px 20px', borderTop: '1px solid var(--mmh-border)', display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
               <button className="mmh-btn mmh-btn-ghost" onClick={() => { setSelectedId(''); setResults({}); }}>Cancel</button>
               <button className="mmh-btn mmh-btn-green" onClick={handleSave} disabled={loading}>
                 {loading ? '⏳ Saving...' : '📋 Save & Finalise Report'}

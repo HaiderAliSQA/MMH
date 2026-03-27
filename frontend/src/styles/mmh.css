@@ -16,8 +16,8 @@ body,
 
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-  background-color: #060d1a;
-  color: #e2eaf6;
+  background-color: var(--mmh-bg);
+  color: var(--mmh-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -27,8 +27,15 @@ a {
   color: inherit;
 }
 
-button {
-  font-family: inherit;
+.mmh-nav-label {
+  transition: opacity 0.2s, width 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.mmh-sidebar.collapsed .mmh-nav-label {
+  opacity: 0;
+  width: 0;
 }
 
 input,
@@ -43,31 +50,287 @@ textarea {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0b1425;
+  background: var(--mmh-bg2);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2a4070;
+  background: var(--mmh-border2);
   border-radius: 10px;
 }
 
-/* ═══ CSS VARIABLES ═══════════════════════════════════ */
+/* ═══ CSS VARIABLES & THEMES ═══════════════════════════ */
 :root {
+  /* Sidebar Widths */
+  --sidebar-width: 220px;
+  --sidebar-collapsed: 64px;
+
+  /* Semantic Colors (Common) */
+  --mmh-success: #10b981;
+  --mmh-warning: #f59e0b;
+  --mmh-danger: #f43f5e;
+  --mmh-info: #0ea5e9;
+
+  --mmh-success-soft: rgba(16, 185, 129, 0.12);
+  --mmh-warning-soft: rgba(245, 158, 11, 0.12);
+  --mmh-danger-soft: rgba(244, 63, 94, 0.12);
+  --mmh-info-soft: rgba(14, 165, 233, 0.12);
+}
+
+/* ════════════════════════════════
+   SCHEME VARIABLES (text + bg)
+   Only 2 schemes: dark / light
+   Text is FIXED per scheme
+════════════════════════════════ */
+
+/* DARK SCHEME — default */
+:root,
+[data-scheme="dark"] {
+  /* Backgrounds */
   --mmh-bg: #060d1a;
   --mmh-bg2: #0b1425;
-  --mmh-bg3: #111d35;
   --mmh-card: #0f1e38;
+  --mmh-card2: #111d35;
+
+  /* Borders */
   --mmh-border: #1e3050;
   --mmh-border2: #2a4070;
+
+  /* Text — FIXED, never changes */
   --mmh-text: #e2eaf6;
-  --mmh-muted: #64748b;
-  --mmh-sky: #0ea5e9;
-  --mmh-green: #10b981;
-  --mmh-amber: #f59e0b;
-  --mmh-rose: #f43f5e;
-  --mmh-violet: #8b5cf6;
-  --mmh-cyan: #06b6d4;
+  --mmh-text2: #94a3b8;
+  --mmh-text3: #64748b;
+  --mmh-text4: #475569;
+
+  /* Table row alternating */
+  --mmh-row-alt: rgba(255, 255, 255, 0.02);
+
+  /* Input */
+  --mmh-input-bg: #111d35;
 }
+
+/* LIGHT SCHEME — text always dark, bg always light */
+[data-scheme="light"] {
+  /* Backgrounds */
+  --mmh-bg: #f1f5f9;
+  --mmh-bg2: #e8eef5;
+  --mmh-card: #ffffff;
+  --mmh-card2: #f8fafc;
+
+  /* Borders */
+  --mmh-border: #e2e8f0;
+  --mmh-border2: #cbd5e1;
+
+  /* Text — FIXED, always dark in light mode */
+  --mmh-text: #0f172a !important;
+  --mmh-text2: #1e293b !important;
+  --mmh-text3: #475569 !important;
+  --mmh-text4: #64748b !important;
+
+  /* Table row alternating */
+  --mmh-row-alt: rgba(0, 0, 0, 0.02);
+
+  /* Input */
+  --mmh-input-bg: #ffffff;
+}
+
+[data-scheme="light"] .mmh-stat-card *,
+[data-scheme="light"] .mmh-table-card *,
+[data-scheme="light"] .mmh-leave-card *,
+[data-scheme="light"] .mmh-table td,
+[data-scheme="light"] .mmh-table th {
+  color: var(--mmh-text) !important;
+}
+
+/* Sidebar and its items MUST stay light since sidebar is always dark */
+[data-scheme="light"] .mmh-sidebar,
+[data-scheme="light"] .mmh-sidebar * {
+  color: #e2eaf6 !important;
+}
+
+[data-scheme="light"] .mmh-sidebar .mmh-sidebar-name,
+[data-scheme="light"] .mmh-sidebar .mmh-sidebar-user-name,
+[data-scheme="light"] .mmh-sidebar .mmh-sidebar-avatar {
+  color: white !important;
+}
+
+[data-scheme="light"] .mmh-sidebar .mmh-nav-item {
+  color: #94a3b8 !important;
+}
+
+[data-scheme="light"] .mmh-sidebar .mmh-nav-item.active {
+  color: var(--mmh-sidebar-active-text) !important;
+}
+
+/* Primary buttons and active tabs on dark accents should stay white */
+[data-scheme="light"] .mmh-btn-primary,
+[data-scheme="light"] .mmh-btn-green,
+[data-scheme="light"] .mmh-btn-amber,
+[data-scheme="light"] .mmh-role-tab.active,
+[data-scheme="light"] .mmh-admin-tab.active {
+  color: #ffffff !important;
+}
+
+/* Sub-text should still be muted */
+[data-scheme="light"] .mmh-stat-label,
+[data-scheme="light"] .mmh-topbar-subtitle,
+[data-scheme="light"] .mmh-page-subtitle,
+[data-scheme="light"] div[class*="-card"] p,
+[data-scheme="light"] div[class*="-card"] small {
+  color: var(--mmh-text3) !important;
+}
+
+/* Re-assert active tab text if needed */
+[data-scheme="light"] .mmh-admin-tab.active,
+[data-scheme="light"] .mmh-nav-item.active {
+  color: var(--mmh-accent-text) !important;
+}
+
+/* Sidebar always stays dark regardless of scheme */
+.mmh-sidebar {
+  background: var(--mmh-sidebar-bg) !important;
+  color: #e2eaf6 !important;
+}
+
+.mmh-sidebar .mmh-sidebar-name,
+.mmh-sidebar .mmh-sidebar-user-name,
+.mmh-sidebar .mmh-sidebar-avatar {
+  color: white !important;
+}
+
+.mmh-sidebar .mmh-nav-item {
+  color: #94a3b8 !important;
+}
+
+.mmh-sidebar .mmh-nav-item.active {
+  color: var(--mmh-sidebar-active-text) !important;
+}
+
+/* Fix inline style components that use 
+   hardcoded colors — override in light mode */
+[data-scheme="light"] [style*="color: #e2eaf6"],
+[data-scheme="light"] [style*="color:#e2eaf6"] {
+  color: #0f172a !important;
+}
+
+[data-scheme="light"] [style*="color: #94a3b8"],
+[data-scheme="light"] [style*="color:#94a3b8"] {
+  color: #334155 !important;
+}
+
+[data-scheme="light"] [style*="color: #64748b"],
+[data-scheme="light"] [style*="color:#64748b"] {
+  color: #475569 !important;
+}
+
+[data-scheme="light"] [style*="color: white"],
+[data-scheme="light"] [style*="color:white"] {
+  color: #0f172a !important;
+}
+
+/* ════════════════════════════════
+   ACCENT VARIABLES (6 colors)
+   Only accent/highlight changes
+   Background is NOT affected
+════════════════════════════════ */
+
+/* DEFAULT — Sky Blue */
+:root,
+[data-accent="default"] {
+  --mmh-accent: #0ea5e9;
+  --mmh-accent2: #0284c7;
+  --mmh-accent-hover: #0284c7;
+  --mmh-accent-soft: rgba(14, 165, 233, 0.12);
+  --mmh-accent-border: rgba(14, 165, 233, 0.30);
+  --mmh-accent-text: #38bdf8;
+
+  /* Sidebar uses accent for active item */
+  --mmh-sidebar-bg: #0b1425;
+  --mmh-sidebar-active-bg: rgba(14, 165, 233, 0.12);
+  --mmh-sidebar-active-border: #0ea5e9;
+  --mmh-sidebar-active-text: #38bdf8;
+}
+
+[data-accent="teal"] {
+  --mmh-accent: #14b8a6;
+  --mmh-accent2: #0d9488;
+  --mmh-accent-hover: #0d9488;
+  --mmh-accent-soft: rgba(20, 184, 166, 0.12);
+  --mmh-accent-border: rgba(20, 184, 166, 0.30);
+  --mmh-accent-text: #2dd4bf;
+
+  --mmh-sidebar-bg: #0b1425;
+  --mmh-sidebar-active-bg: rgba(20, 184, 166, 0.12);
+  --mmh-sidebar-active-border: #14b8a6;
+  --mmh-sidebar-active-text: #2dd4bf;
+}
+
+[data-accent="rose"] {
+  --mmh-accent: #f43f5e;
+  --mmh-accent2: #e11d48;
+  --mmh-accent-hover: #e11d48;
+  --mmh-accent-soft: rgba(244, 63, 94, 0.12);
+  --mmh-accent-border: rgba(244, 63, 94, 0.30);
+  --mmh-accent-text: #fb7185;
+
+  --mmh-sidebar-bg: #0b1425;
+  --mmh-sidebar-active-bg: rgba(244, 63, 94, 0.12);
+  --mmh-sidebar-active-border: #f43f5e;
+  --mmh-sidebar-active-text: #fb7185;
+}
+
+[data-accent="purple"] {
+  --mmh-accent: #8b5cf6;
+  --mmh-accent2: #7c3aed;
+  --mmh-accent-hover: #7c3aed;
+  --mmh-accent-soft: rgba(139, 92, 246, 0.12);
+  --mmh-accent-border: rgba(139, 92, 246, 0.30);
+  --mmh-accent-text: #a78bfa;
+
+  --mmh-sidebar-bg: #0b1425;
+  --mmh-sidebar-active-bg: rgba(139, 92, 246, 0.12);
+  --mmh-sidebar-active-border: #8b5cf6;
+  --mmh-sidebar-active-text: #a78bfa;
+}
+
+[data-accent="amber"] {
+  --mmh-accent: #f59e0b;
+  --mmh-accent2: #d97706;
+  --mmh-accent-hover: #d97706;
+  --mmh-accent-soft: rgba(245, 158, 11, 0.12);
+  --mmh-accent-border: rgba(245, 158, 11, 0.30);
+  --mmh-accent-text: #fbbf24;
+
+  --mmh-sidebar-bg: #0b1425;
+  --mmh-sidebar-active-bg: rgba(245, 158, 11, 0.12);
+  --mmh-sidebar-active-border: #f59e0b;
+  --mmh-sidebar-active-text: #fbbf24;
+}
+
+[data-accent="green"] {
+  --mmh-accent: #10b981;
+  --mmh-accent2: #059669;
+  --mmh-accent-hover: #059669;
+  --mmh-accent-soft: rgba(16, 185, 129, 0.12);
+  --mmh-accent-border: rgba(16, 185, 129, 0.30);
+  --mmh-accent-text: #34d399;
+
+  --mmh-sidebar-bg: #0b1425;
+  --mmh-sidebar-active-bg: rgba(16, 185, 129, 0.12);
+  --mmh-sidebar-active-border: #10b981;
+  --mmh-sidebar-active-text: #34d399;
+}
+
+/* ════════════════════════════════
+   LIGHT SCHEME SIDEBAR OVERRIDE
+   In light mode: sidebar stays dark
+   (much better UX — standard pattern)
+════════════════════════════════ */
+
+[data-scheme="light"] {
+  --mmh-sidebar-bg: #1e293b;
+}
+
+/* ══════════════════════════════════════════════════════ */
 
 /* ═══ ANIMATIONS ══════════════════════════════════════ */
 @keyframes mmh-spin {
@@ -131,7 +394,8 @@ textarea {
   width: 100%;
   max-width: 100%;
   overflow: hidden;
-  background-color: #060d1a;
+  background-color: var(--mmh-bg);
+  color: var(--mmh-text);
   position: relative;
 }
 
@@ -154,12 +418,12 @@ textarea {
 
 /* ═══ SIDEBAR ═════════════════════════════════════════ */
 .mmh-sidebar {
-  width: 240px;
-  min-width: 240px;
-  max-width: 240px;
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  max-width: var(--sidebar-width);
   height: 100vh;
-  background: #0b1425;
-  border-right: 1px solid #1e3050;
+  background: var(--mmh-sidebar-bg);
+  border-right: 1px solid var(--mmh-border);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -167,28 +431,35 @@ textarea {
   pointer-events: auto;
   flex-shrink: 0;
   overflow: hidden;
+  transition: width 0.25s ease, min-width 0.25s ease, max-width 0.25s ease;
+}
+
+.mmh-sidebar.collapsed {
+  --sidebar-width: var(--sidebar-collapsed);
 }
 
 .mmh-sidebar-logo {
-  padding: 18px 20px;
-  border-bottom: 1px solid #1e3050;
+  padding: 18px 16px;
+  border-bottom: 1px solid var(--mmh-border);
   display: flex;
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
+  height: 75px;
+  overflow: hidden;
 }
 
 .mmh-sidebar-icon {
   width: 38px;
   height: 38px;
   border-radius: 11px;
-  background: linear-gradient(135deg, #0ea5e9, #10b981);
+  background: linear-gradient(135deg, var(--mmh-accent), var(--mmh-accent2));
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+  box-shadow: 0 4px 12px var(--mmh-accent-border);
 }
 
 .mmh-sidebar-name {
@@ -197,18 +468,30 @@ textarea {
   color: white;
   font-style: italic;
   line-height: 1.2;
+  transition: opacity 0.2s, width 0.2s;
+}
+
+.mmh-sidebar.collapsed .mmh-sidebar-name {
+  opacity: 0;
+  width: 0;
 }
 
 .mmh-sidebar-subtitle {
   font-size: 10px;
-  color: #475569;
+  color: var(--mmh-text3);
   margin-top: 2px;
   line-height: 1.3;
+  transition: opacity 0.2s, width 0.2s;
+}
+
+.mmh-sidebar.collapsed .mmh-sidebar-subtitle {
+  opacity: 0;
+  width: 0;
 }
 
 .mmh-sidebar-user {
   padding: 12px 16px;
-  border-bottom: 1px solid #1e3050;
+  border-bottom: 1px solid var(--mmh-border);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -235,13 +518,25 @@ textarea {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: opacity 0.2s, width 0.2s;
+}
+
+.mmh-sidebar.collapsed .mmh-sidebar-user-name {
+  opacity: 0;
+  width: 0;
 }
 
 .mmh-sidebar-user-role {
   font-size: 11px;
-  color: #475569;
+  color: var(--mmh-text3);
   text-transform: capitalize;
   margin-top: 1px;
+  transition: opacity 0.2s, width 0.2s;
+}
+
+.mmh-sidebar.collapsed .mmh-sidebar-user-role {
+  opacity: 0;
+  width: 0;
 }
 
 .mmh-nav {
@@ -253,7 +548,7 @@ textarea {
 .mmh-nav-section {
   font-size: 10px;
   font-weight: 700;
-  color: #334155;
+  color: var(--mmh-text4);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   padding: 10px 12px 4px;
@@ -263,17 +558,18 @@ textarea {
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;
-  padding: 9px 12px !important;
+  padding: 10px 12px !important;
   border-radius: 10px !important;
   margin-bottom: 2px !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  color: #94a3b8 !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  color: var(--mmh-text2) !important;
   text-decoration: none !important;
   cursor: pointer !important;
   pointer-events: auto !important;
   transition: background 0.15s, color 0.15s !important;
   border: none !important;
+  border-left: 3px solid transparent !important;
   background: transparent !important;
   width: 100% !important;
   text-align: left !important;
@@ -281,16 +577,15 @@ textarea {
 }
 
 .mmh-nav-item:hover {
-  background: #111d35 !important;
-  color: #e2e8f0 !important;
+  background: var(--mmh-accent-soft) !important;
+  color: var(--mmh-text) !important;
 }
 
 .mmh-nav-item.active {
-  background: rgba(14, 165, 233, 0.12) !important;
-  color: white !important;
-  font-weight: 600 !important;
-  border-left: 2px solid #0ea5e9 !important;
-  padding-left: 10px !important;
+  background: var(--mmh-sidebar-active-bg) !important;
+  border-left-color: var(--mmh-sidebar-active-border) !important;
+  color: var(--mmh-sidebar-active-text) !important;
+  font-weight: 900 !important;
 }
 
 .mmh-nav-icon {
@@ -302,13 +597,13 @@ textarea {
 
 .mmh-nav-divider {
   height: 1px;
-  background: #1e3050;
+  background: var(--mmh-border);
   margin: 6px 8px;
 }
 
 .mmh-sidebar-bottom {
   padding: 12px;
-  border-top: 1px solid #1e3050;
+  border-top: 1px solid var(--mmh-border);
   flex-shrink: 0;
 }
 
@@ -316,9 +611,9 @@ textarea {
   width: 100%;
   padding: 9px 16px;
   border-radius: 10px;
-  border: 1px solid #2a4070;
+  border: 1px solid var(--mmh-border2);
   background: transparent;
-  color: #94a3b8;
+  color: var(--mmh-text3);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -330,9 +625,9 @@ textarea {
 }
 
 .mmh-logout-btn:hover {
-  border-color: #0ea5e9;
-  color: white;
-  background: rgba(14, 165, 233, 0.06);
+  border-color: var(--mmh-accent);
+  color: var(--mmh-text);
+  background: var(--mmh-accent-soft);
 }
 
 /* ═══ MOBILE SIDEBAR OVERLAY ══════════════════════════ */
@@ -358,7 +653,7 @@ textarea {
   border: none;
   background: transparent;
   cursor: pointer;
-  color: #94a3b8;
+  color: var(--mmh-text3);
   font-size: 22px;
   transition: color 0.15s;
   flex-shrink: 0;
@@ -370,8 +665,8 @@ textarea {
 
 /* ═══ TOPBAR ══════════════════════════════════════════ */
 .mmh-topbar {
-  background: #0b1425;
-  border-bottom: 1px solid #1e3050;
+  background: var(--mmh-bg2);
+  border-bottom: 1px solid var(--mmh-border);
   padding: 14px 28px;
   display: flex;
   align-items: center;
@@ -381,6 +676,7 @@ textarea {
   top: 0;
   z-index: 9;
   gap: 12px;
+  color: var(--mmh-text);
 }
 
 .mmh-topbar-left {
@@ -391,13 +687,13 @@ textarea {
 .mmh-topbar-title {
   font-size: 16px;
   font-weight: 800;
-  color: white;
+  color: var(--mmh-text);
   line-height: 1.3;
 }
 
 .mmh-topbar-subtitle {
   font-size: 12px;
-  color: #475569;
+  color: var(--mmh-text3);
   margin-top: 2px;
 }
 
@@ -409,7 +705,7 @@ textarea {
 
 .mmh-topbar-info {
   font-size: 12px;
-  color: #475569;
+  color: var(--mmh-text3);
   text-align: right;
 }
 
@@ -424,15 +720,15 @@ textarea {
 }
 
 .mmh-page-title {
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 900;
-  color: white;
-  line-height: 1.2;
+  color: var(--mmh-text);
+  letter-spacing: -0.01em;
 }
 
 .mmh-page-subtitle {
   font-size: 13px;
-  color: #475569;
+  color: var(--mmh-text3);
   margin-top: 5px;
 }
 
@@ -467,8 +763,8 @@ textarea {
 }
 
 .mmh-stat-card {
-  background: #0f1e38;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card);
+  border: 1px solid var(--mmh-border);
   border-radius: 16px;
   padding: 16px 12px;
   position: relative;
@@ -501,14 +797,14 @@ textarea {
 .mmh-stat-value {
   font-size: 28px;
   font-weight: 900;
-  color: white;
+  color: var(--mmh-text);
   font-family: 'JetBrains Mono', monospace;
   line-height: 1;
 }
 
 .mmh-stat-label {
   font-size: 12px;
-  color: #64748b;
+  color: var(--mmh-text3);
   font-weight: 500;
   margin-top: 6px;
 }
@@ -516,8 +812,8 @@ textarea {
 /* ═══ ADMIN TABS ══════════════════════════════════════ */
 .mmh-admin-tabs-wrap {
   padding: 20px 28px 0;
-  border-bottom: 1px solid #1e3050;
-  background: #0b1425;
+  border-bottom: 1px solid var(--mmh-border);
+  background: var(--mmh-bg2);
   flex-shrink: 0;
   overflow-x: auto;
 }
@@ -532,9 +828,9 @@ textarea {
   padding: 10px 20px;
   border: none;
   background: transparent;
-  color: #64748b;
+  color: var(--mmh-text3);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   border-bottom: 2px solid transparent;
   transition: all 0.15s;
@@ -547,13 +843,14 @@ textarea {
 }
 
 .mmh-admin-tab:hover {
-  color: #94a3b8;
+  color: var(--mmh-text2);
 }
 
 .mmh-admin-tab.active {
-  color: white;
-  border-bottom-color: #0ea5e9;
-  background: rgba(14, 165, 233, 0.06);
+  color: var(--mmh-accent-text);
+  border-bottom-color: var(--mmh-accent);
+  background: var(--mmh-accent-soft);
+  font-weight: 900;
 }
 
 /* ═══ ROLE FILTER TABS ════════════════════════════════ */
@@ -570,9 +867,9 @@ textarea {
   gap: 6px;
   padding: 6px 14px;
   border-radius: 20px;
-  border: 1px solid #1e3050;
-  background: #0f1e38;
-  color: #64748b;
+  border: 1px solid var(--mmh-border);
+  background: var(--mmh-card);
+  color: var(--mmh-text3);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -581,15 +878,15 @@ textarea {
 }
 
 .mmh-role-tab:hover {
-  border-color: #2a4070;
-  color: #94a3b8;
+  border-color: var(--mmh-border2);
+  color: var(--mmh-text2);
 }
 
 .mmh-role-tab.active {
-  background: #0ea5e9;
-  border-color: #0ea5e9;
-  color: white;
-  box-shadow: 0 3px 10px rgba(14, 165, 233, 0.3);
+  background: var(--mmh-accent);
+  border-color: var(--mmh-accent);
+  color: #ffffff !important;
+  box-shadow: 0 3px 10px var(--mmh-accent-border);
 }
 
 .mmh-role-tab-count {
@@ -620,7 +917,7 @@ textarea {
   left: 13px;
   top: 50%;
   transform: translateY(-50%);
-  color: #475569;
+  color: var(--mmh-text4);
   font-size: 14px;
   pointer-events: none;
   z-index: 1;
@@ -630,31 +927,31 @@ textarea {
   width: 100%;
   height: 44px;
   padding: 0 16px 0 42px;
-  background: #0f1e38;
-  border: 1.5px solid #2a4070;
+  background: var(--mmh-input-bg);
+  border: 1.5px solid var(--mmh-border);
   border-radius: 12px;
-  color: #e2eaf6;
+  color: var(--mmh-text);
   font-size: 13px;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .mmh-search-input::placeholder {
-  color: #334155;
+  color: var(--mmh-text4);
 }
 
 .mmh-search-input:focus {
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+  border-color: var(--mmh-accent);
+  box-shadow: 0 0 0 3px var(--mmh-accent-bg);
 }
 
 .mmh-select {
   height: 44px;
   padding: 0 36px 0 14px;
-  background: #0f1e38;
-  border: 1.5px solid #2a4070;
+  background: var(--mmh-input-bg);
+  border: 1.5px solid var(--mmh-border);
   border-radius: 12px;
-  color: #e2eaf6;
+  color: var(--mmh-text);
   font-size: 13px;
   outline: none;
   cursor: pointer;
@@ -669,12 +966,13 @@ textarea {
 }
 
 .mmh-select:focus {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
+  box-shadow: 0 0 0 3px var(--mmh-accent-soft);
 }
 
 .mmh-select option {
-  background: #0f1e38;
-  color: #e2eaf6;
+  background: var(--mmh-card);
+  color: var(--mmh-text);
   padding: 8px;
 }
 
@@ -710,37 +1008,39 @@ textarea {
 }
 
 .mmh-btn-primary {
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
-  color: white;
-  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3);
+  background: var(--mmh-accent);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 14px var(--mmh-accent-border);
 }
 
 .mmh-btn-primary:hover:not(:disabled) {
-  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+  background: var(--mmh-accent-hover);
+  box-shadow: 0 6px 20px var(--mmh-accent-border);
 }
 
 .mmh-btn-green {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: var(--mmh-success);
   color: white;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 4px 14px var(--mmh-success-soft);
 }
 
 .mmh-btn-amber {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: var(--mmh-warning);
   color: white;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
+  box-shadow: 0 4px 14px var(--mmh-warning-soft);
 }
 
 .mmh-btn-ghost {
   background: transparent;
-  color: #94a3b8;
-  border: 1.5px solid #2a4070;
+  color: var(--mmh-text2);
+  border: 1.5px solid var(--mmh-border2);
 }
 
 .mmh-btn-ghost:hover:not(:disabled) {
-  border-color: #0ea5e9;
-  color: white;
-  background: rgba(14, 165, 233, 0.06);
+  border-color: var(--mmh-accent);
+  color: var(--mmh-accent-text);
+  background: var(--mmh-accent-soft);
   box-shadow: none;
 }
 
@@ -751,7 +1051,7 @@ textarea {
 }
 
 .mmh-btn-danger:hover:not(:disabled) {
-  background: rgba(244, 63, 94, 0.2);
+  background: var(--mmh-accent-bg);
   box-shadow: none;
 }
 
@@ -773,8 +1073,8 @@ textarea {
 
 /* ═══ CARD ════════════════════════════════════════════ */
 .mmh-card {
-  background: #0f1e38;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card);
+  border: 1px solid var(--mmh-border);
   border-radius: 18px;
   overflow: hidden;
 }
@@ -786,7 +1086,7 @@ textarea {
 
 .mmh-card-header {
   padding: 16px 22px;
-  border-bottom: 1px solid #1e3050;
+  border-bottom: 1px solid var(--mmh-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -794,8 +1094,8 @@ textarea {
 
 .mmh-card-title {
   font-size: 14px;
-  font-weight: 700;
-  color: white;
+  font-weight: 800;
+  color: var(--mmh-text);
 }
 
 .mmh-card-body {
@@ -804,20 +1104,20 @@ textarea {
 
 /* ═══ TABLE ═══════════════════════════════════════════ */
 .mmh-table-card {
-  background: #0f1e38;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card);
+  border: 1px solid var(--mmh-border);
   border-radius: 18px;
   overflow: hidden;
 }
 
 .mmh-table-card-top {
   height: 3px;
-  background: linear-gradient(90deg, #0ea5e9, #10b981);
+  background: linear-gradient(90deg, var(--mmh-accent), #10b981);
 }
 
 .mmh-table-card-header {
   padding: 14px 22px;
-  border-bottom: 1px solid #1e3050;
+  border-bottom: 1px solid var(--mmh-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -838,25 +1138,25 @@ textarea {
   text-align: left;
   font-size: 10px;
   font-weight: 700;
-  color: #334155;
+  color: var(--mmh-text3);
   text-transform: uppercase;
   letter-spacing: 0.09em;
   padding: 10px 20px;
-  border-bottom: 1px solid #1e3050;
+  border-bottom: 1px solid var(--mmh-border);
   white-space: nowrap;
-  background: #0f1e38;
+  background: var(--mmh-card2);
 }
 
 .mmh-table td {
   padding: 13px 20px;
   font-size: 13px;
-  color: #cbd5e1;
-  border-bottom: 1px solid rgba(30, 48, 80, 0.5);
+  color: var(--mmh-text);
+  border-bottom: 1px solid var(--mmh-border);
   vertical-align: middle;
 }
 
-.mmh-table tbody tr:hover td {
-  background: rgba(255, 255, 255, 0.018);
+.mmh-table tr:nth-child(even) td {
+  background: var(--mmh-row-alt);
 }
 
 .mmh-table tbody tr:last-child td {
@@ -865,13 +1165,13 @@ textarea {
 
 .mmh-td-name {
   font-size: 13px;
-  font-weight: 700;
-  color: white;
+  font-weight: 800;
+  color: var(--mmh-text);
 }
 
 .mmh-td-sub {
   font-size: 11px;
-  color: #475569;
+  color: var(--mmh-text4);
   margin-top: 2px;
 }
 
@@ -891,7 +1191,7 @@ textarea {
   justify-content: center;
   font-size: 14px;
   font-weight: 800;
-  color: white;
+  color: #ffffff !important;
   flex-shrink: 0;
 }
 
@@ -917,45 +1217,33 @@ textarea {
 }
 
 .mmh-badge-sky {
-  background: rgba(14, 165, 233, 0.12);
-  color: #38bdf8;
-  border-color: rgba(14, 165, 233, 0.3);
+  background: var(--mmh-accent-soft);
+  color: var(--mmh-accent-text);
 }
 
 .mmh-badge-green {
-  background: rgba(16, 185, 129, 0.12);
-  color: #34d399;
-  border-color: rgba(16, 185, 129, 0.3);
+  background: var(--mmh-success-soft);
+  color: var(--mmh-success);
 }
 
 .mmh-badge-amber {
-  background: rgba(245, 158, 11, 0.12);
-  color: #fbbf24;
-  border-color: rgba(245, 158, 11, 0.3);
+  background: var(--mmh-warning-soft);
+  color: var(--mmh-warning);
 }
 
 .mmh-badge-rose {
-  background: rgba(244, 63, 94, 0.12);
-  color: #fb7185;
-  border-color: rgba(244, 63, 94, 0.3);
+  background: var(--mmh-danger-soft);
+  color: var(--mmh-danger);
 }
 
 .mmh-badge-violet {
   background: rgba(139, 92, 246, 0.12);
   color: #a78bfa;
-  border-color: rgba(139, 92, 246, 0.3);
-}
-
-.mmh-badge-cyan {
-  background: rgba(6, 182, 212, 0.12);
-  color: #22d3ee;
-  border-color: rgba(6, 182, 212, 0.3);
 }
 
 .mmh-badge-gray {
   background: rgba(100, 116, 139, 0.12);
   color: #94a3b8;
-  border-color: rgba(100, 116, 139, 0.3);
 }
 
 /* ═══ TOGGLE SWITCH ═══════════════════════════════════ */
@@ -964,9 +1252,9 @@ textarea {
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  background: #111d35;
+  background: var(--mmh-card2);
   border-radius: 12px;
-  border: 1px solid #1e3050;
+  border: 1px solid var(--mmh-border);
 }
 
 .mmh-toggle-info {
@@ -976,7 +1264,7 @@ textarea {
 .mmh-toggle-label {
   font-size: 13px;
   font-weight: 700;
-  color: white;
+  color: var(--mmh-text);
 }
 
 .mmh-toggle-sub {
@@ -1002,7 +1290,7 @@ textarea {
 }
 
 .mmh-toggle-off {
-  background: #1e3050;
+  background: var(--mmh-border);
 }
 
 .mmh-toggle-dot {
@@ -1041,7 +1329,7 @@ textarea {
 }
 
 .mmh-toggle-inline.off {
-  background: #1e3050;
+  background: var(--mmh-border);
 }
 
 .mmh-toggle-inline .mmh-toggle-dot-sm {
@@ -1078,8 +1366,8 @@ textarea {
 }
 
 .mmh-modal {
-  background: #0f1e38;
-  border: 1.5px solid #2a4070;
+  background: var(--mmh-card);
+  border: 1.5px solid var(--mmh-border2);
   border-radius: 22px;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.65);
   width: 100%;
@@ -1101,7 +1389,7 @@ textarea {
 
 .mmh-modal-header {
   padding: 20px 24px;
-  border-bottom: 1px solid #1e3050;
+  border-bottom: 1px solid var(--mmh-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1111,13 +1399,13 @@ textarea {
 
 .mmh-modal-title {
   font-size: 16px;
-  font-weight: 800;
-  color: white;
+  font-weight: 900;
+  color: var(--mmh-text);
 }
 
 .mmh-modal-subtitle {
   font-size: 12px;
-  color: #475569;
+  color: var(--mmh-text3);
   margin-top: 3px;
 }
 
@@ -1131,7 +1419,7 @@ textarea {
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #94a3b8;
+  color: var(--mmh-text2);
   font-size: 18px;
   cursor: pointer;
   transition: all 0.15s;
@@ -1153,7 +1441,7 @@ textarea {
 
 .mmh-modal-footer {
   padding: 16px 24px;
-  border-top: 1px solid #1e3050;
+  border-top: 1px solid var(--mmh-border);
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -1180,8 +1468,8 @@ textarea {
 
 .mmh-label {
   font-size: 11px;
-  font-weight: 700;
-  color: #64748b;
+  font-weight: 800;
+  color: var(--mmh-text3);
   text-transform: uppercase;
   letter-spacing: 0.07em;
 }
@@ -1194,10 +1482,10 @@ textarea {
 .mmh-input {
   height: 46px;
   padding: 0 16px;
-  background: #111d35;
-  border: 2px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 2px solid var(--mmh-border);
   border-radius: 12px;
-  color: #e2eaf6;
+  color: var(--mmh-text);
   font-size: 14px;
   font-family: inherit;
   outline: none;
@@ -1210,23 +1498,22 @@ textarea {
 }
 
 .mmh-input:focus {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
 }
 
 .mmh-input-select {
   height: 46px;
   padding: 0 16px;
-  background: #111d35;
-  border: 2px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 2px solid var(--mmh-border);
   border-radius: 12px;
-  color: #e2eaf6;
+  color: var(--mmh-text);
   font-size: 14px;
   font-family: inherit;
   outline: none;
   cursor: pointer;
   width: 100%;
-  color-scheme: dark;
   appearance: none;
   -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -1237,20 +1524,20 @@ textarea {
 }
 
 .mmh-input-select:focus {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
 }
 
 .mmh-input-select option {
-  background: #111d35;
-  color: #e2eaf6;
+  background: var(--mmh-card2);
+  color: var(--mmh-text);
 }
 
 .mmh-textarea {
   padding: 12px 16px;
-  background: #111d35;
-  border: 2px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 2px solid var(--mmh-border);
   border-radius: 12px;
-  color: #e2eaf6;
+  color: var(--mmh-text);
   font-size: 14px;
   font-family: inherit;
   outline: none;
@@ -1261,7 +1548,7 @@ textarea {
 }
 
 .mmh-textarea:focus {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
 }
 
 .mmh-field-error {
@@ -1290,8 +1577,8 @@ textarea {
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  border: 2px solid #1e3050;
-  background: #111d35;
+  border: 2px solid var(--mmh-border);
+  background: var(--mmh-card2);
   color: #64748b;
   font-size: 17px;
   cursor: pointer;
@@ -1301,7 +1588,7 @@ textarea {
 
 .mmh-btn-icon-sm:hover {
   color: white;
-  border-color: #2a4070;
+  border-color: var(--mmh-border2);
 }
 
 .mmh-btn-auto {
@@ -1336,13 +1623,13 @@ textarea {
 .mmh-section-line {
   flex: 1;
   height: 1px;
-  background: #1e3050;
+  background: var(--mmh-border);
 }
 
 .mmh-section-text {
   font-size: 10px;
   font-weight: 700;
-  color: #0ea5e9;
+  color: var(--mmh-accent);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   white-space: nowrap;
@@ -1362,8 +1649,8 @@ textarea {
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  border: 2px solid #1e3050;
-  background: #111d35;
+  border: 2px solid var(--mmh-border);
+  background: var(--mmh-card2);
   color: #64748b;
   transition: all 0.15s;
   font-family: inherit;
@@ -1371,12 +1658,12 @@ textarea {
 
 .mmh-day-btn:hover {
   border-color: rgba(14, 165, 233, 0.4);
-  color: #94a3b8;
+  color: var(--mmh-text2);
 }
 
 .mmh-day-btn.selected {
-  background: #0ea5e9;
-  border-color: #0ea5e9;
+  background: var(--mmh-accent);
+  border-color: var(--mmh-accent);
   color: white;
   box-shadow: 0 3px 10px rgba(14, 165, 233, 0.3);
 }
@@ -1397,8 +1684,8 @@ textarea {
   gap: 9px;
   padding: 20px 12px;
   border-radius: 14px;
-  border: 2px solid #1e3050;
-  background: #111d35;
+  border: 2px solid var(--mmh-border);
+  background: var(--mmh-card2);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1410,7 +1697,7 @@ textarea {
 }
 
 .mmh-role-card.selected {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
   background: rgba(14, 165, 233, 0.1);
 }
 
@@ -1421,7 +1708,7 @@ textarea {
 .mmh-role-card-label {
   font-size: 12px;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--mmh-text2);
   text-align: center;
 }
 
@@ -1448,12 +1735,12 @@ textarea {
   gap: 9px;
   font-size: 13px;
   font-weight: 700;
-  color: #38bdf8;
+  color: var(--mmh-accent2);
 }
 
 .mmh-change-role {
   font-size: 12px;
-  color: #475569;
+  color: var(--mmh-text4);
   background: none;
   border: none;
   cursor: pointer;
@@ -1473,7 +1760,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #060d1a;
+  background: var(--mmh-bg);
   background-image:
     radial-gradient(ellipse 90% 60% at 50% -5%,
       rgba(14, 165, 233, 0.22) 0%, transparent 65%);
@@ -1496,8 +1783,8 @@ textarea {
   z-index: 2;
   width: 100%;
   max-width: 500px;
-  background: #0f1e38;
-  border: 1.5px solid #2a4070;
+  background: var(--mmh-card);
+  border: 1.5px solid var(--mmh-border2);
   border-radius: 26px;
   padding: 38px;
   box-shadow: 0 40px 100px rgba(0, 0, 0, 0.55);
@@ -1516,7 +1803,7 @@ textarea {
   width: 56px;
   height: 56px;
   border-radius: 17px;
-  background: linear-gradient(135deg, #0ea5e9, #10b981);
+  background: linear-gradient(135deg, var(--mmh-accent), #10b981);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1544,7 +1831,7 @@ textarea {
 .mmh-login-section-title {
   font-size: 12px;
   font-weight: 700;
-  color: #475569;
+  color: var(--mmh-text4);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 14px;
@@ -1564,8 +1851,8 @@ textarea {
   gap: 7px;
   padding: 14px 8px 12px;
   border-radius: 13px;
-  border: 2px solid #1e3050;
-  background: #111d35;
+  border: 2px solid var(--mmh-border);
+  background: var(--mmh-card2);
   cursor: pointer;
   transition: all 0.18s;
 }
@@ -1577,7 +1864,7 @@ textarea {
 }
 
 .mmh-login-role-card.selected {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
   background: rgba(14, 165, 233, 0.12);
   box-shadow: 0 4px 14px rgba(14, 165, 233, 0.2);
 }
@@ -1596,7 +1883,7 @@ textarea {
 }
 
 .mmh-login-role-card.selected .mmh-login-role-label {
-  color: #38bdf8;
+  color: var(--mmh-accent2);
 }
 
 .mmh-login-field {
@@ -1607,10 +1894,10 @@ textarea {
   width: 100%;
   height: 50px;
   padding: 0 18px;
-  background: #111d35;
-  border: 2px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 2px solid var(--mmh-border);
   border-radius: 14px;
-  color: #e2eaf6;
+  color: var(--mmh-text);
   font-size: 14px;
   font-family: inherit;
   outline: none;
@@ -1623,7 +1910,7 @@ textarea {
 }
 
 .mmh-login-input:focus {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
 }
 
@@ -1644,20 +1931,20 @@ textarea {
   border: none;
   cursor: pointer;
   font-size: 20px;
-  color: #475569;
+  color: var(--mmh-text4);
   padding: 4px;
   transition: color 0.15s;
   line-height: 1;
 }
 
 .mmh-login-pass-toggle:hover {
-  color: #94a3b8;
+  color: var(--mmh-text2);
 }
 
 .mmh-login-btn {
   width: 100%;
   height: 52px;
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  background: linear-gradient(135deg, var(--mmh-accent), #0284c7);
   color: white;
   font-size: 15px;
   font-weight: 800;
@@ -1705,7 +1992,7 @@ textarea {
 }
 
 .mmh-login-hint-code {
-  color: #0ea5e9;
+  color: var(--mmh-accent);
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
 }
@@ -1723,7 +2010,7 @@ textarea {
 
 .mmh-spinner-dark {
   border-color: rgba(14, 165, 233, 0.25);
-  border-top-color: #0ea5e9;
+  border-top-color: var(--mmh-accent);
 }
 
 /* ═══ ALERTS & BANNERS ════════════════════════════════ */
@@ -1784,7 +2071,7 @@ textarea {
 .mmh-empty-text {
   font-size: 15px;
   font-weight: 700;
-  color: #475569;
+  color: var(--mmh-text4);
 }
 
 .mmh-empty-sub {
@@ -1796,7 +2083,7 @@ textarea {
 /* ═══ PASSWORD STRENGTH ═══════════════════════════════ */
 .mmh-strength-bar {
   height: 4px;
-  background: #111d35;
+  background: var(--mmh-card2);
   border-radius: 2px;
   overflow: hidden;
   margin-top: 7px;
@@ -1822,8 +2109,8 @@ textarea {
 }
 
 .mmh-opd-card {
-  background: #0f1e38;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card);
+  border: 1px solid var(--mmh-border);
   border-radius: 15px;
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
@@ -1831,7 +2118,7 @@ textarea {
 
 .mmh-opd-card:hover {
   transform: translateY(-3px);
-  border-color: #2a4070;
+  border-color: var(--mmh-border2);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
 }
 
@@ -1842,13 +2129,13 @@ textarea {
 .mmh-opd-token {
   font-size: 24px;
   font-weight: 900;
-  color: #0ea5e9;
+  color: var(--mmh-accent);
   font-family: 'JetBrains Mono', monospace;
 }
 
 .mmh-opd-divider {
   height: 1px;
-  background: #1e3050;
+  background: var(--mmh-border);
   margin: 10px 0;
 }
 
@@ -1962,13 +2249,13 @@ textarea {
   display: none;
   width: 42px;
   height: 42px;
-  background: #111d35;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 1px solid var(--mmh-border);
   border-radius: 10px;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #94a3b8;
+  color: var(--mmh-text2);
   font-size: 20px;
   z-index: 100;
   flex-shrink: 0;
@@ -1978,7 +2265,7 @@ textarea {
 
 .mmh-sidebar-toggle:hover {
   color: white;
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
 }
 
 .mmh-sidebar-overlay {
@@ -2052,10 +2339,10 @@ textarea {
   width: 100%;
   height: 46px;
   padding: 0 16px;
-  background: #111d35;
-  border: 2px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 2px solid var(--mmh-border);
   border-radius: 12px;
-  color: #e2eaf6;
+  color: var(--mmh-text);
   font-size: 14px;
   font-family: 'Plus Jakarta Sans', sans-serif;
   outline: none;
@@ -2070,12 +2357,12 @@ textarea {
 }
 
 .mmh-input:focus {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
 }
 
 .mmh-input:hover:not(:focus) {
-  border-color: #2a4070;
+  border-color: var(--mmh-border2);
 }
 
 input[type="date"].mmh-input,
@@ -2089,10 +2376,10 @@ input[type="time"].mmh-input {
   width: 100%;
   height: 46px;
   padding: 0 38px 0 16px;
-  background: #111d35;
-  border: 2px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 2px solid var(--mmh-border);
   border-radius: 12px;
-  color: #e2eaf6;
+  color: var(--mmh-text);
   font-size: 14px;
   font-family: 'Plus Jakarta Sans', sans-serif;
   outline: none;
@@ -2108,17 +2395,17 @@ input[type="time"].mmh-input {
 }
 
 .mmh-input-select:focus {
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+  border-color: var(--mmh-accent);
+  box-shadow: 0 0 0 3px var(--mmh-accent-soft);
 }
 
 .mmh-input-select:hover:not(:focus) {
-  border-color: #2a4070;
+  border-color: var(--mmh-border2);
 }
 
 .mmh-input-select option {
-  background: #0f1e38;
-  color: #e2eaf6;
+  background: var(--mmh-card);
+  color: var(--mmh-text);
   padding: 8px;
 }
 
@@ -2128,10 +2415,10 @@ input[type="time"].mmh-input {
   width: 100%;
   min-height: 90px;
   padding: 12px 16px;
-  background: #111d35;
-  border: 2px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 2px solid var(--mmh-border);
   border-radius: 12px;
-  color: #e2eaf6;
+  color: var(--mmh-text);
   font-size: 14px;
   font-family: 'Plus Jakarta Sans', sans-serif;
   outline: none;
@@ -2141,12 +2428,12 @@ input[type="time"].mmh-input {
 }
 
 .mmh-textarea::placeholder {
-  color: #2d3e5a;
+  color: var(--mmh-text4);
 }
 
 .mmh-textarea:focus {
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+  border-color: var(--mmh-accent);
+  box-shadow: 0 0 0 3px var(--mmh-accent-soft);
 }
 
 /* FORM GRID 3-col */
@@ -2158,7 +2445,7 @@ input[type="time"].mmh-input {
 
 .mmh-field-hint {
   font-size: 11px;
-  color: #475569;
+  color: var(--mmh-text4);
   margin-top: 2px;
 }
 
@@ -2169,18 +2456,18 @@ input[type="time"].mmh-input {
   gap: 10px;
   cursor: pointer;
   padding: 10px 14px;
-  background: #111d35;
-  border: 2px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 2px solid var(--mmh-border);
   border-radius: 10px;
   transition: border-color 0.15s;
 }
 
 .mmh-checkbox-wrap:hover {
-  border-color: #2a4070;
+  border-color: var(--mmh-border2);
 }
 
 .mmh-checkbox-wrap.checked {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
   background: rgba(14, 165, 233, 0.07);
 }
 
@@ -2188,8 +2475,8 @@ input[type="time"].mmh-input {
   width: 18px;
   height: 18px;
   border-radius: 5px;
-  border: 2px solid #2a4070;
-  background: #0f1e38;
+  border: 2px solid var(--mmh-border2);
+  background: var(--mmh-card);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2199,27 +2486,27 @@ input[type="time"].mmh-input {
 }
 
 .mmh-checkbox-wrap.checked .mmh-checkbox {
-  background: #0ea5e9;
-  border-color: #0ea5e9;
+  background: var(--mmh-accent);
+  border-color: var(--mmh-accent);
   color: white;
 }
 
 .mmh-checkbox-label {
   font-size: 13px;
   font-weight: 500;
-  color: #94a3b8;
+  color: var(--mmh-text2);
 }
 
 .mmh-checkbox-wrap.checked .mmh-checkbox-label {
-  color: white;
+  color: var(--mmh-text);
 }
 
 /* ═══ PAGE TABS (OPD/Lab inside layout) ═══════════════ */
 .mmh-page-tabs {
   display: flex;
   gap: 4px;
-  background: #0b1425;
-  border-bottom: 1px solid #1e3050;
+  background: var(--mmh-bg2);
+  border-bottom: 1px solid var(--mmh-border);
   padding: 0 28px;
   overflow-x: auto;
   flex-shrink: 0;
@@ -2249,12 +2536,12 @@ input[type="time"].mmh-input {
 }
 
 .mmh-page-tab:hover {
-  color: #94a3b8;
+  color: var(--mmh-text2);
 }
 
 .mmh-page-tab.active {
   color: white;
-  border-bottom-color: #0ea5e9;
+  border-bottom-color: var(--mmh-accent);
   background: rgba(14, 165, 233, 0.05);
 }
 
@@ -2267,8 +2554,8 @@ input[type="time"].mmh-input {
 }
 
 .mmh-stat-card {
-  background: #0f1e38;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card);
+  border: 1px solid var(--mmh-border);
   border-radius: 16px;
   padding: 18px 20px;
   position: relative;
@@ -2326,13 +2613,13 @@ input[type="time"].mmh-input {
   align-items: center;
   gap: 8px;
   padding: 10px 13px;
-  background: #111d35;
-  border: 2px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 2px solid var(--mmh-border);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.15s;
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--mmh-text2);
   font-weight: 500;
 }
 
@@ -2342,7 +2629,7 @@ input[type="time"].mmh-input {
 }
 
 .mmh-test-item.selected {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
   background: rgba(14, 165, 233, 0.1);
   color: white;
 }
@@ -2361,8 +2648,8 @@ input[type="time"].mmh-input {
 }
 
 .mmh-test-item.selected .mmh-test-check {
-  background: #0ea5e9;
-  border-color: #0ea5e9;
+  background: var(--mmh-accent);
+  border-color: var(--mmh-accent);
   color: white;
 }
 
@@ -2373,7 +2660,7 @@ input[type="time"].mmh-input {
   border: 1px solid rgba(14, 165, 233, 0.2);
   border-radius: 6px;
   font-size: 11px;
-  color: #38bdf8;
+  color: var(--mmh-accent2);
   margin: 2px;
   font-weight: 600;
 }
@@ -2392,14 +2679,14 @@ input[type="time"].mmh-input {
   align-items: center;
   gap: 8px;
   padding: 16px 12px;
-  background: #111d35;
-  border: 2px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 2px solid var(--mmh-border);
   border-radius: 13px;
   cursor: pointer;
   transition: all 0.18s;
   font-size: 12px;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--mmh-text2);
 }
 
 .mmh-payment-card:hover {
@@ -2408,7 +2695,7 @@ input[type="time"].mmh-input {
 }
 
 .mmh-payment-card.selected {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
   background: rgba(14, 165, 233, 0.1);
   color: white;
 }
@@ -2427,12 +2714,12 @@ input[type="time"].mmh-input {
   text-align: left;
   font-size: 11px;
   font-weight: 700;
-  color: #475569;
+  color: var(--mmh-text4);
   text-transform: uppercase;
   letter-spacing: 0.07em;
   padding: 10px 14px;
-  background: #111d35;
-  border-bottom: 1px solid #1e3050;
+  background: var(--mmh-card2);
+  border-bottom: 1px solid var(--mmh-border);
 }
 
 .mmh-results-table td {
@@ -2444,10 +2731,10 @@ input[type="time"].mmh-input {
 .mmh-result-input {
   height: 36px;
   padding: 0 10px;
-  background: #111d35;
-  border: 1.5px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 1.5px solid var(--mmh-border);
   border-radius: 8px;
-  color: #e2eaf6;
+  color: var(--mmh-text);
   font-size: 13px;
   font-family: inherit;
   outline: none;
@@ -2458,16 +2745,16 @@ input[type="time"].mmh-input {
 }
 
 .mmh-result-input:focus {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
 }
 
 .mmh-flag-select {
   height: 36px;
   padding: 0 30px 0 10px;
-  background: #111d35;
-  border: 1.5px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 1.5px solid var(--mmh-border);
   border-radius: 8px;
-  color: #e2eaf6;
+  color: var(--mmh-text);
   font-size: 12px;
   font-family: inherit;
   outline: none;
@@ -2481,8 +2768,8 @@ input[type="time"].mmh-input {
 }
 
 .mmh-flag-select option {
-  background: #0f1e38;
-  color: #e2eaf6;
+  background: var(--mmh-card);
+  color: var(--mmh-text);
 }
 
 .mmh-flag-normal {
@@ -2515,8 +2802,8 @@ input[type="time"].mmh-input {
   align-items: center;
   gap: 16px;
   padding: 14px 18px;
-  background: #111d35;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 1px solid var(--mmh-border);
   border-radius: 14px;
   margin-bottom: 20px;
 }
@@ -2532,7 +2819,7 @@ input[type="time"].mmh-input {
   font-weight: 800;
   color: white;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  background: linear-gradient(135deg, var(--mmh-accent), #0284c7);
 }
 
 .mmh-patient-info-name {
@@ -2571,7 +2858,7 @@ input[type="time"].mmh-input {
   align-items: center;
   gap: 16px;
   padding: 14px 0;
-  border-bottom: 1px solid #1e3050;
+  border-bottom: 1px solid var(--mmh-border);
 }
 
 .mmh-ward-row:last-child {
@@ -2588,7 +2875,7 @@ input[type="time"].mmh-input {
 .mmh-ward-bar-wrap {
   flex: 1;
   height: 8px;
-  background: #111d35;
+  background: var(--mmh-card2);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -2596,7 +2883,7 @@ input[type="time"].mmh-input {
 .mmh-ward-bar-fill {
   height: 100%;
   border-radius: 4px;
-  background: linear-gradient(90deg, #0ea5e9, #10b981);
+  background: linear-gradient(90deg, var(--mmh-accent), #10b981);
   transition: width 0.5s;
 }
 
@@ -2679,7 +2966,7 @@ input[type="time"].mmh-input {
 }
 
 .mmh-slip-row-label {
-  color: #94a3b8;
+  color: var(--mmh-text2);
 }
 
 .mmh-slip-row-value {
@@ -2690,7 +2977,7 @@ input[type="time"].mmh-input {
 .mmh-slip-footer {
   text-align: center;
   font-size: 10px;
-  color: #94a3b8;
+  color: var(--mmh-text2);
   margin-top: 14px;
   padding-top: 12px;
   border-top: 1px solid #e2e8f0;
@@ -2842,15 +3129,15 @@ input[type="time"].mmh-input {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: #111d35;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 1px solid var(--mmh-border);
   border-radius: 12px;
   margin-bottom: 8px;
   transition: all 0.15s;
 }
 
 .mmh-cart-item:hover {
-  border-color: #2a4070;
+  border-color: var(--mmh-border2);
 }
 
 .mmh-cart-item-name {
@@ -2921,7 +3208,7 @@ input[type="time"].mmh-input {
 
 .mmh-stock-usage-bar {
   height: 4px;
-  background: #1e3050;
+  background: var(--mmh-border);
   border-radius: 2px;
   margin-top: 6px;
   overflow: hidden;
@@ -2931,7 +3218,7 @@ input[type="time"].mmh-input {
   height: 100%;
   border-radius: 2px;
   transition: width 0.3s;
-  background: #0ea5e9;
+  background: var(--mmh-accent);
 }
 
 /* ═══ PRINTABLE DISPENSE SLIP ═════════════════════════ */
@@ -2984,7 +3271,7 @@ input[type="time"].mmh-input {
 }
 
 .mmh-slip-info-label {
-  color: #94a3b8;
+  color: var(--mmh-text2);
   min-width: 80px;
 }
 
@@ -3045,7 +3332,7 @@ input[type="time"].mmh-input {
 .mmh-slip-footer {
   text-align: center;
   font-size: 10px;
-  color: #94a3b8;
+  color: var(--mmh-text2);
   margin-top: 14px;
   padding-top: 10px;
   border-top: 1px solid #e2e8f0;
@@ -3078,7 +3365,7 @@ input[type="time"].mmh-input {
 
 /* === GRADIENT VARIABLES (added) === */
 :root {
-  --mmh-sky-gradient: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  --mmh-sky-gradient: linear-gradient(135deg, var(--mmh-accent), var(--mmh-accent2));
   --mmh-green-gradient: linear-gradient(135deg, #10b981, #34d399);
   --mmh-amber-gradient: linear-gradient(135deg, #f59e0b, #fbbf24);
   --mmh-rose-gradient: linear-gradient(135deg, #f43f5e, #fb7185);
@@ -3094,8 +3381,8 @@ input[type="time"].mmh-input {
   top: 100%;
   left: 0;
   right: 0;
-  background: #0f1e38;
-  border: 1.5px solid #2a4070;
+  background: var(--mmh-card);
+  border: 1.5px solid var(--mmh-border2);
   border-top: none;
   border-radius: 0 0 12px 12px;
   max-height: 240px;
@@ -3126,7 +3413,7 @@ input[type="time"].mmh-input {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   font-weight: 700;
-  color: #0ea5e9;
+  color: var(--mmh-accent);
   white-space: nowrap;
   min-width: 130px;
 }
@@ -3160,7 +3447,7 @@ input[type="time"].mmh-input {
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  background: linear-gradient(135deg, var(--mmh-accent), #0284c7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3179,7 +3466,7 @@ input[type="time"].mmh-input {
 .mmh-selected-patient-mr {
   font-size: 12px;
   font-weight: 700;
-  color: #0ea5e9;
+  color: var(--mmh-accent);
   font-family: 'JetBrains Mono', monospace;
   margin-top: 3px;
 }
@@ -3214,7 +3501,7 @@ input[type="time"].mmh-input {
 /* === INPUT HINT & FIELD ERROR === */
 .mmh-input-hint {
   font-size: 11px;
-  color: #475569;
+  color: var(--mmh-text4);
   margin-top: 4px;
 }
 
@@ -3380,8 +3667,8 @@ input[type="time"].mmh-input {
   top: calc(100% + 2px) !important;
   left: 0 !important;
   right: 0 !important;
-  background: #0f1e38 !important;
-  border: 1.5px solid #2a4070 !important;
+  background: var(--mmh-card) !important;
+  border: 1.5px solid var(--mmh-border2) !important;
   border-radius: 12px !important;
   max-height: 260px !important;
   overflow-y: auto !important;
@@ -3411,7 +3698,7 @@ input[type="time"].mmh-input {
   font-family: 'JetBrains Mono', monospace !important;
   font-size: 11px !important;
   font-weight: 700 !important;
-  color: #0ea5e9 !important;
+  color: var(--mmh-accent) !important;
   white-space: nowrap !important;
   min-width: 130px !important;
 }
@@ -3434,8 +3721,8 @@ input[type="time"].mmh-input {
   display: flex;
   flex-direction: column;
   padding: 12px 14px;
-  background: #111d35;
-  border: 2px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 2px solid var(--mmh-border);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.15s;
@@ -3449,7 +3736,7 @@ input[type="time"].mmh-input {
 }
 
 .mmh-test-card.selected {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
   background: rgba(14, 165, 233, 0.08);
 }
 
@@ -3463,7 +3750,7 @@ input[type="time"].mmh-input {
   width: 18px;
   height: 18px;
   border-radius: 5px;
-  border: 2px solid #2a4070;
+  border: 2px solid var(--mmh-border2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3475,8 +3762,8 @@ input[type="time"].mmh-input {
 }
 
 .mmh-test-card.selected .mmh-test-card-check {
-  background: #0ea5e9;
-  border-color: #0ea5e9;
+  background: var(--mmh-accent);
+  border-color: var(--mmh-accent);
   color: white;
 }
 
@@ -3512,8 +3799,8 @@ input[type="time"].mmh-input {
   gap: 6px;
   padding: 7px 16px;
   border-radius: 20px;
-  border: 1.5px solid #1e3050;
-  background: #0f1e38;
+  border: 1.5px solid var(--mmh-border);
+  background: var(--mmh-card);
   color: #64748b;
   font-size: 12px;
   font-weight: 700;
@@ -3523,13 +3810,13 @@ input[type="time"].mmh-input {
 }
 
 .mmh-status-filter-btn:hover {
-  border-color: #2a4070;
-  color: #94a3b8;
+  border-color: var(--mmh-border2);
+  color: var(--mmh-text2);
 }
 
 .mmh-status-filter-btn.active-all {
-  background: #0ea5e9;
-  border-color: #0ea5e9;
+  background: var(--mmh-accent);
+  border-color: var(--mmh-accent);
   color: white;
 }
 
@@ -3541,8 +3828,8 @@ input[type="time"].mmh-input {
 
 .mmh-status-filter-btn.active-processing {
   background: rgba(14, 165, 233, 0.15);
-  border-color: #0ea5e9;
-  color: #38bdf8;
+  border-color: var(--mmh-accent);
+  color: var(--mmh-accent2);
 }
 
 .mmh-status-filter-btn.active-done {
@@ -3579,8 +3866,8 @@ input[type="time"].mmh-input {
 }
 
 .mmh-lab-card {
-  background: #0f1e38;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card);
+  border: 1px solid var(--mmh-border);
   border-radius: 16px;
   overflow: hidden;
   display: flex;
@@ -3608,7 +3895,7 @@ input[type="time"].mmh-input {
 
 .mmh-lab-card-footer {
   padding: 12px 16px;
-  border-top: 1px solid #1e3050;
+  border-top: 1px solid var(--mmh-border);
   display: flex;
   gap: 8px;
 }
@@ -3647,8 +3934,8 @@ input[type="time"].mmh-input {
 }
 
 .mmh-results-modal {
-  background: #0f1e38;
-  border: 1.5px solid #2a4070;
+  background: var(--mmh-card);
+  border: 1.5px solid var(--mmh-border2);
   border-radius: 20px;
   width: 100%;
   max-width: 800px;
@@ -3661,7 +3948,7 @@ input[type="time"].mmh-input {
 
 .mmh-results-modal-header {
   padding: 18px 22px;
-  border-bottom: 1px solid #1e3050;
+  border-bottom: 1px solid var(--mmh-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3676,7 +3963,7 @@ input[type="time"].mmh-input {
 
 .mmh-results-modal-footer {
   padding: 14px 22px;
-  border-top: 1px solid #1e3050;
+  border-top: 1px solid var(--mmh-border);
   display: flex;
   justify-content: flex-end;
   gap: 12px;
@@ -3701,7 +3988,7 @@ input[type="time"].mmh-input {
   font-size: 11px;
   font-weight: 700;
   background: rgba(14, 165, 233, 0.12);
-  color: #38bdf8;
+  color: var(--mmh-accent2);
   cursor: pointer;
   border: 1px solid rgba(14, 165, 233, 0.25);
   transition: all 0.15s;
@@ -3749,7 +4036,7 @@ input[type="time"].mmh-input {
   font-size: 11px;
   font-weight: 700;
   background: rgba(100, 116, 139, 0.08);
-  color: #475569;
+  color: var(--mmh-text4);
   cursor: pointer;
   border: 1px solid rgba(100, 116, 139, 0.2);
   transition: all 0.15s;
@@ -3793,7 +4080,7 @@ input[type="time"].mmh-input {
 
 .mmh-att-H {
   background: rgba(14, 165, 233, 0.12);
-  color: #38bdf8;
+  color: var(--mmh-accent2);
   border: 1px solid rgba(14, 165, 233, 0.3);
 }
 
@@ -3811,8 +4098,8 @@ input[type="time"].mmh-input {
 
 /* ═══ HR MODULE — LEAVE CARDS ════════════════════════ */
 .mmh-leave-card {
-  background: #0f1e38;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card);
+  border: 1px solid var(--mmh-border);
   border-radius: 14px;
   padding: 16px;
   margin-bottom: 10px;
@@ -3832,7 +4119,7 @@ input[type="time"].mmh-input {
 }
 
 .mmh-leave-card:hover {
-  border-color: #2a4070;
+  border-color: var(--mmh-border2);
 }
 
 /* ═══ HR MODULE — LEAVE BALANCE BARS ════════════════ */
@@ -3849,7 +4136,7 @@ input[type="time"].mmh-input {
 
 .mmh-leave-bar-track {
   height: 6px;
-  background: #111d35;
+  background: var(--mmh-card2);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -3872,10 +4159,10 @@ input[type="time"].mmh-input {
 }
 
 .mmh-payroll-header {
-  background: #111d35;
+  background: var(--mmh-card2);
   font-size: 10px;
   font-weight: 700;
-  color: #475569;
+  color: var(--mmh-text4);
   text-transform: uppercase;
   letter-spacing: 0.07em;
   border-radius: 10px 10px 0 0;
@@ -3896,16 +4183,16 @@ input[type="time"].mmh-input {
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  border: 1.5px solid #1e3050;
-  background: #0f1e38;
-  color: #94a3b8;
+  border: 1.5px solid var(--mmh-border);
+  background: var(--mmh-card);
+  color: var(--mmh-text2);
   cursor: pointer;
   font-size: 16px;
   transition: all 0.15s;
 }
 
 .mmh-week-btn:hover {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
   color: white;
 }
 
@@ -3940,7 +4227,7 @@ input[type="time"].mmh-input {
 }
 
 .mmh-status-dot-blue {
-  background: #0ea5e9;
+  background: var(--mmh-accent);
 }
 
 .mmh-status-dot-violet {
@@ -3995,8 +4282,8 @@ input[type="time"].mmh-input {
   left: 50%;
   transform: translateX(-50%);
   z-index: 50;
-  background: #0f1e38;
-  border: 1.5px solid #2a4070;
+  background: var(--mmh-card);
+  border: 1.5px solid var(--mmh-border2);
   border-radius: 10px;
   padding: 6px;
   display: flex;
@@ -4038,10 +4325,10 @@ input[type="time"].mmh-input {
   width: 100%;
   height: 46px;
   padding: 0 16px 0 42px;
-  background: #111d35;
-  border: 2px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 2px solid var(--mmh-border);
   border-radius: 12px;
-  color: #e2eaf6;
+  color: var(--mmh-text);
   font-size: 14px;
   font-family: inherit;
   outline: none;
@@ -4050,7 +4337,7 @@ input[type="time"].mmh-input {
 }
 
 .mmh-ts-input:focus {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
 }
 
 .mmh-ts-input:disabled {
@@ -4063,7 +4350,7 @@ input[type="time"].mmh-input {
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #475569;
+  color: var(--mmh-text4);
   font-size: 14px;
   pointer-events: none;
   z-index: 1;
@@ -4074,8 +4361,8 @@ input[type="time"].mmh-input {
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: #0f1e38;
-  border: 1.5px solid #2a4070;
+  background: var(--mmh-card);
+  border: 1.5px solid var(--mmh-border2);
   border-radius: 12px;
   max-height: 240px;
   overflow-y: auto;
@@ -4116,7 +4403,7 @@ input[type="time"].mmh-input {
 .mmh-ts-empty {
   padding: 16px;
   text-align: center;
-  color: #475569;
+  color: var(--mmh-text4);
   font-size: 13px;
 }
 
@@ -4152,8 +4439,8 @@ input[type="time"].mmh-input {
 
 /* ═══ Leave Balance Progress Bars ═══ */
 .mmh-leave-bal-card {
-  background: #0f1e38;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card);
+  border: 1px solid var(--mmh-border);
   border-radius: 14px;
   padding: 16px 20px;
 }
@@ -4176,7 +4463,7 @@ input[type="time"].mmh-input {
 .mmh-leave-bal-name {
   font-size: 13px;
   font-weight: 600;
-  color: #e2eaf6;
+  color: var(--mmh-text);
 }
 
 .mmh-leave-bal-count {
@@ -4188,7 +4475,7 @@ input[type="time"].mmh-input {
 
 .mmh-leave-bal-track {
   height: 6px;
-  background: #111d35;
+  background: var(--mmh-card2);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -4213,9 +4500,9 @@ input[type="time"].mmh-input {
 
 /* ═══ Leave History Cards ═══ */
 .mmh-leave-history-card {
-  background: #111d35;
-  border: 1px solid #1e3050;
-  border-left: 3px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 1px solid var(--mmh-border);
+  border-left: 3px solid var(--mmh-border);
   border-radius: 12px;
   padding: 14px 16px;
   margin-bottom: 10px;
@@ -4279,13 +4566,13 @@ input[type="time"].mmh-input {
 
 .mmh-att-cal-H {
   background: rgba(14, 165, 233, 0.15);
-  color: #38bdf8;
+  color: var(--mmh-accent2);
   border-color: rgba(14, 165, 233, 0.25);
 }
 
 .mmh-att-cal-O {
   background: rgba(100, 116, 139, 0.1);
-  color: #475569;
+  color: var(--mmh-text4);
 }
 
 .mmh-att-cal-header {
@@ -4363,7 +4650,7 @@ input[type="time"].mmh-input {
 
 .mmh-slip-att-label {
   font-size: 10px;
-  color: #94a3b8;
+  color: var(--mmh-text2);
   margin-top: 2px;
 }
 
@@ -4447,10 +4734,10 @@ input[type="time"].mmh-input {
 }
 
 .mmh-payroll-header-row {
-  background: #111d35;
+  background: var(--mmh-card2);
   font-size: 10px;
   font-weight: 700;
-  color: #475569;
+  color: var(--mmh-text4);
   text-transform: uppercase;
   letter-spacing: 0.07em;
   border-radius: 12px 12px 0 0;
@@ -4458,8 +4745,8 @@ input[type="time"].mmh-input {
 
 .mmh-payroll-deduct-popup {
   position: absolute;
-  background: #0f1e38;
-  border: 1.5px solid #2a4070;
+  background: var(--mmh-card);
+  border: 1.5px solid var(--mmh-border2);
   border-radius: 12px;
   padding: 12px 16px;
   font-size: 12px;
@@ -4493,13 +4780,13 @@ input[type="time"].mmh-input {
 
 .mmh-btn-sky {
   background: rgba(14, 165, 233, 0.15);
-  color: #38bdf8;
+  color: var(--mmh-accent2);
   border: 1.5px solid rgba(14, 165, 233, 0.3);
 }
 
 .mmh-btn-sky:hover {
   background: rgba(14, 165, 233, 0.25);
-  border-color: #38bdf8;
+  border-color: var(--mmh-accent2);
 }
 
 .mmh-btn-indigo {
@@ -4667,13 +4954,13 @@ input[type="time"].mmh-input {
 .mmh-att-cal-H {
   background: rgba(56, 189, 248, 0.12);
   border-color: rgba(56, 189, 248, 0.25);
-  color: #38bdf8;
+  color: var(--mmh-accent2);
 }
 
 .mmh-att-cal-O {
   background: rgba(100, 116, 139, 0.08);
   border-color: rgba(100, 116, 139, 0.15);
-  color: #475569;
+  color: var(--mmh-text4);
 }
 
 /* ── Leave balance bars ── */
@@ -4705,8 +4992,8 @@ input[type="time"].mmh-input {
 
 /* ── Leave History Cards ── */
 .mmh-leave-history-card {
-  background: #0f1e38;
-  border: 1.5px solid #1e3050;
+  background: var(--mmh-card);
+  border: 1.5px solid var(--mmh-border);
   border-radius: 12px;
   padding: 14px 16px;
   margin-bottom: 10px;
@@ -4759,7 +5046,7 @@ input[type="time"].mmh-input {
 }
 
 .mmh-ts-clear:hover {
-  color: #94a3b8;
+  color: var(--mmh-text2);
 }
 
 .mmh-ts-dropdown {
@@ -4767,8 +5054,8 @@ input[type="time"].mmh-input {
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: #0f1e38;
-  border: 1.5px solid #2a4070;
+  background: var(--mmh-card);
+  border: 1.5px solid var(--mmh-border2);
   border-radius: 12px;
   z-index: 9999;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
@@ -4795,7 +5082,7 @@ input[type="time"].mmh-input {
 
 .mmh-ts-empty {
   padding: 12px 16px;
-  color: #475569;
+  color: var(--mmh-text4);
   font-size: 12px;
   text-align: center;
 }
@@ -4810,8 +5097,8 @@ input[type="time"].mmh-input {
 }
 
 .mmh-leave-bal-card {
-  background: #0f1e38;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card);
+  border: 1px solid var(--mmh-border);
   border-radius: 14px;
   padding: 16px 18px;
 }
@@ -4833,7 +5120,7 @@ input[type="time"].mmh-input {
 
 .mmh-lbc-bar-track {
   height: 5px;
-  background: #111d35;
+  background: var(--mmh-card2);
   border-radius: 3px;
   margin-top: 12px;
   overflow: hidden;
@@ -4859,15 +5146,15 @@ input[type="time"].mmh-input {
 }
 
 .mmh-leave-form-card {
-  background: #111d35;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 1px solid var(--mmh-border);
   border-radius: 14px;
   padding: 18px 20px;
 }
 
 .mmh-leave-hist-card {
-  background: #111d35;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 1px solid var(--mmh-border);
   border-radius: 14px;
   padding: 18px 20px;
   max-height: 600px;
@@ -4879,15 +5166,15 @@ input[type="time"].mmh-input {
   font-weight: 700;
   color: white;
   padding-bottom: 12px;
-  border-bottom: 1px solid #1e3050;
+  border-bottom: 1px solid var(--mmh-border);
   margin-bottom: 16px;
 }
 
 /* Leave history item cards */
 .mmh-lhc {
-  background: #0f1e38;
-  border: 1px solid #1e3050;
-  border-left: 3px solid #1e3050;
+  background: var(--mmh-card);
+  border: 1px solid var(--mmh-border);
+  border-left: 3px solid var(--mmh-border);
   border-radius: 0 10px 10px 0;
   padding: 12px 14px;
   margin-bottom: 8px;
@@ -4895,7 +5182,7 @@ input[type="time"].mmh-input {
 }
 
 .mmh-lhc:hover {
-  border-color: #2a4070;
+  border-color: var(--mmh-border2);
 }
 
 .mmh-lhc-pending {
@@ -4935,7 +5222,7 @@ input[type="time"].mmh-input {
 
 .mmh-lhc-reason {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--mmh-text2);
   margin-top: 4px;
   white-space: nowrap;
   overflow: hidden;
@@ -5013,8 +5300,8 @@ input[type="time"].mmh-input {
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  background: #111d35;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 1px solid var(--mmh-border);
   color: #64748b;
   cursor: pointer;
   display: flex;
@@ -5028,7 +5315,7 @@ input[type="time"].mmh-input {
 .mmh-notif-btn.active {
   background: rgba(14, 165, 233, 0.12);
   border-color: rgba(14, 165, 233, 0.3);
-  color: #38bdf8;
+  color: var(--mmh-accent2);
 }
 
 .mmh-notif-badge {
@@ -5053,8 +5340,8 @@ input[type="time"].mmh-input {
   right: 0;
   top: 48px;
   width: 360px;
-  background: #0f1e38;
-  border: 1.5px solid #2a4070;
+  background: var(--mmh-card);
+  border: 1.5px solid var(--mmh-border2);
   border-radius: 16px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
   z-index: 9999;
@@ -5064,13 +5351,13 @@ input[type="time"].mmh-input {
 
 .mmh-notif-header {
   padding: 14px 18px;
-  border-bottom: 1px solid #1e3050;
+  border-bottom: 1px solid var(--mmh-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: sticky;
   top: 0;
-  background: #0f1e38;
+  background: var(--mmh-card);
   z-index: 1;
 }
 
@@ -5082,7 +5369,7 @@ input[type="time"].mmh-input {
 
 .mmh-notif-mark-all {
   font-size: 11px;
-  color: #0ea5e9;
+  color: var(--mmh-accent);
   background: none;
   border: none;
   cursor: pointer;
@@ -5135,7 +5422,7 @@ input[type="time"].mmh-input {
 }
 
 .mmh-notif-item:not(.unread) .mmh-notif-item-title {
-  color: #94a3b8;
+  color: var(--mmh-text2);
 }
 
 .mmh-notif-msg {
@@ -5155,7 +5442,7 @@ input[type="time"].mmh-input {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #0ea5e9;
+  background: var(--mmh-accent);
   flex-shrink: 0;
   margin-top: 5px;
 }
@@ -5173,7 +5460,7 @@ input[type="time"].mmh-input {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   font-weight: 700;
-  color: #0ea5e9;
+  color: var(--mmh-accent);
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -5184,17 +5471,17 @@ input[type="time"].mmh-input {
 }
 
 .mmh-mr-link:hover {
-  color: #38bdf8;
+  color: var(--mmh-accent2);
 }
 
 /* Status inline select in table */
 .mmh-status-select {
   height: 30px;
   padding: 0 8px;
-  background: #0f1e38;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card);
+  border: 1px solid var(--mmh-border);
   border-radius: 8px;
-  color: #94a3b8;
+  color: var(--mmh-text2);
   font-size: 11px;
   cursor: pointer;
   color-scheme: dark;
@@ -5203,29 +5490,29 @@ input[type="time"].mmh-input {
 }
 
 .mmh-status-select:focus {
-  border-color: #0ea5e9;
+  border-color: var(--mmh-accent);
 }
 
 .mmh-status-select option {
-  background: #0f1e38;
+  background: var(--mmh-card);
 }
 
 /* History timeline items */
 .mmh-hist-item {
   padding: 10px 13px;
-  background: #0f1e38;
-  border-left: 3px solid #1e3050;
+  background: var(--mmh-card);
+  border-left: 3px solid var(--mmh-border);
   border-radius: 0 10px 10px 0;
   margin-bottom: 7px;
   transition: border-color 0.15s;
 }
 
 .mmh-hist-item:hover {
-  border-left-color: #2a4070;
+  border-left-color: var(--mmh-border2);
 }
 
 .mmh-hist-opd {
-  border-left-color: #0ea5e9;
+  border-left-color: var(--mmh-accent);
 }
 
 .mmh-hist-lab {
@@ -5259,8 +5546,8 @@ input[type="time"].mmh-input {
   align-items: center;
   gap: 10px;
   padding: 10px 13px;
-  background: #111d35;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card2);
+  border: 1px solid var(--mmh-border);
   border-radius: 10px;
   margin-bottom: 7px;
 }
@@ -5313,7 +5600,7 @@ input[type="time"].mmh-input {
   background: rgba(14, 165, 233, 0.06);
   border: 1px dashed rgba(14, 165, 233, 0.3);
   border-radius: 10px;
-  color: #38bdf8;
+  color: var(--mmh-accent2);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -5340,7 +5627,7 @@ input[type="time"].mmh-input {
   width: 13px;
   height: 13px;
   border: 2px solid rgba(14, 165, 233, 0.2);
-  border-top-color: #0ea5e9;
+  border-top-color: var(--mmh-accent);
   border-radius: 50%;
   animation: mmh-spin 0.65s linear infinite;
   flex-shrink: 0;
@@ -5355,234 +5642,108 @@ input[type="time"].mmh-input {
 }
 
 .mmh-payment-card-sm {
-  background: #0f1e38;
-  border: 1px solid #1e3050;
+  background: var(--mmh-card);
+  border: 1px solid var(--mmh-border);
   border-radius: 12px;
   padding: 12px 14px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.mmh-notif-item-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: white;
-}
-
-.mmh-notif-item.unread .mmh-notif-item-title {
-  color: white;
-}
-
-.mmh-notif-item:not(.unread) .mmh-notif-item-title {
-  color: #94a3b8;
-}
-
-.mmh-notif-msg {
-  font-size: 12px;
-  color: #64748b;
-  margin-top: 2px;
-  line-height: 1.4;
-}
-
-.mmh-notif-time {
-  font-size: 11px;
-  color: #334155;
-  margin-top: 4px;
-}
-
-.mmh-notif-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #0ea5e9;
-  flex-shrink: 0;
-  margin-top: 5px;
-}
-
-.mmh-notif-empty {
-  padding: 32px;
-  text-align: center;
-  color: #334155;
-  font-size: 13px;
-}
-
-/* ═══ DOCTOR PORTAL UPDATES ════════════════════════════ */
-/* MR Number clickable link style */
-.mmh-mr-link {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  font-weight: 700;
-  color: #0ea5e9;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: color 0.15s;
-  background: none;
-  border: none;
-  padding: 0;
-}
-
-.mmh-mr-link:hover {
-  color: #38bdf8;
-}
-
-/* Status inline select in table */
-.mmh-status-select {
-  height: 30px;
-  padding: 0 8px;
-  background: #0f1e38;
-  border: 1px solid #1e3050;
-  border-radius: 8px;
-  color: #94a3b8;
-  font-size: 11px;
-  cursor: pointer;
-  color-scheme: dark;
-  font-family: inherit;
-  transition: border-color 0.15s;
-}
-
-.mmh-status-select:focus {
-  border-color: #0ea5e9;
-}
-
-.mmh-status-select option {
-  background: #0f1e38;
-}
-
-/* History timeline items */
-.mmh-hist-item {
-  padding: 10px 13px;
-  background: #0f1e38;
-  border-left: 3px solid #1e3050;
-  border-radius: 0 10px 10px 0;
-  margin-bottom: 7px;
-  transition: border-color 0.15s;
-}
-
-.mmh-hist-item:hover {
-  border-left-color: #2a4070;
-}
-
-.mmh-hist-opd {
-  border-left-color: #0ea5e9;
-}
-
-.mmh-hist-lab {
-  border-left-color: #8b5cf6;
-}
-
-.mmh-hist-rx {
-  border-left-color: #10b981;
-}
-
-.mmh-hist-adm {
-  border-left-color: #f43f5e;
-}
-
-.mmh-hist-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: white;
-}
-
-.mmh-hist-sub {
-  font-size: 11px;
-  color: #64748b;
-  margin-top: 3px;
-  line-height: 1.4;
-}
-
-/* Prescription item in examine modal */
-.mmh-rx-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 13px;
-  background: #111d35;
-  border: 1px solid #1e3050;
-  border-radius: 10px;
-  margin-bottom: 7px;
+  user-select: none;
 }
 
-.mmh-rx-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: white;
+.mmh-payment-card-sm:hover {
+  background: var(--mmh-card2);
+  border-color: var(--mmh-border2);
+  transform: translateY(-1px);
 }
 
-.mmh-rx-detail {
-  font-size: 11px;
-  color: #64748b;
-  margin-top: 2px;
+.mmh-payment-card-sm.selected {
+  background: var(--mmh-success-soft);
+  border: 2px solid var(--mmh-success);
+  box-shadow: 0 0 15px var(--mmh-success-soft);
 }
 
-.mmh-rx-qty {
-  font-size: 12px;
-  font-weight: 700;
-  color: #34d399;
-  font-family: 'JetBrains Mono', monospace;
-  white-space: nowrap;
-  margin-left: auto;
-}
-
-.mmh-rx-remove {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  background: rgba(244, 63, 94, 0.1);
-  border: 1px solid rgba(244, 63, 94, 0.25);
-  color: #fb7185;
-  cursor: pointer;
+.mmh-payment-icon-sm {
+  font-size: 18px;
+  width: 34px;
+  height: 34px;
+  background: var(--mmh-bg3);
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.mmh-attachment-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--mmh-card2) !important;
+  border: 1px solid var(--mmh-accent-border) !important;
+  border-radius: 12px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.mmh-attachment-card:hover {
+  background: var(--mmh-bg2) !important;
+  border-color: var(--mmh-accent) !important;
+  transform: translateY(-1px);
+}
+
+.mmh-attachment-name {
   font-size: 13px;
-  transition: all 0.15s;
-  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--mmh-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.mmh-rx-remove:hover {
-  background: rgba(244, 63, 94, 0.2);
+.mmh-lbc-number,
+.mmh-leave-card-title,
+.mmh-lhc-name,
+.mmh-notif-title,
+.mmh-notif-item-title,
+.mmh-hist-title,
+.mmh-rx-name {
+  color: var(--mmh-text) !important;
 }
 
-/* Add medicine dashed button */
-.mmh-add-medicine-btn {
-  width: 100%;
-  padding: 9px;
-  background: rgba(14, 165, 233, 0.06);
-  border: 1px dashed rgba(14, 165, 233, 0.3);
-  border-radius: 10px;
-  color: #38bdf8;
-  font-size: 12px;
-  font-weight: 600;
+.mmh-upload-zone {
+  border: 2px dashed var(--mmh-border);
+  background: var(--mmh-bg2);
+  border-radius: 14px;
+  padding: 24px;
+  text-align: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.mmh-notif-item.unread {
+  background: var(--mmh-accent-soft);
+}
+
+.mmh-status-select {
+  height: 30px;
+  padding: 0 8px;
+  background: var(--mmh-card);
+  border: 1px solid var(--mmh-border);
+  border-radius: 8px;
+  color: var(--mmh-text2);
+  font-size: 11px;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.15s;
-  margin-top: 6px;
+  transition: border-color 0.15s;
 }
 
-.mmh-add-medicine-btn:hover {
-  background: rgba(14, 165, 233, 0.1);
-  border-color: rgba(14, 165, 233, 0.5);
-}
-
-/* Examine modal two-column layout */
-.mmh-examine-2col {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-
-/* Small spinner for inline status update */
-.mmh-spinner-sm {
-  width: 13px;
-  height: 13px;
-  border: 2px solid rgba(14, 165, 233, 0.2);
-  border-top-color: #0ea5e9;
-  border-radius: 50%;
-  animation: mmh-spin 0.65s linear infinite;
-  flex-shrink: 0;
+[data-scheme="light"] .mmh-status-select {
+  background: #ffffff;
 }
 
 /* Compact payment method grid */
@@ -5720,14 +5881,15 @@ input[type="time"].mmh-input {
 
 
 /* ═══ PAGINATION ══════════════════════════════════════ */
+/* ═══ PAGINATION ══════════════════════════════════════ */
 .mmh-pagination {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 28px;
-  background: linear-gradient(to right, rgba(11, 20, 37, 0.9), rgba(15, 30, 56, 0.95));
+  background: var(--mmh-bg2);
   backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(30, 48, 80, 0.8);
+  border-top: 1px solid var(--mmh-border);
   flex-wrap: wrap;
   gap: 20px;
   border-bottom-left-radius: 18px;
@@ -5736,7 +5898,7 @@ input[type="time"].mmh-input {
 
 .mmh-pagination-info {
   font-size: 13px;
-  color: var(--mmh-muted);
+  color: var(--mmh-text3);
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -5744,44 +5906,23 @@ input[type="time"].mmh-input {
 }
 
 .mmh-pagination-info span {
-  color: white;
+  color: var(--mmh-text);
   font-weight: 800;
   font-family: 'JetBrains Mono', monospace;
-  background: rgba(14, 165, 233, 0.15);
+  background: var(--mmh-accent-soft);
   padding: 2px 8px;
   border-radius: 6px;
-  border: 1px solid rgba(14, 165, 233, 0.2);
+  border: 1px solid var(--mmh-accent-border);
   font-size: 12px;
-}
-
-.mmh-pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 32px;
-  flex-wrap: wrap;
-}
-
-.mmh-pagination-rows {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.mmh-pagination-rows label {
-  font-size: 12px;
-  color: var(--mmh-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .mmh-pagination-select {
   height: 36px;
   padding: 0 32px 0 12px;
-  background: #0f1e38;
-  border: 1.5px solid var(--mmh-border2);
+  background: var(--mmh-input-bg);
+  border: 1.5px solid var(--mmh-border);
   border-radius: 10px;
-  color: white;
+  color: var(--mmh-text);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -5793,65 +5934,33 @@ input[type="time"].mmh-input {
   background-position: right 12px center;
 }
 
-.mmh-pagination-select:focus {
-  border-color: var(--mmh-sky);
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-}
-
-.mmh-pagination-buttons {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .mmh-pagination-btn {
   height: 36px;
   padding: 0 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1.5px solid var(--mmh-border2);
+  background: var(--mmh-card2);
+  border: 1.5px solid var(--mmh-border);
   border-radius: 10px;
-  color: #94a3b8;
+  color: var(--mmh-text2);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-family: inherit;
 }
 
 .mmh-pagination-btn:hover:not(:disabled) {
-  background: rgba(14, 165, 233, 0.1);
-  border-color: var(--mmh-sky);
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
-}
-
-.mmh-pagination-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.mmh-pagination-btn svg {
-  transition: transform 0.2s;
-}
-
-.mmh-pagination-btn:hover:not(:disabled) svg {
-  color: var(--mmh-sky);
-}
-
-.mmh-pagination-btn:disabled {
-  opacity: 0.2;
-  cursor: not-allowed;
-  border-color: var(--mmh-border);
+  background: var(--mmh-accent-soft);
+  border-color: var(--mmh-accent);
+  color: var(--mmh-text);
 }
 
 .mmh-pagination-page-indicator {
   font-size: 13px;
   font-weight: 600;
-  color: var(--mmh-muted);
+  color: var(--mmh-text3);
   padding: 0 12px;
   display: flex;
   align-items: center;
@@ -5859,7 +5968,78 @@ input[type="time"].mmh-input {
 }
 
 .mmh-pagination-page-indicator span {
-  color: white;
+  color: var(--mmh-text);
   font-weight: 800;
   font-family: 'JetBrains Mono', monospace;
+}
+
+/* ════════════════════════════════
+   FINAL LIGHT MODE OVERRIDES
+   Fine-tuning for maximum readability
+════════════════════════════════ */
+
+[data-scheme="light"] .mmh-badge-sky {
+  color: #0369a1;
+  background: rgba(14, 165, 233, 0.15);
+  border-color: rgba(14, 165, 233, 0.2);
+}
+
+[data-scheme="light"] .mmh-badge-green {
+  color: #065f46;
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+[data-scheme="light"] .mmh-badge-amber {
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+[data-scheme="light"] .mmh-badge-rose {
+  color: #9f1239;
+  background: rgba(244, 63, 94, 0.15);
+  border-color: rgba(244, 63, 94, 0.2);
+}
+
+[data-scheme="light"] .mmh-badge-violet {
+  color: #4c1d95;
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.2);
+}
+
+[data-scheme="light"] .mmh-badge-gray {
+  color: #374151;
+  background: rgba(100, 116, 139, 0.15);
+  border-color: rgba(100, 116, 139, 0.2);
+}
+
+[data-scheme="light"] .mmh-table th {
+  background: #f8fafc;
+  color: #475569;
+}
+
+[data-scheme="light"] .mmh-stat-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-scheme="light"] .mmh-modal {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+}
+
+[data-scheme="light"] .mmh-input,
+[data-scheme="light"] .mmh-input-select,
+[data-scheme="light"] .mmh-textarea {
+  background: #ffffff;
+}
+
+[data-scheme="light"] .mmh-login-card {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+}
+
+/* Sidebar toggle in light mode should be visible */
+[data-scheme="light"] .mmh-sidebar-toggle {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #64748b;
 }

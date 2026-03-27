@@ -94,7 +94,7 @@ const TypeSearch: React.FC<TypeSearchProps> = ({
               {selected.icon && <span style={{ fontSize: 16 }}>{selected.icon}</span>}
               <div>
                 <div className="mmh-ts-selected-label">{selected.label}</div>
-                {selected.sub && <div style={{ fontSize: 11, color: '#64748b', marginTop: 1 }}>{selected.sub}</div>}
+                {selected.sub && <div style={{ fontSize: 11, color: 'var(--mmh-text3)', marginTop: 1 }}>{selected.sub}</div>}
               </div>
             </div>
             <button 
@@ -122,7 +122,7 @@ const TypeSearch: React.FC<TypeSearchProps> = ({
                     <div className="mmh-ts-option-label">{opt.label}</div>
                     {opt.sub && <div className="mmh-ts-option-sub">{opt.sub}</div>}
                   </div>
-                  {opt.value === value && <span style={{ color: '#0ea5e9' }}>✓</span>}
+                  {opt.value === value && <span style={{ color: 'var(--mmh-accent)' }}>✓</span>}
                 </div>
               ))
             )}

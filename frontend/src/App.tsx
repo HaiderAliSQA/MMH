@@ -12,7 +12,7 @@ import ManageUsers from './pages/admin/ManageUsers';
 import ManageWards from './pages/admin/ManageWards';
 import HRPage from './pages/admin/HRPage';
 import PaymentsGrid from './pages/admin/PaymentsGrid';
-import Settings from './pages/Settings';
+import SettingsPage from './pages/shared/SettingsPage';
 
 // Original Portal Pages
 import Receptionist from './pages/Receptionist';
@@ -27,8 +27,8 @@ import './styles/mmh.css';
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div style={{ padding: '40px', textAlign: 'center' }}>
     <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚧</div>
-    <h2 style={{ color: 'white', fontSize: '20px' }}>{title}</h2>
-    <p style={{ color: '#64748b', marginTop: '8px' }}>
+    <h2 style={{ color: 'var(--mmh-text)', fontSize: '20px' }}>{title}</h2>
+    <p style={{ color: 'var(--mmh-text3)', marginTop: '8px' }}>
       Coming soon...
     </p>
   </div>
@@ -75,7 +75,7 @@ function App() {
         <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Manage Users"><ManageUsers /></MainLayout></ProtectedRoute>} />
         <Route path="/admin/managers" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Manage Managers"><PlaceholderPage title="Managers Management" /></MainLayout></ProtectedRoute>} />
         <Route path="/hr" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><MainLayout user={user} title="HR Management"><HRPage /></MainLayout></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><MainLayout user={user} title="Account Settings"><Settings /></MainLayout></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><MainLayout user={user} title="Account Settings"><SettingsPage /></MainLayout></ProtectedRoute>} />
 
         {/* Receptionist Portal (Restored Legacy UI) */}
         <Route path="/receptionist" element={<ProtectedRoute allowedRoles={['receptionist']}><Receptionist onLogout={logout} /></ProtectedRoute>} />

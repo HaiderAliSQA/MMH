@@ -153,11 +153,11 @@ const LeaveFileUpload: React.FC<LeaveFileUploadProps> = ({ onFileSelect, selecte
           style={{
             marginTop: '8px',
             padding: '8px 12px',
-            background: 'rgba(244,63,94,0.08)',
-            border: '1px solid rgba(244,63,94,0.25)',
+            background: 'var(--mmh-danger-soft)',
+            border: '1px solid var(--mmh-danger-soft)',
             borderRadius: '8px',
             fontSize: '12px',
-            color: '#fb7185',
+            color: 'var(--mmh-danger)',
           }}
         >
           ⚠️ {error}

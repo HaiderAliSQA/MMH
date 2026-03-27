@@ -131,7 +131,7 @@ const PatientSearch: React.FC<PatientSearchProps> = ({
         <div style={{ position: 'relative' }}>
           <span style={{
             position: 'absolute', left: 14, top: '50%',
-            transform: 'translateY(-50%)', color: '#475569',
+            transform: 'translateY(-50%)', color: 'var(--mmh-text3)',
             fontSize: 15, pointerEvents: 'none', zIndex: 1,
           }}>
             🔍
@@ -148,7 +148,7 @@ const PatientSearch: React.FC<PatientSearchProps> = ({
           {loading && (
             <span style={{
               position: 'absolute', right: 14, top: '50%',
-              transform: 'translateY(-50%)', fontSize: 12, color: '#64748b',
+              transform: 'translateY(-50%)', fontSize: 12, color: 'var(--mmh-text3)',
             }}>
               ⏳
             </span>
@@ -166,9 +166,9 @@ const PatientSearch: React.FC<PatientSearchProps> = ({
               >
                 <div style={{
                   width: 34, height: 34, borderRadius: 9,
-                  background: 'linear-gradient(135deg,#0ea5e9,#0284c7)',
+                  background: 'var(--mmh-accent)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 900, color: 'white', flexShrink: 0,
+                  fontSize: 13, fontWeight: 900, color: 'var(--mmh-text-inverted)', flexShrink: 0,
                 }}>
                   {p.name.charAt(0).toUpperCase()}
                 </div>
@@ -183,7 +183,7 @@ const PatientSearch: React.FC<PatientSearchProps> = ({
         {/* No results */}
         {show && query.length >= 2 && results.length === 0 && !loading && (
           <div className="mmh-patient-dropdown" style={{
-            padding: 16, textAlign: 'center', color: '#475569', fontSize: 13,
+            padding: 16, textAlign: 'center', color: 'var(--mmh-text3)', fontSize: 13,
           }}>
             No patient found for &quot;{query}&quot;
           </div>

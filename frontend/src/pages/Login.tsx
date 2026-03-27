@@ -133,7 +133,7 @@ const Login: React.FC = () => {
           <div className="mmh-login-logo-box">🏥</div>
           <div>
             <div className="mmh-login-hospital-name" style={{ textAlign: 'center' }}>MMH</div>
-            <div className="mmh-login-hospital-sab" style={{ color: 'white', textAlign: 'center' }}>Majida Memorial Hospital</div>
+            <div className="mmh-login-hospital-sab" style={{ color: 'var(--mmh-text)', textAlign: 'center', opacity: 0.8 }}>Majida Memorial Hospital</div>
           </div>
         </div>
 
@@ -148,11 +148,11 @@ const Login: React.FC = () => {
           padding: '6px 12px',
           borderRadius: '20px',
           background: serverStatus === 'online'
-            ? 'rgba(16,185,129,0.1)'
-            : 'rgba(245,158,11,0.1)',
+            ? 'var(--mmh-success-soft)'
+            : 'var(--mmh-warning-soft)',
           border: `1px solid ${serverStatus === 'online'
-            ? 'rgba(16,185,129,0.25)'
-            : 'rgba(245,158,11,0.25)'}`,
+            ? 'var(--mmh-success-soft)'
+            : 'var(--mmh-warning-soft)'}`,
           width: 'fit-content',
           margin: '0 auto 16px',
         }}>
@@ -160,12 +160,12 @@ const Login: React.FC = () => {
             width: '7px',
             height: '7px',
             borderRadius: '50%',
-            background: serverStatus === 'online' ? '#10b981' : '#f59e0b',
+            background: serverStatus === 'online' ? 'var(--mmh-success)' : 'var(--mmh-warning)',
             display: 'inline-block',
             animation: serverStatus !== 'online' ? 'pulse 1.5s infinite' : 'none',
           }} />
           <span style={{
-            color: serverStatus === 'online' ? '#34d399' : '#fbbf24',
+            color: serverStatus === 'online' ? 'var(--mmh-success)' : 'var(--mmh-warning)',
             fontWeight: 600,
           }}>
             {serverStatus === 'checking' && 'Checking server...'}

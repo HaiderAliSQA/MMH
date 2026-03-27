@@ -29,6 +29,10 @@ export interface DispensingSlipProps {
 }
 
 export const printSlip = () => {
+  const root = document.documentElement;
+  const accent = getComputedStyle(root).getPropertyValue('--mmh-accent').trim() || '#0ea5e9';
+  const border = getComputedStyle(root).getPropertyValue('--mmh-border').trim() || '#e0f2fe';
+
   const printWindow = window.open('', '', 'width=420,height=700');
   if (!printWindow) return;
 
@@ -41,6 +45,10 @@ export const printSlip = () => {
       <title>MMH Dispense Slip</title>
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
       <style>
+        :root {
+          --mmh-accent: ${accent};
+          --mmh-border: ${border};
+        }
         body { margin: 0; padding: 16px; background: white; font-family: 'Plus Jakarta Sans', sans-serif; }
         
         .mmh-slip-dispense {
@@ -52,7 +60,7 @@ export const printSlip = () => {
         }
         .mmh-slip-dispense-header {
           text-align: center;
-          background: #064e3b;
+          background: var(--mmh-accent);
           color: white;
           padding: 16px;
           border-radius: 10px 10px 0 0;
@@ -73,10 +81,10 @@ export const printSlip = () => {
           font-weight: 800;
           text-transform: uppercase;
           letter-spacing: 0.1em;
-          color: #064e3b;
+          color: var(--mmh-accent);
           margin: 14px 0 8px;
           padding-bottom: 4px;
-          border-bottom: 1.5px solid #d1fae5;
+          border-bottom: 1.5px solid var(--mmh-border);
         }
         .mmh-slip-info-row {
           display: flex;
@@ -85,7 +93,7 @@ export const printSlip = () => {
           padding: 4px 0;
         }
         .mmh-slip-info-label {
-          color: #94a3b8;
+          color: #64748b;
           min-width: 80px;
         }
         .mmh-slip-info-value {
@@ -95,7 +103,7 @@ export const printSlip = () => {
         }
         .mmh-slip-medicine-item {
           padding: 8px 0;
-          border-bottom: 1px dashed #e2e8f0;
+          border-bottom: 1px dashed var(--mmh-border);
         }
         .mmh-slip-medicine-name {
           font-size: 13px;
@@ -111,11 +119,11 @@ export const printSlip = () => {
         }
         .mmh-slip-medicine-price {
           font-weight: 700;
-          color: #064e3b;
+          color: var(--mmh-accent);
         }
         .mmh-slip-total-box {
-          background: #f0fdf4;
-          border: 2px solid #064e3b;
+          background: rgba(14,165,233, 0.05);
+          border: 2px solid var(--mmh-accent);
           border-radius: 10px;
           padding: 12px 16px;
           display: flex;
@@ -126,12 +134,12 @@ export const printSlip = () => {
         .mmh-slip-total-label {
           font-size: 13px;
           font-weight: 700;
-          color: #064e3b;
+          color: var(--mmh-accent);
         }
         .mmh-slip-total-amount {
           font-size: 22px;
           font-weight: 900;
-          color: #064e3b;
+          color: var(--mmh-accent);
           font-family: 'JetBrains Mono', monospace;
         }
         .mmh-slip-footer {
@@ -140,12 +148,13 @@ export const printSlip = () => {
           color: #94a3b8;
           margin-top: 14px;
           padding-top: 10px;
-          border-top: 1px solid #e2e8f0;
+          border-top: 1px solid var(--mmh-border);
         }
 
         @media print {
           body { margin: 0; padding: 0; }
           .no-print { display: none; }
+          .mmh-slip-dispense-header, .mmh-slip-total-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
       </style>
     </head>

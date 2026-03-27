@@ -36,28 +36,40 @@ const RELATIONS = [
 const SLIP_FONTS = `https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap`;
 
 const printOpdSlip = (visitData: any) => {
+  const root = document.documentElement;
+  const accent = getComputedStyle(root).getPropertyValue('--mmh-accent').trim() || '#0ea5e9';
+  const text = getComputedStyle(root).getPropertyValue('--mmh-text').trim() || '#0f172a';
+  const border = getComputedStyle(root).getPropertyValue('--mmh-border').trim() || '#e2e8f0';
+  const bg2 = getComputedStyle(root).getPropertyValue('--mmh-bg2').trim() || '#f8fafc';
+
   const pw = window.open('', 'Print', 'width=420,height=700');
   if (!pw) return;
   pw.document.write(`<!DOCTYPE html><html><head>
     <title>OPD Slip</title>
     <link href="${SLIP_FONTS}" rel="stylesheet">
     <style>
+      :root {
+        --mmh-accent: ${accent};
+        --mmh-text: ${text};
+        --mmh-border: ${border};
+        --mmh-bg2: ${bg2};
+      }
       *{box-sizing:border-box;margin:0;padding:0}
       body{background:white;display:flex;justify-content:center;padding:20px;font-family:'Plus Jakarta Sans',sans-serif;}
-      .w{width:320px;background:white;color:#0f172a;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;}
-      .hd{background:#0c3b6b;color:white;padding:16px 20px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      .w{width:320px;background:white;color:var(--mmh-text);border:1px solid var(--mmh-border);border-radius:12px;overflow:hidden;}
+      .hd{background:var(--mmh-accent);color:white;padding:16px 20px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       .hd-h{font-size:17px;font-weight:900;font-style:italic;}
       .hd-s{font-size:10px;opacity:.8;margin-top:3px;}
       .hd-t{font-size:9px;letter-spacing:.15em;text-transform:uppercase;opacity:.7;margin-top:4px;}
-      .mr{background:#f0f6ff;padding:16px;text-align:center;border-bottom:1px dashed #cbd5e1;}
+      .mr{background:rgba(14,165,233,0.05);padding:16px;text-align:center;border-bottom:1px dashed var(--mmh-border);}
       .mr-l{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px;}
-      .mr-n{font-size:24px;font-weight:900;color:#0c3b6b;font-family:'JetBrains Mono',monospace;border:2px dashed #0c3b6b;display:inline-block;padding:5px 16px;border-radius:8px;background:white;letter-spacing:.05em;}
+      .mr-n{font-size:24px;font-weight:900;color:var(--mmh-accent);font-family:'JetBrains Mono',monospace;border:2px dashed var(--mmh-accent);display:inline-block;padding:5px 16px;border-radius:8px;background:white;letter-spacing:.05em;}
       .bd{padding:14px 18px;background:white;}
-      .st{font-size:9px;font-weight:800;color:#0c3b6b;text-transform:uppercase;letter-spacing:.1em;margin:10px 0 5px;padding-bottom:3px;border-bottom:1.5px solid #dbeafe;}
-      .row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px dotted #f1f5f9;color:#0f172a;}
+      .st{font-size:9px;font-weight:800;color:var(--mmh-accent);text-transform:uppercase;letter-spacing:.1em;margin:10px 0 5px;padding-bottom:3px;border-bottom:1.5px solid var(--mmh-border);}
+      .row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px dotted var(--mmh-bg2);color:var(--mmh-text);}
       .lbl{color:#64748b;min-width:65px;}
       .val{font-weight:700;text-align:right;}
-      .ft{background:#f8fafc;padding:10px 14px;text-align:center;font-size:9px;color:#94a3b8;border-top:1px solid #e2e8f0;}
+      .ft{background:var(--mmh-bg2);padding:10px 14px;text-align:center;font-size:9px;color:#94a3b8;border-top:1px solid var(--mmh-border);}
       @media print{body{padding:0;}}
     </style>
   </head><body><div class="w">
@@ -86,6 +98,13 @@ const printOpdSlip = (visitData: any) => {
 const SLIP_FONTS_ADMISSION = `https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap`;
 
 const printAdmissionSlip = (admissionData: any) => {
+  const root = document.documentElement;
+  const accent = getComputedStyle(root).getPropertyValue('--mmh-accent').trim() || '#0ea5e9';
+  const text = getComputedStyle(root).getPropertyValue('--mmh-text').trim() || '#0f172a';
+  const border = getComputedStyle(root).getPropertyValue('--mmh-border').trim() || '#e2e8f0';
+  const bg2 = getComputedStyle(root).getPropertyValue('--mmh-bg2').trim() || '#f8fafc';
+  const danger = getComputedStyle(root).getPropertyValue('--mmh-danger').trim() || '#f43f5e';
+
   const pw = window.open('', 'Print', 'width=420,height=700');
   if (!pw) return;
 
@@ -95,24 +114,31 @@ const printAdmissionSlip = (admissionData: any) => {
     <title>Admission Slip</title>
     <link href="${SLIP_FONTS_ADMISSION}" rel="stylesheet">
     <style>
+      :root {
+        --mmh-accent: ${accent};
+        --mmh-text: ${text};
+        --mmh-border: ${border};
+        --mmh-bg2: ${bg2};
+        --mmh-danger: ${danger};
+      }
       *{box-sizing:border-box;margin:0;padding:0}
       body{background:white;display:flex;justify-content:center;padding:20px;font-family:'Plus Jakarta Sans',sans-serif;}
-      .w{width:340px;background:white;color:#0f172a;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;}
-      .hd{background:#064e3b;color:white;padding:16px 20px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      .w{width:340px;background:white;color:var(--mmh-text);border:1px solid var(--mmh-border);border-radius:12px;overflow:hidden;}
+      .hd{background:var(--mmh-accent);color:white;padding:16px 20px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       .hd-h{font-size:17px;font-weight:900;font-style:italic;}
       .hd-s{font-size:10px;opacity:.8;margin-top:3px;}
       .hd-t{font-size:9px;text-transform:uppercase;letter-spacing:.15em;opacity:.7;margin-top:4px;}
-      .mid{background:#f0fdf4;padding:14px;text-align:center;border-bottom:1px dashed #a7f3d0;}
-      .mid-l{font-size:9px;color:#064e3b;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px;}
-      .mid-n{font-size:22px;font-weight:900;color:#064e3b;font-family:'JetBrains Mono',monospace;border:2px dashed #064e3b;display:inline-block;padding:5px 16px;border-radius:8px;background:white;}
-      .mid-d{font-size:10px;color:#064e3b;margin-top:5px;font-weight:700;}
+      .mid{background:rgba(14,165,233,0.05);padding:14px;text-align:center;border-bottom:1px dashed var(--mmh-border);}
+      .mid-l{font-size:9px;color:var(--mmh-accent);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px;}
+      .mid-n{font-size:22px;font-weight:900;color:var(--mmh-accent);font-family:'JetBrains Mono',monospace;border:2px dashed var(--mmh-accent);display:inline-block;padding:5px 16px;border-radius:8px;background:white;}
+      .mid-d{font-size:10px;color:var(--mmh-accent);margin-top:5px;font-weight:700;}
       .bd{padding:14px 18px;background:white;}
-      .row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px dotted #f1f5f9;color:#0f172a;}
+      .row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px dotted var(--mmh-bg2);color:var(--mmh-text);}
       .lbl{color:#64748b;min-width:70px;}
       .val{font-weight:700;text-align:right;}
-      .emg{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;marginTop:10px;}
-      .emg-h{font-size:10px;fontWeight:800;color:#dc2626;marginBottom:5px;text-transform:uppercase;}
-      .ft{background:#f8fafc;padding:10px 14px;text-align:center;font-size:9px;color:#94a3b8;border-top:1px solid #e2e8f0;}
+      .emg{background:rgba(244,63,94,0.05);border:1px solid rgba(244,63,94,0.2);border-radius:8px;padding:10px 14px;marginTop:10px;}
+      .emg-h{font-size:10px;fontWeight:800;color:var(--mmh-danger);marginBottom:5px;text-transform:uppercase;}
+      .ft{background:var(--mmh-bg2);padding:10px 14px;text-align:center;font-size:9px;color:#94a3b8;border-top:1px solid var(--mmh-border);}
       @media print{body{padding:0;}.hd,.mid,.emg{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
     </style>
   </head><body><div class="w">
@@ -146,6 +172,12 @@ const printAdmissionSlip = (admissionData: any) => {
 
 // ─── Discharge Slip print function ─────────────────────────────────────
 const printDischargeSlip = (ad: any) => {
+  const root = document.documentElement;
+  const accent = getComputedStyle(root).getPropertyValue('--mmh-accent').trim() || '#0ea5e9';
+  const text = getComputedStyle(root).getPropertyValue('--mmh-text').trim() || '#0f172a';
+  const border = getComputedStyle(root).getPropertyValue('--mmh-border').trim() || '#e2e8f0';
+  const bg2 = getComputedStyle(root).getPropertyValue('--mmh-bg2').trim() || '#f8fafc';
+
   const pw = window.open('', 'Print', 'width=420,height=800');
   if (!pw) return;
   const now = new Date();
@@ -157,23 +189,29 @@ const printDischargeSlip = (ad: any) => {
     <title>Discharge Slip</title>
     <link href="${SLIP_FONTS}" rel="stylesheet">
     <style>
+      :root {
+        --mmh-accent: ${accent};
+        --mmh-text: ${text};
+        --mmh-border: ${border};
+        --mmh-bg2: ${bg2};
+      }
       *{box-sizing:border-box;margin:0;padding:0}
       body{background:white;display:flex;justify-content:center;padding:20px;font-family:'Plus Jakarta Sans',sans-serif;}
-      .w{width:340px;background:white;color:#0f172a;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;}
-      .hd{background:#0c3b6b;color:white;padding:16px 20px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      .w{width:340px;background:white;color:var(--mmh-text);border:1px solid var(--mmh-border);border-radius:12px;overflow:hidden;}
+      .hd{background:var(--mmh-accent);color:white;padding:16px 20px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       .hd-h{font-size:17px;font-weight:900;font-style:italic;}
       .hd-s{font-size:10px;opacity:.8;margin-top:2px;}
       .hd-t{font-size:9px;letter-spacing:.15em;text-transform:uppercase;opacity:.7;margin-top:4px;}
-      .mr{background:#f8fafc;padding:14px;text-align:center;border-bottom:1px dashed #cbd5e1;}
+      .mr{background:var(--mmh-bg2);padding:14px;text-align:center;border-bottom:1px dashed var(--mmh-border);}
       .mr-l{font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.12em;margin-bottom:5px;}
-      .mr-n{font-size:22px;font-weight:900;color:#0c3b6b;font-family:'JetBrains Mono',monospace;border:2px dashed #0c3b6b;display:inline-block;padding:4px 14px;border-radius:8px;background:white;}
+      .mr-n{font-size:22px;font-weight:900;color:var(--mmh-accent);font-family:'JetBrains Mono',monospace;border:2px dashed var(--mmh-accent);display:inline-block;padding:4px 14px;border-radius:8px;background:white;}
       .bd{padding:14px 18px;background:white;}
-      .st{font-size:9px;font-weight:800;color:#0c3b6b;text-transform:uppercase;letter-spacing:.1em;margin:12px 0 6px;padding-bottom:3px;border-bottom:1.5px solid #dbeafe;}
-      .row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px dotted #f1f5f9;color:#0f172a;}
+      .st{font-size:9px;font-weight:800;color:var(--mmh-accent);text-transform:uppercase;letter-spacing:.1em;margin:12px 0 6px;padding-bottom:3px;border-bottom:1.5px solid var(--mmh-border);}
+      .row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px dotted var(--mmh-bg2);color:var(--mmh-text);}
       .lbl{color:#64748b;min-width:85px;}
       .val{font-weight:700;text-align:right;}
-      .sm{font-size:10px;color:#475569;line-height:1.5;margin-top:5px;padding:8px;background:#f8fafc;border-radius:6px;}
-      .ft{background:#f8fafc;padding:10px 14px;text-align:center;font-size:9px;color:#94a3b8;border-top:1px solid #e2e8f0;}
+      .sm{font-size:10px;color:#475569;line-height:1.5;margin-top:5px;padding:8px;background:var(--mmh-bg2);border-radius:6px;}
+      .ft{background:var(--mmh-bg2);padding:10px 14px;text-align:center;font-size:9px;color:#94a3b8;border-top:1px solid var(--mmh-border);}
       @media print{body{padding:0;}}
     </style>
   </head><body><div class="w">
@@ -284,7 +322,7 @@ const PatientSearchField: React.FC<PatientSearchProps> = ({
           {(results.length > 0 || loading) && (
             <div className="mmh-search-dropdown">
               {loading
-                ? <div style={{ padding: '12px 16px', color: '#64748b', fontSize: 12 }}>Searching…</div>
+                ? <div style={{ padding: '12px 16px', color: 'var(--mmh-text3)', fontSize: 12 }}>Searching…</div>
                 : results.map(p => (
                   <div key={p._id} className="mmh-search-result-item" onClick={() => handleSelect(p)}>
                     <span className="mmh-search-result-mr">{p.mrNumber}</span>
@@ -447,7 +485,7 @@ const RegisterTab: React.FC = () => {
       {error && <div className="mmh-banner-error">⚠️ {error}</div>}
 
       <div className="mmh-card">
-        <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg,#0ea5e9,#10b981)' }} />
+        <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-accent)' }} />
         <div className="mmh-card-header">
           <div className="mmh-card-title">📝 Register New Patient</div>
         </div>
@@ -496,7 +534,7 @@ const RegisterTab: React.FC = () => {
                   <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>📞</span>
                   <input
                     className="mmh-input"
-                    style={{ paddingLeft: 40, borderColor: phoneError ? '#f43f5e' : undefined }}
+                    style={{ paddingLeft: 40, borderColor: phoneError ? 'var(--mmh-danger)' : undefined }}
                     placeholder="0312-4422004"
                     value={form.phone}
                     onChange={handlePhoneChange}
@@ -509,7 +547,7 @@ const RegisterTab: React.FC = () => {
                 }
               </div>
               <div className="mmh-field">
-                <label className="mmh-label">CNIC <span style={{ color: '#475569', fontWeight: 400 }}>(Optional)</span></label>
+                <label className="mmh-label">CNIC <span style={{ color: 'var(--mmh-text3)', fontWeight: 400 }}>(Optional)</span></label>
                 <input
                   className="mmh-input"
                   placeholder="42101-1234567-1"
@@ -546,7 +584,7 @@ const RegisterTab: React.FC = () => {
             <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
               <button className="mmh-btn mmh-btn-primary" type="submit" disabled={loading}>
                 {loading
-                  ? <span className="mmh-spinner" style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', display: 'inline-block', animation: 'mmh-spin 0.8s linear infinite' }} />
+                  ? <span className="mmh-spinner" style={{ width: 18, height: 18, border: '2px solid var(--mmh-border)', borderTopColor: 'var(--mmh-text)', borderRadius: '50%', display: 'inline-block', animation: 'mmh-spin 0.8s linear infinite' }} />
                   : '🖨️ Register & Generate OPD Slip'}
               </button>
             </div>
@@ -734,7 +772,7 @@ const AdmissionTab: React.FC = () => {
       {error && <div className="mmh-banner-error">⚠️ {error}</div>}
 
       <div className="mmh-card">
-        <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg,#10b981,#0ea5e9)' }} />
+        <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-accent)' }} />
         <div className="mmh-card-header"><div className="mmh-card-title">🏥 Admission Form</div></div>
         <div className="mmh-card-body">
           <form onSubmit={handleSubmit}>
@@ -768,38 +806,38 @@ const AdmissionTab: React.FC = () => {
                 </select>
               </div>
               <div className="mmh-field">
-                <label className="mmh-label">Ward <span style={{ color: '#475569', fontWeight: 400 }}>(Optional)</span></label>
+                <label className="mmh-label">Ward <span style={{ color: 'var(--mmh-text3)', fontWeight: 400 }}>(Optional)</span></label>
                 <select className="mmh-input-select" value={form.wardId} onChange={e => handleWardChange(e.target.value)}>
                   <option value="">— Select Ward (Optional) —</option>
                   {wards.map(w => <option key={w._id} value={w._id}>{w.name}</option>)}
                 </select>
               </div>
               <div className="mmh-field">
-                <label className="mmh-label">Bed <span style={{ color: '#475569', fontWeight: 400 }}>(Optional)</span></label>
+                <label className="mmh-label">Bed <span style={{ color: 'var(--mmh-text3)', fontWeight: 400 }}>(Optional)</span></label>
                 <select className="mmh-input-select" value={form.bedId} onChange={s('bedId')} disabled={!form.wardId}>
                   <option value="">— Select Available Bed —</option>
                   {beds.map(b => <option key={b._id} value={b._id}>{(b as any).bedNumber || b.number}</option>)}
                 </select>
               </div>
               <div className="mmh-field">
-                <label className="mmh-label">Payment Type <span style={{ color: '#475569', fontWeight: 400 }}>(Optional)</span></label>
+                <label className="mmh-label">Payment Type <span style={{ color: 'var(--mmh-text3)', fontWeight: 400 }}>(Optional)</span></label>
                 <select className="mmh-input-select" value={form.paymentType} onChange={s('paymentType')}>
                   {PAYMENT_TYPES.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
               <div className="mmh-field mmh-form-full">
-                <label className="mmh-label">Presenting Complaint / Symptoms <span style={{ color: '#475569', fontWeight: 400 }}>(Optional)</span></label>
+                <label className="mmh-label">Presenting Complaint / Symptoms <span style={{ color: 'var(--mmh-text3)', fontWeight: 400 }}>(Optional)</span></label>
                 <textarea className="mmh-textarea" placeholder="Reason for admission…" value={form.symptoms} onChange={s('symptoms')} />
               </div>
               <div className="mmh-field mmh-form-full">
-                <label className="mmh-label">Clinical History <span style={{ color: '#475569', fontWeight: 400 }}>(Optional)</span></label>
+                <label className="mmh-label">Clinical History <span style={{ color: 'var(--mmh-text3)', fontWeight: 400 }}>(Optional)</span></label>
                 <textarea className="mmh-textarea" placeholder="Previous medical history…" value={form.history} onChange={s('history')} />
               </div>
             </div>
 
             {/* Waris — ALL REQUIRED */}
             <div className="mmh-section-divider">
-              <span className="mmh-section-text">🚨 Waris / Guardian Details <span style={{ color: '#fb7185', fontWeight: 700 }}>*Required</span></span>
+              <span className="mmh-section-text">🚨 Waris / Guardian Details <span style={{ color: 'var(--mmh-danger)', fontWeight: 700 }}>*Required</span></span>
               <div className="mmh-section-line" />
             </div>
             <div className="mmh-form-grid" style={{ marginBottom: 20 }}>
@@ -813,7 +851,7 @@ const AdmissionTab: React.FC = () => {
                   <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>📞</span>
                   <input
                     className="mmh-input"
-                    style={{ paddingLeft: 40, borderColor: phoneError ? '#f43f5e' : undefined }}
+                    style={{ paddingLeft: 40, borderColor: phoneError ? 'var(--mmh-danger)' : undefined }}
                     placeholder="03XX-XXXXXXX"
                     value={form.warisPhone}
                     onChange={handlePhoneChange}
@@ -841,7 +879,7 @@ const AdmissionTab: React.FC = () => {
             </div>
 
             <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
-              <button className="mmh-btn mmh-btn-green" type="submit" disabled={loading}>
+              <button className="mmh-btn mmh-btn-primary" type="submit" disabled={loading}>
                 {loading ? '⏳ Processing...' : '🏥 Admit Patient'}
               </button>
             </div>
@@ -860,44 +898,44 @@ const AdmissionTab: React.FC = () => {
               </div>
               <button className="mmh-modal-close" onClick={() => setAdmissionSlip(null)}>×</button>
             </div>
-            <div className="mmh-modal-body" style={{ background: 'white', padding: 20 }}>
+            <div className="mmh-modal-body" style={{ background: 'var(--mmh-bg)', padding: 20 }}>
               {/* Preview slip */}
-              <div style={{ background: 'white', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden', maxWidth: 340, margin: '0 auto' }}>
-                <div style={{ background: '#064e3b', color: 'white', padding: '14px 18px', textAlign: 'center' }}>
+              <div style={{ background: 'var(--mmh-card)', color: 'var(--mmh-text)', border: '1px solid var(--mmh-border)', borderRadius: 12, overflow: 'hidden', maxWidth: 340, margin: '0 auto' }}>
+                <div style={{ background: 'var(--mmh-accent)', color: 'var(--mmh-text-inverted)', padding: '14px 18px', textAlign: 'center' }}>
                   <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic' }}>🏥 Majida Memorial Hospital</div>
                   <div style={{ fontSize: 10, opacity: 0.8, marginTop: 2 }}>Chiniot, Punjab</div>
                   <div style={{ fontSize: 9, opacity: 0.7, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.15em' }}>— Patient Admission Slip —</div>
                 </div>
-                <div style={{ background: '#f0fdf4', padding: 14, textAlign: 'center', borderBottom: '1px dashed #a7f3d0' }}>
-                  <div style={{ fontSize: 9, color: '#064e3b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5 }}>MR Number</div>
-                  <div style={{ fontSize: 22, fontWeight: 900, color: '#064e3b', fontFamily: 'JetBrains Mono, monospace', border: '2px dashed #064e3b', display: 'inline-block', padding: '4px 14px', borderRadius: 8 }}>{admissionSlip.mrNumber}</div>
-                  <div style={{ fontSize: 10, color: '#064e3b', marginTop: 5, fontWeight: 700 }}>ADMITTED — {new Date().toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                <div style={{ background: 'var(--mmh-success-soft)', padding: 14, textAlign: 'center', borderBottom: '1px dashed var(--mmh-border)' }}>
+                  <div style={{ fontSize: 9, color: 'var(--mmh-success)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5 }}>MR Number</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: 'var(--mmh-success)', fontFamily: 'JetBrains Mono, monospace', border: '2px dashed var(--mmh-success)', display: 'inline-block', padding: '4px 14px', borderRadius: 8, background: 'var(--mmh-bg)' }}>{admissionSlip.mrNumber}</div>
+                  <div style={{ fontSize: 10, color: 'var(--mmh-success)', marginTop: 5, fontWeight: 700 }}>ADMITTED — {new Date().toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                 </div>
-                <div style={{ padding: '14px 18px', background: 'white' }}>
+                <div style={{ padding: '14px 18px', background: 'var(--mmh-card)' }}>
                   {[['Patient', admissionSlip.patientName], ['Age/Sex', `${admissionSlip.age} / ${admissionSlip.gender}`], ['Phone', admissionSlip.phone], ['Doctor', admissionSlip.doctorName]].map(([l, v]) => (
-                    <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '3px 0', borderBottom: '1px dotted #f1f5f9', color: '#0f172a' }}>
-                      <span style={{ color: '#64748b', minWidth: 80 }}>{l}</span>
+                    <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '3px 0', borderBottom: '1px dotted var(--mmh-border)', color: 'var(--mmh-text)' }}>
+                      <span style={{ color: 'var(--mmh-text3)', minWidth: 80 }}>{l}</span>
                       <span style={{ fontWeight: 700 }}>{v}</span>
                     </div>
                   ))}
-                  <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', marginTop: 10 }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: '#dc2626', marginBottom: 5, textTransform: 'uppercase' }}>🚨 Emergency Contact</div>
+                  <div style={{ background: 'var(--mmh-danger-soft)', border: '1px solid var(--mmh-danger-soft)', borderRadius: 8, padding: '10px 14px', marginTop: 10 }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--mmh-danger)', marginBottom: 5, textTransform: 'uppercase' }}>🚨 Emergency Contact</div>
                     {[['Name', admissionSlip.warisName], ['Phone', admissionSlip.warisPhone], ['Relation', admissionSlip.warisRelation]].map(([l, v]) => (
-                      <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '2px 0', color: '#0f172a' }}>
-                        <span style={{ color: '#64748b', minWidth: 65 }}>{l}</span>
+                      <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '2px 0', color: 'var(--mmh-text)' }}>
+                        <span style={{ color: 'var(--mmh-text3)', minWidth: 65 }}>{l}</span>
                         <span style={{ fontWeight: 700 }}>{v}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div style={{ background: '#f8fafc', padding: '10px 14px', textAlign: 'center', fontSize: 9, color: '#94a3b8', borderTop: '1px solid #e2e8f0' }}>
+                <div style={{ background: 'var(--mmh-bg2)', padding: '10px 14px', textAlign: 'center', fontSize: 9, color: 'var(--mmh-text3)', borderTop: '1px solid var(--mmh-border)' }}>
                   Please show to ward staff — MMH Chiniot
                 </div>
               </div>
             </div>
             <div className="mmh-modal-footer">
               <button className="mmh-btn mmh-btn-ghost" onClick={() => setAdmissionSlip(null)}>Close</button>
-              <button className="mmh-btn mmh-btn-green" onClick={() => printAdmissionSlip(admissionSlip)}>🖨️ Print Slip</button>
+              <button className="mmh-btn mmh-btn-primary" onClick={() => printAdmissionSlip(admissionSlip)}>🖨️ Print Slip</button>
             </div>
           </div>
         </div>
@@ -912,13 +950,20 @@ const AdmissionTab: React.FC = () => {
 const SLIP_FONTS_LAB = `https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap`;
 
 const printLabSlip = (labData: any) => {
+  const root = document.documentElement;
+  const accent = getComputedStyle(root).getPropertyValue('--mmh-accent').trim() || '#0ea5e9';
+  const text = getComputedStyle(root).getPropertyValue('--mmh-text').trim() || '#0f172a';
+  const border = getComputedStyle(root).getPropertyValue('--mmh-border').trim() || '#e2e8f0';
+  const bg2 = getComputedStyle(root).getPropertyValue('--mmh-bg2').trim() || '#f8fafc';
+  const danger = getComputedStyle(root).getPropertyValue('--mmh-danger').trim() || '#f43f5e';
+
   const pw = window.open('', 'Print', 'width=420,height=700');
   if (!pw) return;
 
   const testsHTML = (labData.tests || []).map((test: any) => `
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #e2e8f0;font-size:12px;">
-      <span style="color:#0f172a;font-weight:600;">${test.name}</span>
-      <span style="color:#312e81;font-weight:700;font-family:'JetBrains Mono',monospace;">PKR ${test.price}</span>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--mmh-border);font-size:12px;">
+      <span style="color:var(--mmh-text);font-weight:600;">${test.name}</span>
+      <span style="color:var(--mmh-accent);font-weight:700;font-family:'JetBrains Mono',monospace;">PKR ${test.price}</span>
     </div>
   `).join('');
 
@@ -926,24 +971,31 @@ const printLabSlip = (labData: any) => {
     <title>Lab Request Slip</title>
     <link href="${SLIP_FONTS_LAB}" rel="stylesheet">
     <style>
+      :root {
+        --mmh-accent: ${accent};
+        --mmh-text: ${text};
+        --mmh-border: ${border};
+        --mmh-bg2: ${bg2};
+        --mmh-danger: ${danger};
+      }
       *{box-sizing:border-box;margin:0;padding:0}
       body{background:white;display:flex;justify-content:center;padding:20px;font-family:'Plus Jakarta Sans',sans-serif;}
-      .w{width:340px;background:white;color:#0f172a;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;}
-      .hd{background:#312e81;color:white;padding:16px 20px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      .w{width:340px;background:white;color:var(--mmh-text);border:1px solid var(--mmh-border);border-radius:12px;overflow:hidden;}
+      .hd{background:var(--mmh-accent);color:white;padding:16px 20px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       .hd-h{font-size:17px;font-weight:900;font-style:italic;}
       .hd-s{font-size:10px;opacity:.8;margin-top:3px;}
       .hd-t{font-size:9px;text-transform:uppercase;letter-spacing:.15em;opacity:.7;margin-top:4px;}
-      .lid{background:#eef2ff;padding:13px;text-align:center;border-bottom:1px dashed #c7d2fe;}
-      .lid-l{font-size:9px;color:#312e81;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;}
-      .lid-n{font-size:18px;font-weight:900;color:#312e81;font-family:'JetBrains Mono',monospace;border:2px dashed #312e81;display:inline-block;padding:4px 14px;border-radius:8px;background:white;}
-      .urg{background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:5px 12px;margin-top:8px;font-size:11px;font-weight:800;color:#dc2626;display:inline-block;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      .lid{background:rgba(14,165,233,0.05);padding:13px;text-align:center;border-bottom:1px dashed var(--mmh-border);}
+      .lid-l{font-size:9px;color:var(--mmh-accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;}
+      .lid-n{font-size:18px;font-weight:900;color:var(--mmh-accent);font-family:'JetBrains Mono',monospace;border:2px dashed var(--mmh-accent);display:inline-block;padding:4px 14px;border-radius:8px;background:white;}
+      .urg{background:rgba(244,63,94,0.05);border:1px solid rgba(244,63,94,0.2);border-radius:6px;padding:5px 12px;margin-top:8px;font-size:11px;font-weight:800;color:var(--mmh-danger);display:inline-block;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       .bd{padding:14px 18px;background:white;}
-      .st{font-size:9px;font-weight:800;color:#312e81;text-transform:uppercase;letter-spacing:.1em;margin:10px 0 6px;padding-bottom:3px;border-bottom:1.5px solid #e0e7ff;}
-      .row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px dotted #f1f5f9;}
+      .st{font-size:9px;font-weight:800;color:var(--mmh-accent);text-transform:uppercase;letter-spacing:.1em;margin:10px 0 6px;padding-bottom:3px;border-bottom:1.5px solid var(--mmh-border);}
+      .row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px dotted var(--mmh-bg2);}
       .lbl{color:#64748b;min-width:70px;}
       .val{font-weight:700;}
-      .tot{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:#eef2ff;border:2px solid #312e81;border-radius:10px;margin-top:12px;}
-      .ft{background:#f8fafc;padding:10px 14px;text-align:center;font-size:9px;color:#94a3b8;border-top:1px solid #e2e8f0;}
+      .tot{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:rgba(14,165,233,0.05);border:2px solid var(--mmh-accent);border-radius:10px;margin-top:12px;}
+      .ft{background:var(--mmh-bg2);padding:10px 14px;text-align:center;font-size:9px;color:#94a3b8;border-top:1px solid var(--mmh-border);}
       @media print{body{padding:0;}.urg,.hd,.tot{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
     </style>
   </head><body><div class="w">
@@ -1056,13 +1108,13 @@ const LabRequestTab: React.FC = () => {
       {error && <div className="mmh-banner-error">⚠️ {error}</div>}
 
       <div className="mmh-card">
-        <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg,#8b5cf6,#0ea5e9)' }} />
+        <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-accent)' }} />
         <div className="mmh-card-header"><div className="mmh-card-title">🔬 Request Lab Tests</div></div>
         <div className="mmh-card-body">
           <form onSubmit={handleSubmit}>
             {/* Patient Search */}
             <div style={{ marginBottom: 20 }}>
-              <PatientSearch
+              <PatientSearchField
                 label="Select Patient"
                 placeholder="Search by name or MR number e.g. MMH-2026-00157"
                 selectedPatient={selectedPatient}
@@ -1114,14 +1166,14 @@ const LabRequestTab: React.FC = () => {
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '12px 16px',
-                background: 'rgba(16,185,129,0.08)',
-                border: '1px solid rgba(16,185,129,0.25)',
+                background: 'var(--mmh-success-soft)',
+                border: '1px solid var(--mmh-success-soft)',
                 borderRadius: 12, marginBottom: 16,
               }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#34d399' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--mmh-success)' }}>
                   {selectedTests.length} test(s) selected
                 </span>
-                <span style={{ fontSize: 18, fontWeight: 900, color: '#34d399', fontFamily: 'JetBrains Mono, monospace' }}>
+                <span style={{ fontSize: 18, fontWeight: 900, color: 'var(--mmh-success)', fontFamily: 'JetBrains Mono, monospace' }}>
                   PKR {totalAmount.toLocaleString()}
                 </span>
               </div>
@@ -1149,34 +1201,34 @@ const LabRequestTab: React.FC = () => {
             </div>
             <div className="mmh-modal-body" style={{ overflowY: 'auto', padding: 20 }}>
               {/* Preview */}
-              <div style={{ background: 'white', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden', maxWidth: 340, margin: '0 auto' }}>
-                <div style={{ background: '#312e81', color: 'white', padding: '14px 18px', textAlign: 'center' }}>
+              <div style={{ background: 'var(--mmh-card)', color: 'var(--mmh-text)', border: '1px solid var(--mmh-border)', borderRadius: 12, overflow: 'hidden', maxWidth: 340, margin: '0 auto' }}>
+                <div style={{ background: 'var(--mmh-accent)', color: 'var(--mmh-text-inverted)', padding: '14px 18px', textAlign: 'center' }}>
                   <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic' }}>🏥 Majida Memorial Hospital</div>
                   <div style={{ fontSize: 10, opacity: 0.8, marginTop: 2 }}>Chiniot, Punjab</div>
                   <div style={{ fontSize: 9, opacity: 0.7, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.15em' }}>— Laboratory Request Slip —</div>
                 </div>
-                <div style={{ background: '#eef2ff', padding: 13, textAlign: 'center', borderBottom: '1px dashed #c7d2fe' }}>
-                  <div style={{ fontSize: 9, color: '#312e81', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5 }}>Lab Request ID</div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: '#312e81', fontFamily: 'JetBrains Mono, monospace', border: '2px dashed #312e81', display: 'inline-block', padding: '4px 14px', borderRadius: 8, background: 'white' }}>{labSlip.labId}</div>
-                  {labSlip.isUrgent && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '4px 12px', marginTop: 8, fontSize: 11, fontWeight: 800, color: '#dc2626', display: 'inline-block' }}>🚨 URGENT</div>}
+                <div style={{ background: 'var(--mmh-bg2)', padding: 13, textAlign: 'center', borderBottom: '1px dashed var(--mmh-border)' }}>
+                  <div style={{ fontSize: 9, color: 'var(--mmh-accent)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5 }}>Lab Request ID</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--mmh-accent)', fontFamily: 'JetBrains Mono, monospace', border: '2px dashed var(--mmh-accent)', display: 'inline-block', padding: '4px 14px', borderRadius: 8, background: 'var(--mmh-bg)' }}>{labSlip.labId}</div>
+                  {labSlip.isUrgent && <div style={{ background: 'var(--mmh-danger-soft)', border: '1px solid var(--mmh-danger-soft)', borderRadius: 6, padding: '4px 12px', marginTop: 8, fontSize: 11, fontWeight: 800, color: 'var(--mmh-danger)', display: 'inline-block' }}>🚨 URGENT</div>}
                 </div>
-                <div style={{ padding: '12px 16px', background: 'white' }}>
+                <div style={{ padding: '12px 16px', background: 'var(--mmh-card)' }}>
                   {[['Patient', labSlip.patientName], ['MR Number', labSlip.mrNumber]].map(([l, v]) => (
-                    <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '3px 0', borderBottom: '1px dotted #f1f5f9', color: '#0f172a' }}>
-                      <span style={{ color: '#64748b', minWidth: 70 }}>{l}</span>
+                    <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '3px 0', borderBottom: '1px dotted var(--mmh-border)', color: 'var(--mmh-text)' }}>
+                      <span style={{ color: 'var(--mmh-text3)', minWidth: 70 }}>{l}</span>
                       <span style={{ fontWeight: 700 }}>{v}</span>
                     </div>
                   ))}
-                  <div style={{ fontSize: 9, fontWeight: 800, color: '#312e81', textTransform: 'uppercase', margin: '10px 0 6px', paddingBottom: 3, borderBottom: '1.5px solid #e0e7ff' }}>Tests Requested</div>
+                  <div style={{ fontSize: 9, fontWeight: 800, color: 'var(--mmh-accent)', textTransform: 'uppercase', margin: '10px 0 6px', paddingBottom: 3, borderBottom: '1.5px solid var(--mmh-accent-soft)' }}>Tests Requested</div>
                   {labSlip.tests.map((t: LabTest) => (
-                    <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px dashed #e2e8f0', fontSize: 12 }}>
-                      <span style={{ color: '#0f172a', fontWeight: 600 }}>{t.name}</span>
-                      <span style={{ color: '#312e81', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>PKR {t.price}</span>
+                    <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px dashed var(--mmh-border)', fontSize: 12 }}>
+                      <span style={{ color: 'var(--mmh-text)', fontWeight: 600 }}>{t.name}</span>
+                      <span style={{ color: 'var(--mmh-accent)', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>PKR {t.price}</span>
                     </div>
                   ))}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: '#eef2ff', border: '2px solid #312e81', borderRadius: 10, marginTop: 12 }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#312e81' }}>TOTAL</span>
-                    <span style={{ fontSize: 18, fontWeight: 900, color: '#312e81', fontFamily: 'JetBrains Mono, monospace' }}>PKR {labSlip.totalAmount.toLocaleString()}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--mmh-accent-soft)', border: '2px solid var(--mmh-accent)', borderRadius: 10, marginTop: 12 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--mmh-accent)' }}>TOTAL</span>
+                    <span style={{ fontSize: 18, fontWeight: 900, color: 'var(--mmh-accent)', fontFamily: 'JetBrains Mono, monospace' }}>PKR {labSlip.totalAmount.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -1281,7 +1333,7 @@ const PaymentTab: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.8fr', gap: 20, alignItems: 'start' }}>
         {/* Left: Entry Form */}
         <div className="mmh-card" style={{ position: 'sticky', top: 0 }}>
-          <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg,#10b981,#0ea5e9)' }} />
+          <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-accent)' }} />
           <div className="mmh-card-header"><div className="mmh-card-title">💳 New Payment</div></div>
           <div className="mmh-card-body">
             {error && <div className="mmh-banner-error" style={{ marginBottom: 15 }}>{error}</div>}
@@ -1304,7 +1356,7 @@ const PaymentTab: React.FC = () => {
                 </div>
                 <div className="mmh-field">
                   <label className="mmh-label">Amount (PKR) <span className="mmh-required">*</span></label>
-                  <input type="number" className="mmh-input" style={{ fontWeight: 800, color: '#10b981' }} placeholder="0" min={0} value={form.amount} onChange={s('amount')} required />
+                  <input type="number" className="mmh-input" style={{ fontWeight: 800, color: 'var(--mmh-success)' }} placeholder="0" min={0} value={form.amount} onChange={s('amount')} required />
                 </div>
               </div>
 
@@ -1341,17 +1393,17 @@ const PaymentTab: React.FC = () => {
 
         {/* Right: History Grid */}
         <div className="mmh-table-card">
-          <div className="mmh-table-card-top" style={{ background: 'linear-gradient(90deg, #1e293b, #334155)' }} />
-          <div className="mmh-card-header" style={{ padding: '15px 20px', borderBottom: '1px solid #1e3050', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="mmh-table-card-top" style={{ background: 'var(--mmh-bg3)' }} />
+          <div className="mmh-card-header" style={{ padding: '15px 20px', borderBottom: '1px solid var(--mmh-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
                <div className="mmh-card-title" style={{ fontSize: 14 }}>🗓️ Recent Transactions</div>
-               <div style={{ fontSize: 10, color: '#64748b' }}>Showing {recentPayments.length} of {pTotalCount} total</div>
+               <div style={{ fontSize: 10, color: 'var(--mmh-text3)' }}>Showing {recentPayments.length} of {pTotalCount} total</div>
             </div>
             <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" onClick={() => fetchRecent(pPage)}>🔄 Refresh</button>
           </div>
           
           {/* Filters Bar */}
-          <div style={{ padding: '12px 20px', background: 'rgba(15,23,42,0.2)', borderBottom: '1px solid #1e3050', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <div style={{ padding: '12px 20px', background: 'var(--mmh-bg2)', borderBottom: '1px solid var(--mmh-border)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
               <div className="mmh-field">
                 <label className="mmh-label" style={{ fontSize: 10 }}>From Date</label>
                 <input type="date" className="mmh-input mmh-input-sm" value={pFromDate} onChange={e => setPFromDate(e.target.value)} />
@@ -1383,22 +1435,22 @@ const PaymentTab: React.FC = () => {
                   <tr><td colSpan={6} className="mmh-empty" style={{ padding: 40 }}>No transactions found for these filters</td></tr>
                 ) : recentPayments.map(p => (
                   <tr key={p._id}>
-                    <td style={{ fontFamily: 'JetBrains Mono', fontSize: 11, color: '#0ea5e9', fontWeight: 700 }}>{p.invoiceNumber}</td>
+                    <td style={{ fontFamily: 'JetBrains Mono', fontSize: 11, color: 'var(--mmh-accent)', fontWeight: 700 }}>{p.invoiceNumber}</td>
                     <td>
-                        <div style={{ color: 'white', fontWeight: 600 }}>{new Date(p.createdAt).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}</div>
-                        <div style={{ fontSize: 9, color: '#64748b' }}>{new Date(p.createdAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}</div>
+                        <div style={{ color: 'var(--mmh-text)', fontWeight: 600 }}>{new Date(p.createdAt).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}</div>
+                        <div style={{ fontSize: 9, color: 'var(--mmh-text3)' }}>{new Date(p.createdAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}</div>
                     </td>
                     <td>
                       <div className="mmh-td-name" style={{ fontSize: 12 }}>{p.patient?.name || p.patientName}</div>
-                      <div style={{ fontSize: 9, color: '#475569', fontFamily: 'JetBrains Mono' }}>{p.patient?.mrNumber || 'Walk-in'}</div>
+                      <div style={{ fontSize: 9, color: 'var(--mmh-text3)', fontFamily: 'JetBrains Mono' }}>{p.patient?.mrNumber || 'Walk-in'}</div>
                     </td>
-                    <td style={{ fontWeight: 800, color: '#10b981', fontSize: 13 }}>Rs. {p.amount.toLocaleString()}</td>
+                    <td style={{ fontWeight: 800, color: 'var(--mmh-success)', fontSize: 13 }}>Rs. {p.amount.toLocaleString()}</td>
                     <td>
                       <span className={`mmh-badge mmh-badge-${(p.paymentMethod || p.method || '').toLowerCase().includes('cash') ? 'green' : (p.paymentMethod || p.method || '').toLowerCase().includes('bank') ? 'sky' : 'amber'}`} style={{ fontSize: 10, padding: '2px 8px' }}>
                         {p.paymentMethod || p.method || '—'}
                       </span>
                     </td>
-                    <td style={{ fontSize: 11, color: '#94a3b8' }}>{p.purpose}</td>
+                    <td style={{ fontSize: 11, color: 'var(--mmh-text3)' }}>{p.purpose}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1407,8 +1459,8 @@ const PaymentTab: React.FC = () => {
 
           {/* Pagination Footer */}
           {pTotalPages > 1 && (
-            <div style={{ padding: '12px 20px', borderTop: '1px solid #1e3050', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(15,23,42,0.3)' }}>
-                <div style={{ fontSize: 11, color: '#64748b' }}>Page {pPage + 1} of {pTotalPages}</div>
+            <div style={{ padding: '12px 20px', borderTop: '1px solid var(--mmh-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--mmh-bg2)' }}>
+                <div style={{ fontSize: 11, color: 'var(--mmh-text3)' }}>Page {pPage + 1} of {pTotalPages}</div>
                 <div style={{ display: 'flex', gap: 8 }}>
                     <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" disabled={pPage === 0} onClick={() => fetchRecent(pPage - 1)}>◀ Prev</button>
                     <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" disabled={pPage >= pTotalPages - 1} onClick={() => fetchRecent(pPage + 1)}>Next ▶</button>
@@ -1468,9 +1520,9 @@ const TodaysListTab: React.FC = () => {
       </div>
       <div className="mmh-stats-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)', marginBottom: 20 }}>
         {[
-          { label: 'Total Today', value: records.length, accent: 'linear-gradient(90deg,#0ea5e9,#38bdf8)' },
-          { label: 'Waiting', value: waiting, accent: 'linear-gradient(90deg,#f59e0b,#fbbf24)' },
-          { label: 'Done', value: done, accent: 'linear-gradient(90deg,#10b981,#34d399)' },
+          { label: 'Total Today', value: records.length, accent: 'var(--mmh-accent)' },
+          { label: 'Waiting', value: waiting, accent: 'var(--mmh-warning)' },
+          { label: 'Done', value: done, accent: 'var(--mmh-success)' },
         ].map(c => (
           <div className="mmh-stat-card" key={c.label}>
             <div className="mmh-stat-accent" style={{ background: c.accent }} />
@@ -1502,19 +1554,19 @@ const TodaysListTab: React.FC = () => {
                 </td></tr>
               ) : records.map((r, i) => (
                 <tr key={r._id}>
-                  <td style={{ fontFamily: 'JetBrains Mono', color: '#0ea5e9', fontWeight: 800 }}>
+                  <td style={{ fontFamily: 'JetBrains Mono', color: 'var(--mmh-accent)', fontWeight: 800 }}>
                     {r.tokenNumber || r.token || (i + 1).toString().padStart(3, '0')}
                   </td>
                   <td style={{ fontFamily: 'JetBrains Mono', fontSize: 12 }}>{r.patient?.mrNumber || r.patient?.mrNo || '—'}</td>
                   <td className="mmh-td-name">{r.patient?.name || r.name}</td>
-                  <td style={{ color: '#94a3b8' }}>
+                  <td style={{ color: 'var(--mmh-text3)' }}>
                     {r.patient?.age || r.age || '—'} / {r.patient?.gender || r.gender || '—'}
                   </td>
-                  <td style={{ fontWeight: 600, color: '#eef2ff' }}>
+                  <td style={{ fontWeight: 600, color: 'var(--mmh-text)' }}>
                     {r.doctor?.name || r.doctorName || '—'}
                   </td>
                   <td>{statusBadge(r.status || 'Waiting')}</td>
-                  <td style={{ color: '#64748b', fontSize: 11 }}>
+                  <td style={{ color: 'var(--mmh-text3)', fontSize: 11 }}>
                     {r.createdAt ? new Date(r.createdAt).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' }) : '—'}
                   </td>
                 </tr>
@@ -1587,7 +1639,7 @@ const DischargeTab: React.FC = () => {
       </div>
 
       <div className="mmh-table-card">
-        <div className="mmh-table-card-top" style={{ background: 'linear-gradient(90deg, #334155, #475569)' }} />
+        <div className="mmh-table-card-top" style={{ background: 'var(--mmh-bg3)' }} />
         <div className="mmh-table-scroll">
           <table className="mmh-table">
             <thead>
@@ -1616,8 +1668,8 @@ const DischargeTab: React.FC = () => {
                       {ad.ward?.name || '—'} / {ad.bed?.bedNumber || '—'}
                     </span>
                   </td>
-                  <td style={{ color: '#94a3b8' }}>{ad.doctor?.name}</td>
-                  <td style={{ color: '#64748b', fontSize: 12 }}>
+                  <td style={{ color: 'var(--mmh-text3)' }}>{ad.doctor?.name}</td>
+                  <td style={{ color: 'var(--mmh-text3)', fontSize: 12 }}>
                     {new Date(ad.admitDate).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </td>
                   <td>
@@ -1644,12 +1696,12 @@ const DischargeTab: React.FC = () => {
               <button className="mmh-modal-close" onClick={() => setConfirming(null)}>×</button>
             </div>
             <div className="mmh-modal-body">
-              <p style={{ color: '#94a3b8', marginBottom: 15 }}>
+              <p style={{ color: 'var(--mmh-text2)', marginBottom: 15 }}>
                 Are you sure you want to discharge <strong>{confirming.patient?.name}</strong>?
               </p>
-              <div style={{ background: 'rgba(244,63,94,0.1)', border: '1px solid rgba(244,63,94,0.2)', padding: 12, borderRadius: 8 }}>
-                <div style={{ fontSize: 11, color: '#fb7185', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>⚠️ Warning</div>
-                <div style={{ fontSize: 12, color: '#fb7185' }}>
+              <div style={{ background: 'var(--mmh-danger-soft)', border: '1px solid var(--mmh-danger-soft)', padding: 12, borderRadius: 8 }}>
+                <div style={{ fontSize: 11, color: 'var(--mmh-danger)', fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>⚠️ Warning</div>
+                <div style={{ fontSize: 12, color: 'var(--mmh-danger)' }}>
                   This will release <strong>Bed {confirming.bed?.bedNumber}</strong> in {confirming.ward?.name} and mark the patient as discharged.
                 </div>
               </div>
@@ -1680,25 +1732,25 @@ const DischargeTab: React.FC = () => {
               <button className="mmh-modal-close" onClick={() => setDischargeSlip(null)}>×</button>
             </div>
             <div className="mmh-modal-body" style={{ overflowY: 'auto', padding: 20 }}>
-              <div style={{ background: 'white', color: '#0f172a', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden', maxWidth: 340, margin: '0 auto' }}>
-                <div style={{ background: '#0c3b6b', color: 'white', padding: '14px 18px', textAlign: 'center' }}>
+              <div style={{ background: 'var(--mmh-card)', color: 'var(--mmh-text)', border: '1px solid var(--mmh-border)', borderRadius: 12, overflow: 'hidden', maxWidth: 340, margin: '0 auto' }}>
+                <div style={{ background: 'var(--mmh-accent)', color: 'var(--mmh-text-inverted)', padding: '14px 18px', textAlign: 'center' }}>
                   <div style={{ fontSize: 16, fontWeight: 900, fontStyle: 'italic' }}>🏥 Majida Memorial Hospital</div>
                   <div style={{ fontSize: 10, opacity: 0.8, marginTop: 2 }}>Chiniot, Punjab</div>
                   <div style={{ fontSize: 9, opacity: 0.7, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.15em' }}>— Patient Discharge Slip —</div>
                 </div>
-                <div style={{ padding: '14px 18px', background: 'white' }}>
+                <div style={{ padding: '14px 18px', background: 'var(--mmh-card)' }}>
                    {[['Patient', dischargeSlip.patient?.name], ['MR Number', dischargeSlip.patient?.mrNumber], ['Consultant', dischargeSlip.doctor?.name]].map(([l, v]) => (
-                    <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '3px 0', borderBottom: '1px dotted #f1f5f9', color: '#0f172a' }}>
-                      <span style={{ color: '#64748b', minWidth: 80 }}>{l}</span>
+                    <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '3px 0', borderBottom: '1px dotted var(--mmh-border)', color: 'var(--mmh-text)' }}>
+                      <span style={{ color: 'var(--mmh-text3)', minWidth: 80 }}>{l}</span>
                       <span style={{ fontWeight: 700 }}>{v}</span>
                     </div>
                   ))}
-                  <div style={{ background: '#f8fafc', padding: 10, borderRadius: 8, marginTop: 10, textAlign: 'center' }}>
-                    <div style={{ fontSize: 9, color: '#64748b', textTransform: 'uppercase' }}>Released Bed</div>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: '#0c3b6b' }}>{dischargeSlip.ward?.name} — {dischargeSlip.bed?.bedNumber}</div>
+                  <div style={{ background: 'var(--mmh-bg2)', padding: 10, borderRadius: 8, marginTop: 10, textAlign: 'center' }}>
+                    <div style={{ fontSize: 9, color: 'var(--mmh-text3)', textTransform: 'uppercase' }}>Released Bed</div>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: 'var(--mmh-accent)' }}>{dischargeSlip.ward?.name} — {dischargeSlip.bed?.bedNumber}</div>
                   </div>
                 </div>
-                <div style={{ background: '#f8fafc', padding: '10px 14px', textAlign: 'center', fontSize: 9, color: '#94a3b8', borderTop: '1px solid #e2e8f0' }}>
+                <div style={{ background: 'var(--mmh-bg2)', padding: '10px 14px', textAlign: 'center', fontSize: 9, color: 'var(--mmh-text3)', borderTop: '1px solid var(--mmh-border)' }}>
                   Wishing you a speedy recovery! — MMH
                 </div>
               </div>

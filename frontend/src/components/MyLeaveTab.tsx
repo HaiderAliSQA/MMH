@@ -325,38 +325,38 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
       {/* ── Leave Balance Row ── */}
       <div className="mmh-leave-bal-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 24 }}>
         {[
-          { label: 'Annual Leave', val: annual, total: employee?.annualLeaveTotal ?? 0, icon: '📅', color: '#10b981' },
-          { label: 'Sick Leave', val: sick, total: employee?.sickLeaveTotal ?? 0, icon: '🤒', color: '#f59e0b' },
-          { label: 'Emergency Leave', val: emergency, total: employee?.emergencyLeaveTotal ?? 0, icon: '🚨', color: '#ef4444' },
-          { label: 'Maternity Leave', val: maternity, total: employee?.maternityLeaveTotal ?? 0, icon: '👶', color: '#8b5cf6' },
-          { label: 'Unpaid Leave', val: unpaid, total: employee?.unpaidLeaveTotal ?? 0, icon: '📝', color: '#64748b' },
+          { label: 'Annual Leave', val: annual, total: employee?.annualLeaveTotal ?? 0, icon: '📅', color: 'var(--mmh-success)' },
+          { label: 'Sick Leave', val: sick, total: employee?.sickLeaveTotal ?? 0, icon: '🤒', color: 'var(--mmh-warning)' },
+          { label: 'Emergency Leave', val: emergency, total: employee?.emergencyLeaveTotal ?? 0, icon: '🚨', color: 'var(--mmh-danger)' },
+          { label: 'Maternity Leave', val: maternity, total: employee?.maternityLeaveTotal ?? 0, icon: '👶', color: 'var(--mmh-info)' },
+          { label: 'Unpaid Leave', val: unpaid, total: employee?.unpaidLeaveTotal ?? 0, icon: '📝', color: 'var(--mmh-text3)' },
         ].map((c) => (
           <div key={c.label} className="mmh-leave-bal-card" style={{ margin: 0, padding: '16px 20px', display: 'flex', flexDirection: 'column', borderTop: `4px solid ${c.color}` }}>
             {/* Title Top */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
               <span style={{ fontSize: 18 }}>{c.icon}</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', letterSpacing: '0.02em' }}>{c.label.toUpperCase()}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--mmh-text)', letterSpacing: '0.02em' }}>{c.label.toUpperCase()}</span>
             </div>
 
             {/* Values Row */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
               <div>
-                <div style={{ fontSize: 10, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: 2 }}>Total</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#f8fafc' }}>
-                  {c.total} <span style={{ fontSize: 11, fontWeight: 400, color: '#475569' }}>Days</span>
+                <div style={{ fontSize: 10, color: 'var(--mmh-text3)', fontWeight: 600, textTransform: 'uppercase', marginBottom: 2 }}>Total</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--mmh-text)' }}>
+                  {c.total} <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--mmh-text3)' }}>Days</span>
                 </div>
               </div>
 
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 10, color: '#10b981', fontWeight: 600, textTransform: 'uppercase', marginBottom: 2 }}>Remaining</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#10b981' }}>
-                  {c.val} <span style={{ fontSize: 11, fontWeight: 400, color: 'rgba(16,185,129,0.5)' }}>Days</span>
+                <div style={{ fontSize: 10, color: 'var(--mmh-success)', fontWeight: 600, textTransform: 'uppercase', marginBottom: 2 }}>Remaining</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--mmh-success)' }}>
+                  {c.val} <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--mmh-success)', opacity: 0.5 }}>Days</span>
                 </div>
               </div>
             </div>
 
             {/* Progress Bar */}
-            <div className="mmh-lbc-bar-track" style={{ marginTop: 12, height: 4, background: 'rgba(255,255,255,0.05)' }}>
+            <div className="mmh-lbc-bar-track" style={{ marginTop: 12, height: 4, background: 'var(--mmh-border)' }}>
               <div 
                 className={`mmh-lbc-bar-fill ${barColor(c.val, c.total)}`} 
                 style={{ 
@@ -468,9 +468,9 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
                   Supporting Document
                   <span style={{
                     fontSize: '9px',
-                    background: 'rgba(16,185,129,0.1)',
-                    color: '#34d399',
-                    border: '1px solid rgba(16,185,129,0.25)',
+                    background: 'var(--mmh-success-soft)',
+                    color: 'var(--mmh-success)',
+                    border: '1px solid var(--mmh-success-soft)',
                     borderRadius: '4px',
                     padding: '1px 6px',
                     marginLeft: '6px',
@@ -490,15 +490,15 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
               {/* Sub logic only for doctors */}
               {activeRole === 'doctor' && (
                 <>
-                  <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 10 }}>
+                  <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--mmh-info-soft)', border: '1px solid var(--mmh-info-soft)', borderRadius: 10 }}>
                     <input
                       id="needsSub"
                       type="checkbox"
                       checked={needsSubstitute}
                       onChange={(e) => { setNeedsSubstitute(e.target.checked); if (!e.target.checked) setSubstituteId(''); }}
-                      style={{ width: 16, height: 16, accentColor: '#8b5cf6', cursor: 'pointer' }}
+                      style={{ width: 16, height: 16, accentColor: 'var(--mmh-accent)', cursor: 'pointer' }}
                     />
-                    <label htmlFor="needsSub" style={{ fontSize: 13, color: '#a78bfa', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>
+                    <label htmlFor="needsSub" style={{ fontSize: 13, color: 'var(--mmh-info)', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>
                       🔄 I need a substitute doctor
                     </label>
                   </div>
@@ -513,7 +513,7 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
                         label="Substitute Doctor"
                         required={needsSubstitute}
                       />
-                      <div style={{ fontSize: 11, color: '#64748b', marginTop: 6, paddingLeft: 2 }}>
+                      <div style={{ fontSize: 11, color: 'var(--mmh-text3)', marginTop: 6, paddingLeft: 2 }}>
                         ℹ️ Admin will notify the substitute and confirm acceptance.
                       </div>
                     </div>
@@ -537,7 +537,7 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
         <div className="mmh-leave-hist-card" style={{ height: '780px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div className="mmh-leave-card-title" style={{ display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
             <span>📋 Leave History</span>
-            <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>{leaves.length} requests</span>
+            <span style={{ fontSize: 12, color: 'var(--mmh-text3)', fontWeight: 500 }}>{leaves.length} requests</span>
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', paddingRight: 8, marginTop: 12, paddingBottom: 20 }}>
@@ -587,7 +587,7 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
                       <div className="mmh-lhc-substitute">
                         🔄 Sub: {l.substituteEmployee.name}
                         {l.substituteStatus && (
-                          <span style={{ color: l.substituteStatus === 'Accepted' ? '#34d399' : l.substituteStatus === 'Declined' ? '#fb7185' : '#fbbf24' }}>
+                          <span style={{ color: l.substituteStatus === 'Accepted' ? 'var(--mmh-success)' : l.substituteStatus === 'Declined' ? 'var(--mmh-danger)' : 'var(--mmh-warning)' }}>
                             ({l.substituteStatus})
                           </span>
                         )}
@@ -607,8 +607,8 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
                         {/* Document Info Card */}
                         <div style={{
                           display: 'flex', alignItems: 'center', gap: '10px',
-                          padding: '10px 13px', background: 'rgba(15,23,42,0.4)',
-                          border: '1px solid rgba(139,92,246,0.15)',
+                          padding: '10px 13px', background: 'var(--mmh-bg3)',
+                          border: '1px solid var(--mmh-border)',
                           borderRadius: '10px', marginBottom: '8px'
                         }}>
                           <div style={{ fontSize: '18px' }}>
@@ -616,12 +616,12 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{
-                              fontSize: '12px', fontWeight: '600', color: '#a78bfa',
+                              fontSize: '12px', fontWeight: '600', color: 'var(--mmh-accent)',
                               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                             }}>
                               {l.document.originalName}
                             </div>
-                            <div style={{ fontSize: '10px', color: '#475569' }}>
+                            <div style={{ fontSize: '10px', color: 'var(--mmh-text3)' }}>
                               {formatFileSize(l.document.fileSize)}
                             </div>
                           </div>
@@ -639,9 +639,9 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
                                   rel="noreferrer"
                                   style={{
                                     flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    gap: '6px', padding: '6px 0', background: 'rgba(14,165,233,0.1)',
-                                    border: '1px solid rgba(14,165,233,0.2)', borderRadius: '8px',
-                                    color: '#38bdf8', fontSize: '11px', fontWeight: '700',
+                                    gap: '6px', padding: '6px 0', background: 'var(--mmh-info-soft)',
+                                    border: '1px solid var(--mmh-info-soft)', borderRadius: '8px',
+                                    color: 'var(--mmh-info)', fontSize: '11px', fontWeight: '700',
                                     textDecoration: 'none', cursor: 'pointer'
                                   }}
                                 >
@@ -654,9 +654,9 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
                                   download={l.document.originalName}
                                   style={{
                                     flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    gap: '6px', padding: '6px 0', background: 'rgba(139,92,246,0.1)',
-                                    border: '1px solid rgba(139,92,246,0.2)', borderRadius: '8px',
-                                    color: '#a78bfa', fontSize: '11px', fontWeight: '700',
+                                    gap: '6px', padding: '6px 0', background: 'var(--mmh-accent-soft)',
+                                    border: '1px solid var(--mmh-accent-soft)', borderRadius: '8px',
+                                    color: 'var(--mmh-accent)', fontSize: '11px', fontWeight: '700',
                                     textDecoration: 'none', cursor: 'pointer'
                                   }}
                                 >

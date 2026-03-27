@@ -76,10 +76,10 @@ const AdminDashboard: React.FC = () => {
   };
 
   const statCards = [
-    { label: 'Total Patients', icon: '👥', value: stats.totalPatients, accent: 'linear-gradient(90deg, #0ea5e9, #38bdf8)' },
-    { label: 'Admitted',       icon: '🏥', value: stats.admitted,      accent: 'linear-gradient(90deg, #10b981, #34d399)' },
-    { label: 'Pending Labs',   icon: '🔬', value: stats.pendingLabs,   accent: 'linear-gradient(90deg, #8b5cf6, #a78bfa)' },
-    { label: 'Low Stock',      icon: '💊', value: stats.lowStock,      accent: 'linear-gradient(90deg, #f59e0b, #fbbf24)' },
+    { label: 'Total Patients', icon: '👥', value: stats.totalPatients, accent: 'var(--mmh-accent)' },
+    { label: 'Admitted',       icon: '🏥', value: stats.admitted,      accent: 'var(--mmh-success)' },
+    { label: 'Pending Labs',   icon: '🔬', value: stats.pendingLabs,   accent: 'var(--mmh-info)' },
+    { label: 'Low Stock',      icon: '💊', value: stats.lowStock,      accent: 'var(--mmh-warning)' },
   ];
 
   return (
@@ -111,7 +111,7 @@ const AdminDashboard: React.FC = () => {
 
       {/* Ward & Bed Occupancy */}
       <div className="mmh-card" style={{ marginBottom: '20px' }}>
-        <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg, #10b981, #0ea5e9)' }} />
+        <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-accent)' }} />
         <div className="mmh-card-header">
           <div className="mmh-card-title">🏥 Ward &amp; Bed Occupancy</div>
           {wards.length > 0 && (
@@ -137,7 +137,7 @@ const AdminDashboard: React.FC = () => {
                 <div className="mmh-ward-row" key={ward._id}>
                   <div className="mmh-ward-name">
                     {ward.name}
-                    <div style={{ fontSize: '11px', color: '#475569', fontWeight: 400, marginTop: '2px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--mmh-text3)', fontWeight: 400, marginTop: '2px' }}>
                       {ward.type}
                     </div>
                   </div>
@@ -147,8 +147,8 @@ const AdminDashboard: React.FC = () => {
                       style={{
                         width: `${pct}%`,
                         background: pct > 80
-                          ? 'linear-gradient(90deg, #f59e0b, #f43f5e)'
-                          : 'linear-gradient(90deg, #10b981, #0ea5e9)',
+                          ? 'var(--mmh-danger)'
+                          : 'var(--mmh-success)',
                       }}
                     />
                   </div>
@@ -164,7 +164,7 @@ const AdminDashboard: React.FC = () => {
 
       {/* Recent Activity */}
       <div className="mmh-card">
-        <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg, #8b5cf6, #0ea5e9)' }} />
+        <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-accent)' }} />
         <div className="mmh-card-header">
           <div className="mmh-card-title">📋 Recent Activity</div>
           <div className="mmh-badge mmh-badge-sky">Live</div>

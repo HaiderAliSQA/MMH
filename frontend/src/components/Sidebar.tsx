@@ -15,11 +15,20 @@ type NavItem = {
   tab?: string;
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen: mobileOpen, onToggle: onMobileToggle }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = React.useState(() => {
+    const saved = localStorage.getItem('mmh-sidebar');
+    return saved !== 'collapsed';
+  });
+
+  const toggleSidebar = () => {
+    const newState = !sidebarOpen;
+    setSidebarOpen(newState);
+    localStorage.setItem('mmh-sidebar', newState ? 'open' : 'collapsed');
+  };
 
   const handleLogout = () => {
     logout();
@@ -113,16 +122,43 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     <>
       {/* Mobile Overlay */}
       <div 
-        className={`mmh-sidebar-overlay ${isOpen ? 'open' : ''}`} 
-        onClick={onToggle}
+        className={`mmh-sidebar-overlay ${mobileOpen ? 'open' : ''}`} 
+        onClick={onMobileToggle}
       />
 
-      <div className={`mmh-sidebar ${isOpen ? 'open' : ''}`}>
+      <div className={`mmh-sidebar ${mobileOpen ? 'open' : ''} ${!sidebarOpen ? 'collapsed' : ''}`}>
+        {/* Toggle Button */}
+        <button
+          onClick={toggleSidebar}
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: sidebarOpen ? '10px' : '0',
+            left: sidebarOpen ? 'auto' : '0',
+            margin: sidebarOpen ? '0' : '0 auto',
+            width: '32px', height: '32px',
+            borderRadius: '9px',
+            background: 'var(--mmh-bg3)',
+            border: '1px solid var(--mmh-border)',
+            color: 'var(--mmh-text3)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '14px',
+            transition: 'all 0.15s',
+            zIndex: 10,
+          }}
+          title={sidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
+        >
+          {sidebarOpen ? '☰' : '›'}
+        </button>
+
         {/* Logo */}
         <div className="mmh-sidebar-logo">
           <div className="mmh-sidebar-icon">🏥</div>
-          <div>
-            <div className="mmh-sidebar-name">MMH</div>
+          <div className="mmh-sidebar-name-wrap">
+            <div className="mmh-sidebar-name">{sidebarOpen ? 'MMH' : 'M'}</div>
             <div className="mmh-sidebar-subtitle">Majida Memorial Hospital</div>
           </div>
         </div>
@@ -131,7 +167,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         <div className="mmh-sidebar-user">
           <div
             className="mmh-sidebar-avatar"
-            style={{ background: 'linear-gradient(135deg, #0ea5e9, #8b5cf6)' }}
+            style={{ background: 'var(--mmh-accent)' }}
           >
             {name.charAt(0).toUpperCase()}
           </div>
@@ -151,7 +187,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) => `mmh-nav-item${isActive ? ' active' : ''}`}
-                  onClick={() => isOpen && onToggle?.()}
+                  onClick={() => mobileOpen && onMobileToggle?.()}
+                  title={!sidebarOpen ? item.label : ''}
                   end={
                     item.path === '/admin'       ||
                     item.path === '/doctor'      ||
@@ -160,7 +197,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                   }
                 >
                   <span className="mmh-nav-icon">{item.icon}</span>
-                  <span>{item.label}</span>
+                  <span className="mmh-nav-label">{item.label}</span>
                 </NavLink>
               );
             } else if (item.tab && navConfig.basePath) {
@@ -173,10 +210,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                   key={item.tab}
                   to={`${navConfig.basePath}?tab=${item.tab}`}
                   className={`mmh-nav-item ${isActive ? 'active' : ''}`}
-                  onClick={() => isOpen && onToggle?.()}
+                  onClick={() => mobileOpen && onMobileToggle?.()}
+                  title={!sidebarOpen ? item.label : ''}
                 >
                   <span className="mmh-nav-icon">{item.icon}</span>
-                  <span>{item.label}</span>
+                  <span className="mmh-nav-label">{item.label}</span>
                 </Link>
               );
             }
@@ -186,8 +224,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
         {/* Logout */}
         <div className="mmh-sidebar-bottom">
-          <button className="mmh-logout-btn" onClick={handleLogout}>
-            <span>🚪</span> Logout
+          <button className="mmh-logout-btn" onClick={handleLogout} title={!sidebarOpen ? 'Logout' : ''}>
+            <span className="mmh-nav-icon">🚪</span> 
+            <span className="mmh-nav-label">Logout</span>
           </button>
         </div>
       </div>

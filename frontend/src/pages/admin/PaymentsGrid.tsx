@@ -112,17 +112,17 @@ const PaymentsGrid: React.FC<{
             <p className="mmh-page-subtitle">Track hospital revenue and transactions</p>
           </div>
           <div style={{ 
-            background: 'rgba(15, 23, 42, 0.4)', 
+            background: 'var(--mmh-bg3)', 
             backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(226, 232, 240, 0.1)', 
+            border: '1px solid var(--mmh-border)', 
             padding: '12px 24px', 
             borderRadius: 16, 
             display: 'flex', 
             flexDirection: 'column',
             alignItems: 'flex-end'
           }}>
-              <span style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Total Revenue (Selected Period)</span>
-              <span style={{ fontSize: 24, fontWeight: 900, color: '#10b981', fontFamily: 'JetBrains Mono, monospace' }}>PKR {totalRevenue.toLocaleString()}</span>
+              <span style={{ fontSize: 11, color: 'var(--mmh-text3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Total Revenue (Selected Period)</span>
+              <span style={{ fontSize: 24, fontWeight: 900, color: 'var(--mmh-success)', fontFamily: 'JetBrains Mono, monospace' }}>PKR {totalRevenue.toLocaleString()}</span>
           </div>
         </div>
       )}
@@ -201,19 +201,19 @@ const PaymentsGrid: React.FC<{
                   payments.map(p => (
                     <tr key={p._id}>
                       <td>
-                        <div style={{ color: 'white', fontWeight: 500 }}>{new Date(p.createdAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
-                        <div style={{ opacity: 0.5, fontSize: 10 }}>{new Date(p.createdAt).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}</div>
+                        <div style={{ color: 'var(--mmh-text)', fontWeight: 500 }}>{new Date(p.createdAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                        <div style={{ color: 'var(--mmh-text3)', fontSize: 10 }}>{new Date(p.createdAt).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}</div>
                       </td>
                       <td style={{ verticalAlign: 'middle' }}>
-                        <span style={{ fontFamily: 'JetBrains Mono', color: '#10b981', fontWeight: 700, background: 'rgba(16,185,129,0.1)', padding: '4px 8px', borderRadius: 4 }}>{p.invoiceNumber}</span>
+                        <span style={{ fontFamily: 'JetBrains Mono', color: 'var(--mmh-success)', fontWeight: 700, background: 'var(--mmh-success-soft)', padding: '4px 8px', borderRadius: 4 }}>{p.invoiceNumber}</span>
                       </td>
                       <td>
-                        <div style={{ fontWeight: 700, color: 'white' }}>{p.patient?.name || p.patientName}</div>
+                        <div style={{ fontWeight: 700, color: 'var(--mmh-text)' }}>{p.patient?.name || p.patientName}</div>
                       </td>
                       <td>
-                        <div style={{ fontSize: 11, color: '#0ea5e9', fontWeight: 800, fontFamily: 'JetBrains Mono' }}>{p.patient?.mrNumber || '—'}</div>
+                        <div style={{ fontSize: 11, color: 'var(--mmh-accent)', fontWeight: 800, fontFamily: 'JetBrains Mono' }}>{p.patient?.mrNumber || '—'}</div>
                       </td>
-                      <td style={{ fontWeight: 900, color: '#10b981', fontSize: 14 }}>PKR {p.amount.toLocaleString()}</td>
+                      <td style={{ fontWeight: 900, color: 'var(--mmh-success)', fontSize: 14 }}>PKR {p.amount.toLocaleString()}</td>
                       <td>
                         <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <span style={{ fontSize: 14 }}>{p.paymentMethod === 'Cash' ? '💵' : p.paymentMethod === 'Card' ? '💳' : p.paymentMethod === 'Insurance' ? '🏥' : '📱'}</span>
@@ -225,7 +225,7 @@ const PaymentsGrid: React.FC<{
                           {p.status}
                         </span>
                       </td>
-                      <td style={{ fontSize: 11, color: '#f8fafc', fontWeight: 600 }}>
+                      <td style={{ fontSize: 11, color: 'var(--mmh-text)', fontWeight: 600 }}>
                          👤 {p.collectedBy?.name || 'System Auto'}
                       </td>
                     </tr>
@@ -238,7 +238,7 @@ const PaymentsGrid: React.FC<{
           {/* Pagination Footer */}
           {totalPages > 1 && (
             <div style={{ padding: '12px 24px', borderTop: '1px solid var(--mmh-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--mmh-bg2)' }}>
-                <div style={{ fontSize: 12, color: '#94a3b8' }}>Showing {payments.length} of {totalCount} records — Page {page + 1} of {totalPages}</div>
+                <div style={{ fontSize: 12, color: 'var(--mmh-text3)' }}>Showing {payments.length} of {totalCount} records — Page {page + 1} of {totalPages}</div>
                 <div style={{ display: 'flex', gap: 8 }}>
                     <button className="mmh-btn mmh-btn-ghost mmh-btn-sm" disabled={page === 0} onClick={() => fetchPayments(page - 1)}>◀ Previous</button>
                     <button className="mmh-btn mmh-btn-ghost mmh-btn-sm" disabled={page >= totalPages - 1} onClick={() => fetchPayments(page + 1)}>Next Page ▶</button>

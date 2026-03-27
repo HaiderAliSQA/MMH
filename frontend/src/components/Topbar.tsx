@@ -76,7 +76,6 @@ const Topbar: React.FC<TopbarProps> = ({ user, toggleSidebar }) => {
     if (user.role === 'admin') {
       navigate('/hr?tab=leaves');
     } else {
-      // In a real app we might navigate to exact path, but per spec just mark as read/go to tab
       if (notif.type.includes('leave') || notif.type.includes('substitute')) {
         navigate(`/${user.role === 'doctor' ? 'my-patients' : user.role === 'manager' ? 'analytics' : user.role}?tab=my-leave`);
       }
@@ -84,11 +83,11 @@ const Topbar: React.FC<TopbarProps> = ({ user, toggleSidebar }) => {
   };
 
   const getNotifIcon = (type: string) => {
-    if (type === 'leave_request') return { icon: '📝', bg: 'rgba(245,158,11,0.15)', color: '#fbbf24' };
-    if (type === 'leave_approved') return { icon: '✅', bg: 'rgba(16,185,129,0.15)', color: '#34d399' };
-    if (type === 'leave_rejected') return { icon: '❌', bg: 'rgba(244,63,94,0.15)', color: '#fb7185' };
-    if (type === 'substitute_request') return { icon: '🔄', bg: 'rgba(139,92,246,0.15)', color: '#a78bfa' };
-    return { icon: '🔔', bg: 'rgba(14,165,233,0.15)', color: '#38bdf8' };
+    if (type === 'leave_request') return { icon: '📝', bg: 'var(--mmh-warning-soft)', color: 'var(--mmh-warning)' };
+    if (type === 'leave_approved') return { icon: '✅', bg: 'var(--mmh-success-soft)', color: 'var(--mmh-success)' };
+    if (type === 'leave_rejected') return { icon: '❌', bg: 'var(--mmh-danger-soft)', color: 'var(--mmh-danger)' };
+    if (type === 'substitute_request') return { icon: '🔄', bg: 'var(--mmh-info-soft)', color: 'var(--mmh-info)' };
+    return { icon: '🔔', bg: 'var(--mmh-info-soft)', color: 'var(--mmh-info)' };
   };
 
   const timeAgo = (dateStr: string) => {
@@ -119,7 +118,7 @@ const Topbar: React.FC<TopbarProps> = ({ user, toggleSidebar }) => {
              <span style={{ margin: '0 8px', opacity: 0.3 }}>|</span>
              <span>🕒 {nowTime()}</span>
              <span style={{ margin: '0 8px', opacity: 0.3 }}>|</span>
-             <span style={{ color: 'var(--mmh-sky)', fontWeight: 700 }}>MMH System Core v2.5</span>
+             <span style={{ color: 'var(--mmh-accent)', fontWeight: 700 }}>MMH System Core v2.5</span>
           </div>
         </div>
       </div>
@@ -178,12 +177,12 @@ const Topbar: React.FC<TopbarProps> = ({ user, toggleSidebar }) => {
         </div>
 
         <div className="desktop-only" style={{ textAlign: 'right' }}>
-           <div style={{ fontSize: '14px', fontWeight: 800, color: 'white' }}>Welcome, {user.name}</div>
-           <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', marginTop: '2px', letterSpacing: '0.05em' }}>Server State: Online</div>
+           <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--mmh-text)' }}>Welcome, {user.name}</div>
+           <div style={{ fontSize: '10px', color: 'var(--mmh-text3)', textTransform: 'uppercase', marginTop: '2px', letterSpacing: '0.05em' }}>Server State: Online</div>
         </div>
         <div className="mmh-avatar-circle" style={{ 
-          background: '#111d35', 
-          border: '1px solid #2a4070',
+          background: 'var(--mmh-bg3)', 
+          border: '1px solid var(--mmh-border2)',
           fontSize: '18px',
           width: '40px',
           height: '40px',
@@ -192,7 +191,7 @@ const Topbar: React.FC<TopbarProps> = ({ user, toggleSidebar }) => {
           justifyContent: 'center',
           borderRadius: '50%',
           fontWeight: 800,
-          color: 'white'
+          color: 'var(--mmh-text)'
         }}>
            {user.name.charAt(0).toUpperCase()}
         </div>
@@ -202,4 +201,3 @@ const Topbar: React.FC<TopbarProps> = ({ user, toggleSidebar }) => {
 };
 
 export default Topbar;
-

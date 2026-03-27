@@ -3,7 +3,7 @@ import { hrAPI } from '../../../api';
 import TypeSearch from '../../../components/TypeSearch';
 
 const STATUSES = ['Present','Absent','Late','Half-Day','On-Leave','Holiday','Off'];
-const STATUS_COLOR: Record<string,string> = { Present:'#34d399', Absent:'#fb7185', Late:'#fbbf24', 'Half-Day':'#38bdf8', 'On-Leave':'#a78bfa', Holiday:'#64748b', Off:'#475569' };
+const STATUS_COLOR: Record<string,string> = { Present:'var(--mmh-success)', Absent:'var(--mmh-danger)', Late:'var(--mmh-warning)', 'Half-Day':'var(--mmh-accent)', 'On-Leave':'var(--mmh-violet)', Holiday:'var(--mmh-text3)', Off:'var(--mmh-text3)' };
 const STATUS_BADGE: Record<string,string> = { Present:'mmh-badge-green', Absent:'mmh-badge-rose', Late:'mmh-badge-amber', 'Half-Day':'mmh-badge-sky', 'On-Leave':'mmh-badge-violet', Holiday:'mmh-badge-gray', Off:'mmh-badge-gray' };
 const CAL_CLASS: Record<string,string> = { Present:'mmh-att-cal-P', Absent:'mmh-att-cal-A', Late:'mmh-att-cal-L', 'Half-Day':'mmh-att-cal-H', 'On-Leave':'mmh-att-cal-L', Holiday:'mmh-att-cal-O', Off:'mmh-att-cal-O' };
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -122,10 +122,10 @@ const AttendanceTab: React.FC<{ employees: any[] }> = ({ employees }) => {
 
       <div className="mmh-stats-grid" style={{marginBottom:24}}>
         {[
-          { label:'Present', value:countStatus('Present'), icon:'✅', accent:'linear-gradient(90deg,#10b981,#34d399)' },
-          { label:'Absent', value:countStatus('Absent'), icon:'❌', accent:'linear-gradient(90deg,#f43f5e,#fb7185)' },
-          { label:'Late', value:countStatus('Late'), icon:'⏰', accent:'linear-gradient(90deg,#f59e0b,#fbbf24)' },
-          { label:'On Leave', value:countStatus('On-Leave'), icon:'🏖️', accent:'linear-gradient(90deg,#8b5cf6,#a78bfa)' },
+          { label:'Present', value:countStatus('Present'), icon:'✅', accent:'var(--mmh-success)' },
+          { label:'Absent', value:countStatus('Absent'), icon:'❌', accent:'var(--mmh-danger)' },
+          { label:'Late', value:countStatus('Late'), icon:'⏰', accent:'var(--mmh-warning)' },
+          { label:'On Leave', value:countStatus('On-Leave'), icon:'🏖️', accent:'var(--mmh-accent)' },
         ].map(c => (
           <div className="mmh-stat-card" key={c.label}>
             <div className="mmh-stat-accent" style={{background:c.accent}} />
@@ -164,17 +164,17 @@ const AttendanceTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                     filteredRecords.map(r => (
                       <React.Fragment key={r._id}>
                         <tr>
-                          <td><div style={{fontWeight:700,color:'white',fontSize:13}}>{r.employee?.name}</div><div style={{fontSize:11,color:'#64748b'}}>{r.employee?.employeeId}</div></td>
+                          <td><div style={{fontWeight:700,color:'var(--mmh-text)',fontSize:13}}>{r.employee?.name}</div><div style={{fontSize:11,color:'var(--mmh-text3)'}}>{r.employee?.employeeId}</div></td>
                           <td style={{fontSize:12}}>{r.employee?.role}</td>
                           <td style={{fontSize:12,fontFamily:'JetBrains Mono,monospace'}}>{r.checkIn||'—'}</td>
                           <td style={{fontSize:12,fontFamily:'JetBrains Mono,monospace'}}>{r.checkOut||'—'}</td>
                           <td><span className={`mmh-badge ${STATUS_BADGE[r.status]||'mmh-badge-gray'}`}>{r.status}</span></td>
                           <td style={{fontFamily:'JetBrains Mono,monospace',fontSize:12}}>{r.overtimeHours||0}h</td>
-                          <td style={{fontSize:11,color:'#94a3b8',maxWidth:120,overflow:'hidden',textOverflow:'ellipsis'}}>{r.notes||'—'}</td>
+                          <td style={{fontSize:11,color:'var(--mmh-text3)',maxWidth:120,overflow:'hidden',textOverflow:'ellipsis'}}>{r.notes||'—'}</td>
                           <td><button className="mmh-btn mmh-btn-ghost mmh-btn-xs" onClick={()=>{ setMarkRow(markRow===r.employee?._id?null:r.employee?._id); setMarkForm({status:r.status||'Present',checkIn:r.checkIn||'',checkOut:r.checkOut||'',overtimeHours:r.overtimeHours||0,notes:r.notes||''}); }}>✏️</button></td>
                         </tr>
                         {markRow === r.employee?._id && (
-                          <tr><td colSpan={8} style={{background:'#0a1628',padding:12}}>
+                          <tr><td colSpan={8} style={{background: 'var(--mmh-bg2)', padding:12}}>
                             <div style={{display:'flex',gap:10,alignItems:'flex-end',flexWrap:'wrap'}}>
                               <div className="mmh-field" style={{width:140}}>
                                 <label className="mmh-label" style={{fontSize:10}}>Status</label>
@@ -230,8 +230,8 @@ const AttendanceTab: React.FC<{ employees: any[] }> = ({ employees }) => {
                     {cells}
                   </div>
                   <div style={{display:'flex',gap:16,marginTop:16,flexWrap:'wrap'}}>
-                    {[{l:'Present',v:monthlySummary.P,c:'#34d399'},{l:'Absent',v:monthlySummary.A,c:'#fb7185'},{l:'Late',v:monthlySummary.L,c:'#fbbf24'},{l:'Half-day',v:monthlySummary.H,c:'#38bdf8'},{l:'OT',v:`${monthlySummary.OT}h`,c:'#a78bfa'}].map(s=>(
-                      <div key={s.l} style={{fontSize:12}}><span style={{color:s.c,fontWeight:800,marginRight:4}}>{s.v}</span><span style={{color:'#64748b'}}>{s.l}</span></div>
+                    {[{l:'Present',v:monthlySummary.P,c:'var(--mmh-success)'},{l:'Absent',v:monthlySummary.A,c:'var(--mmh-danger)'},{l:'Late',v:monthlySummary.L,c:'var(--mmh-warning)'},{l:'Half-day',v:monthlySummary.H,c:'var(--mmh-accent)'},{l:'OT',v:`${monthlySummary.OT}h`,c:'var(--mmh-accent)'}].map(s=>(
+                      <div key={s.l} style={{fontSize:12}}><span style={{color:s.c,fontWeight:800,marginRight:4}}>{s.v}</span><span style={{color:'var(--mmh-text3)'}}>{s.l}</span></div>
                     ))}
                   </div>
                 </>

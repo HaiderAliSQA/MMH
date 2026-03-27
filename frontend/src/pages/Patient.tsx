@@ -49,7 +49,7 @@ const Patient: React.FC<PatientProps> = ({ user: propUser, onLogout }) => {
         <div className="mmh-empty"><div className="mmh-empty-text">Loading your records...</div></div>
       ) : myRecords.length === 0 ? (
         <div className="mmh-card">
-          <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg,#0ea5e9,#10b981)' }} />
+          <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-accent)' }} />
           <div className="mmh-card-body">
             <div className="mmh-empty">
               <div className="mmh-empty-icon">🏥</div>
@@ -61,7 +61,7 @@ const Patient: React.FC<PatientProps> = ({ user: propUser, onLogout }) => {
       ) : (
         <>
           <div className="mmh-card" style={{ marginBottom: 20 }}>
-            <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg,#0ea5e9,#38bdf8)' }} />
+            <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-accent)' }} />
             <div className="mmh-card-header">
               <div className="mmh-card-title">📋 My OPD Visits</div>
               <div className="mmh-badge mmh-badge-sky">{myRecords.length} visits</div>
@@ -74,7 +74,7 @@ const Patient: React.FC<PatientProps> = ({ user: propUser, onLogout }) => {
                 <tbody>
                   {myRecords.map((r: any) => (
                     <tr key={r._id}>
-                      <td style={{ fontFamily: 'JetBrains Mono', color: '#0ea5e9', fontWeight: 700 }}>{r.mrNo || '—'}</td>
+                      <td style={{ fontFamily: 'JetBrains Mono', color: 'var(--mmh-accent)', fontWeight: 700 }}>{r.mrNo || '—'}</td>
                       <td>{r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '—'}</td>
                       <td>{r.doctorName || '—'}</td>
                       <td><span className="mmh-badge mmh-badge-sky">{r.status || 'OPD'}</span></td>
@@ -87,7 +87,7 @@ const Patient: React.FC<PatientProps> = ({ user: propUser, onLogout }) => {
 
           {myLabs.length > 0 && (
             <div className="mmh-card">
-              <div className="mmh-card-accent-top" style={{ background: 'linear-gradient(90deg,#8b5cf6,#0ea5e9)' }} />
+              <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-accent)' }} />
               <div className="mmh-card-header">
                 <div className="mmh-card-title">🔬 My Lab Reports</div>
                 <div className="mmh-badge mmh-badge-violet">{myLabs.length} reports</div>
@@ -100,7 +100,7 @@ const Patient: React.FC<PatientProps> = ({ user: propUser, onLogout }) => {
                   <tbody>
                     {myLabs.map((l: any) => (
                       <tr key={l._id}>
-                        <td style={{ fontFamily: 'JetBrains Mono', color: '#38bdf8', fontWeight: 700 }}>
+                        <td style={{ fontFamily: 'JetBrains Mono', color: 'var(--mmh-accent)', fontWeight: 700 }}>
                           #{l._id.slice(-6).toUpperCase()}
                         </td>
                         <td>{(l.tests || []).join(', ')}</td>
@@ -109,7 +109,7 @@ const Patient: React.FC<PatientProps> = ({ user: propUser, onLogout }) => {
                             {l.status}
                           </span>
                         </td>
-                        <td style={{ fontSize: 12, color: '#64748b' }}>{l.createdAt ? new Date(l.createdAt).toLocaleDateString() : '—'}</td>
+                        <td style={{ fontSize: 12, color: 'var(--mmh-text3)' }}>{l.createdAt ? new Date(l.createdAt).toLocaleDateString() : '—'}</td>
                       </tr>
                     ))}
                   </tbody>

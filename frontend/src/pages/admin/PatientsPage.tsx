@@ -40,13 +40,13 @@ class ErrorBoundary extends React.Component<
       return (
         <div style={{ padding: 40, textAlign: 'center' }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
-          <h2 style={{ color: 'white', fontSize: 20, marginBottom: 8 }}>Something went wrong</h2>
-          <p style={{ color: '#64748b', fontSize: 13 }}>{this.state.errorMsg}</p>
+          <h2 style={{ color: 'var(--mmh-text)', fontSize: 20, marginBottom: 8 }}>Something went wrong</h2>
+          <p style={{ color: 'var(--mmh-text3)', fontSize: 13 }}>{this.state.errorMsg}</p>
           <button
             onClick={() => this.setState({ hasError: false, errorMsg: '' })}
             style={{
               marginTop: 20, padding: '10px 24px',
-              background: '#0ea5e9', color: 'white',
+              background: 'var(--mmh-accent)', color: 'white',
               border: 'none', borderRadius: 10, cursor: 'pointer',
               fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
             }}
@@ -242,7 +242,7 @@ const PatientsPage: React.FC = () => {
             <div className="mmh-field" style={{ position: 'relative' }} ref={dropdownRef}>
               <label className="mmh-label">Search (Name / MR# / CNIC)</label>
               <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }}>🔍</span>
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--mmh-text3)' }}>🔍</span>
                 <input 
                   type="text" 
                   className="mmh-input" 
@@ -255,7 +255,7 @@ const PatientsPage: React.FC = () => {
                 {(searchQuery || search) && (
                   <button 
                     type="button"
-                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 18 }}
+                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--mmh-text3)', cursor: 'pointer', fontSize: 18 }}
                     onClick={() => { setSearch(''); setSearchQuery(''); fetchPatients(''); }}
                   >
                     ×
@@ -367,8 +367,8 @@ const PatientsPage: React.FC = () => {
                   paginatedPatients.map((p, idx) => (
                     <tr key={p._id}>
                       <td>{(currentPage - 1) * rowsPerPage + idx + 1}</td>
-                      <td style={{ fontFamily: 'JetBrains Mono', color: 'var(--mmh-sky)', fontWeight: 700 }}>{p.mrNumber || '—'}</td>
-                      <td className="mmh-td-name" style={{ color: 'white' }}>{p.name || '—'}</td>
+                      <td style={{ fontFamily: 'JetBrains Mono', color: 'var(--mmh-accent)', fontWeight: 700 }}>{p.mrNumber || '—'}</td>
+                      <td className="mmh-td-name" style={{ color: 'var(--mmh-text)' }}>{p.name || '—'}</td>
                       <td>{p.age ?? '—'} / {p.gender || '—'}</td>
                       <td style={{ fontSize: 12 }}>{p.cnic || '—'}</td>
                       <td>{p.phone || '—'}</td>
@@ -380,7 +380,7 @@ const PatientsPage: React.FC = () => {
                           {p.status || '—'}
                         </span>
                       </td>
-                      <td style={{ color: 'var(--mmh-sky)', fontWeight: 600 }}>{p.doctor?.name || '—'}</td>
+                      <td style={{ color: 'var(--mmh-accent)', fontWeight: 600 }}>{p.doctor?.name || '—'}</td>
                       <td>{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '—'}</td>
                       <td>
                         <div style={{ display: 'flex', gap: 8 }}>
@@ -428,7 +428,7 @@ const PatientsPage: React.FC = () => {
                 </div>
               </div>
               <div className="mmh-divider" style={{ margin: '24px 0' }} />
-              <h3 style={{ color: '#94a3b8', fontSize: 14, textTransform: 'uppercase', marginBottom: 16 }}>Visits & History</h3>
+              <h3 style={{ color: 'var(--mmh-text3)', fontSize: 14, textTransform: 'uppercase', marginBottom: 16 }}>Visits & History</h3>
               <div className="mmh-empty" style={{ padding: 20, background: 'var(--mmh-bg3)' }}>
                 <div style={{ fontSize: 13, color: 'var(--mmh-muted)' }}>Historical records display is under maintenance (Coming soon)</div>
               </div>
@@ -456,7 +456,7 @@ const PatientsPage: React.FC = () => {
                   <label className="mmh-label">CNIC</label>
                   <input
                     className="mmh-input"
-                    style={{ borderColor: cnicError ? '#f43f5e' : undefined }}
+                    style={{ borderColor: cnicError ? 'var(--mmh-danger)' : undefined }}
                     placeholder="XXXXX-XXXXXXX-X"
                     value={editPatient.cnic || ''}
                     onChange={e => {
@@ -477,7 +477,7 @@ const PatientsPage: React.FC = () => {
                     <label className="mmh-label">Phone</label>
                     <input
                       className="mmh-input"
-                      style={{ borderColor: phoneError ? '#f43f5e' : undefined }}
+                      style={{ borderColor: phoneError ? 'var(--mmh-danger)' : undefined }}
                       placeholder="03XX-XXXXXXX"
                       value={editPatient.phone || ''}
                       onChange={e => {

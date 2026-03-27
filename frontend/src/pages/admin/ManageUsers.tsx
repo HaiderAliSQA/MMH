@@ -340,7 +340,7 @@ const ManageUsers: React.FC = () => {
             <div style={{
               marginTop: '10px',
               padding: '10px 16px',
-              background: 'rgba(16,185,129,0.1)',
+              background: 'var(--mmh-success-soft)',
               borderRadius: '10px',
               fontFamily: 'JetBrains Mono, monospace',
               display: 'flex',
@@ -356,7 +356,7 @@ const ManageUsers: React.FC = () => {
               >Dismiss</button>
             </div>
           )}
-          <div style={{ fontSize: '11px', marginTop: '6px', color: '#34d399' }}>
+          <div style={{ fontSize: '11px', marginTop: '6px', color: 'var(--mmh-success)' }}>
             User can change password from Settings
           </div>
         </div>
@@ -473,7 +473,7 @@ const ManageUsers: React.FC = () => {
                   </td>
                   <td>
                     <div>
-                      <div style={{ color: 'white', fontSize: '12px', fontWeight: 600 }}>
+                      <div style={{ color: 'var(--mmh-text)', fontSize: '12px', fontWeight: 600 }}>
                         {getDepartmentLabel(u)}
                       </div>
                       {u.specialization && (
@@ -544,14 +544,14 @@ const ManageUsers: React.FC = () => {
                 <div style={{
                   marginBottom: '16px',
                   padding: '10px 16px',
-                  background: 'rgba(16,185,129,0.08)',
-                  border: '1px solid rgba(16,185,129,0.2)',
+                  background: 'var(--mmh-success-soft)',
+                  border: '1px solid var(--mmh-success-soft)',
                   borderRadius: '12px',
                   fontSize: '13px',
-                  color: '#34d399',
+                  color: 'var(--mmh-success)',
                 }}>
                   🔑 Default password will be set to: <strong style={{ fontFamily: 'JetBrains Mono, monospace' }}>mmh1234</strong>
-                  <span style={{ color: '#64748b', marginLeft: '8px', fontWeight: 400 }}>(user can change from Settings)</span>
+                  <span style={{ color: 'var(--mmh-text3)', marginLeft: '8px', fontWeight: 400 }}>(user can change from Settings)</span>
                 </div>
               )}
 
@@ -613,7 +613,7 @@ const ManageUsers: React.FC = () => {
                     <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>📞</span>
                     <input
                       className="mmh-input"
-                      style={{ paddingLeft: 40, borderColor: phoneError ? '#f43f5e' : undefined }}
+                      style={{ paddingLeft: 40, borderColor: phoneError ? 'var(--mmh-danger)' : undefined }}
                       placeholder="e.g. 0300-1234567"
                       value={formData.phone}
                       onChange={e => {
@@ -706,16 +706,16 @@ const ManageUsers: React.FC = () => {
 
                     <div className="mmh-field" style={{ gridColumn: '1 / -1' }}>
                       <div style={{
-                        background: 'rgba(255,255,255,0.03)',
+                        background: 'var(--mmh-card2)',
                         padding: '12px 16px',
                         borderRadius: '12px',
-                        border: '1px solid var(--mmh-border1)',
+                        border: '1px solid var(--mmh-border)',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center'
                       }}>
-                        <span style={{ fontSize: '13px', color: 'var(--mmh-muted)' }}>Gross Monthly Package:</span>
-                        <span style={{ fontSize: '18px', fontWeight: 700, color: '#10b981' }}>
+                        <span style={{ fontSize: '13px', color: 'var(--mmh-text3)' }}>Gross Monthly Package:</span>
+                        <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--mmh-success)' }}>
                           PKR {(formData.basicSalary + formData.houseAllowance + formData.medicalAllowance + formData.transportAllowance).toLocaleString()}
                         </span>
                       </div>
