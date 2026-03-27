@@ -91,7 +91,7 @@ const ManageWards: React.FC = () => {
             const wardBeds = beds.filter(b => b.ward === ward._id);
             const available = wardBeds.filter(b => b.status === 'Available').length;
             const occupied = wardBeds.filter(b => b.status === 'Occupied').length;
-            
+
             return (
               <div key={ward._id} className="mmh-card" style={{ overflow: 'hidden', border: '1px solid var(--mmh-border)' }}>
                 {/* WARD HEADER */}
@@ -110,15 +110,15 @@ const ManageWards: React.FC = () => {
                       <div style={{ fontSize: 12, color: 'var(--mmh-text-inverted)', opacity: 0.8, fontWeight: 500, marginTop: 2 }}>{ward.department} Department</div>
                     </div>
                   </div>
-                  
+
                   <div style={{ display: 'flex', gap: 10 }}>
                     <div style={{ textAlign: 'center', background: 'rgba(0,0,0,0.15)', padding: '6px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)' }}>
                       <div style={{ fontSize: 22, fontWeight: 900, color: '#10b981', fontFamily: 'JetBrains Mono, monospace', lineHeight: 1.1 }}>{available}</div>
-                      <div style={{ fontSize: 9, color: '#ffffff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>Available</div>
+                      <div style={{ fontSize: 12, color: '#ffffff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>Available</div>
                     </div>
                     <div style={{ textAlign: 'center', background: 'rgba(0,0,0,0.15)', padding: '6px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)' }}>
                       <div style={{ fontSize: 22, fontWeight: 900, color: '#ef4444', fontFamily: 'JetBrains Mono, monospace', lineHeight: 1.1 }}>{occupied}</div>
-                      <div style={{ fontSize: 9, color: '#ffffff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>Occupied</div>
+                      <div style={{ fontSize: 10, color: '#ffffff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>Occupied</div>
                     </div>
                     <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.1)', padding: '6px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)' }}>
                       <div style={{ fontSize: 22, fontWeight: 900, color: '#ffffff', fontFamily: 'JetBrains Mono, monospace', lineHeight: 1.1 }}>{wardBeds.length}</div>
@@ -132,14 +132,14 @@ const ManageWards: React.FC = () => {
                   {wardBeds.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '20px', color: 'var(--mmh-text3)', fontSize: 13, fontStyle: 'italic' }}>No beds assigned to this ward yet.</div>
                   ) : (
-                    <div style={{ 
-                      display: 'grid', 
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(85px, 1fr))', 
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(85px, 1fr))',
                       gap: 16
                     }}>
                       {wardBeds.map((bed, idx) => (
-                        <div 
-                          key={bed._id} 
+                        <div
+                          key={bed._id}
                           title={`Bed: ${bed.bedNumber} | Status: ${bed.status}`}
                           style={{
                             background: getStatusColor(bed.status),
@@ -158,10 +158,10 @@ const ManageWards: React.FC = () => {
                           onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
                         >
                           <div style={{ fontSize: 22 }}>🛏️</div>
-                          <div style={{ 
-                            fontFamily: 'JetBrains Mono, monospace', 
-                            fontSize: 13, 
-                            fontWeight: 800, 
+                          <div style={{
+                            fontFamily: 'JetBrains Mono, monospace',
+                            fontSize: 13,
+                            fontWeight: 800,
                             color: 'var(--mmh-text)',
                             letterSpacing: '-0.05em',
                             marginBottom: bed.patient ? 0 : 4
@@ -169,24 +169,24 @@ const ManageWards: React.FC = () => {
                             {bed.bedNumber}
                           </div>
                           {bed.patient ? (
-                            <div style={{ 
-                              fontSize: 10, 
-                              color: 'var(--mmh-text2)', 
-                              fontWeight: 700, 
-                              marginBottom: 4, 
-                              textAlign: 'center', 
-                              overflow: 'hidden', 
-                              textOverflow: 'ellipsis', 
-                              whiteSpace: 'nowrap', 
+                            <div style={{
+                              fontSize: 10,
+                              color: 'var(--mmh-text2)',
+                              fontWeight: 700,
+                              marginBottom: 4,
+                              textAlign: 'center',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
                               width: '100%',
                               padding: '0 4px'
                             }}>
                               {bed.patient.name.split(' ')[0]}
                             </div>
                           ) : null}
-                          <div style={{ 
-                            fontSize: 9, 
-                            fontWeight: 900, 
+                          <div style={{
+                            fontSize: 9,
+                            fontWeight: 900,
                             textTransform: 'uppercase',
                             color: getStatusBorder(bed.status),
                             background: 'rgba(0,0,0,0.25)',
