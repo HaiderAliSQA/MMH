@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { hrAPI } from '../../../api';
 import TypeSearch from '../../../components/TypeSearch';
+import Pagination from '../../../components/Pagination';
 
 const DEPARTMENTS = [
   'Administration', 'Reception', 'Cardiology', 'Neurology', 'Orthopedics',
@@ -17,6 +18,10 @@ const EmployeesTab: React.FC<{ employees: any[]; reload: () => void }> = ({ empl
   const [saving, setSaving] = useState(false);
   const [banner, setBanner] = useState<{ type: string; msg: string } | null>(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   const stats = {
     total: employees.length,
     doctors: employees.filter(e => e.role === 'doctor').length,
@@ -29,6 +34,18 @@ const EmployeesTab: React.FC<{ employees: any[]; reload: () => void }> = ({ empl
     return !q || e.name?.toLowerCase().includes(q) || e.employeeId?.toLowerCase().includes(q) ||
       e.role?.toLowerCase().includes(q) || e.department?.toLowerCase().includes(q);
   });
+
+  // Calculate paginated data
+  const totalResults = filtered.length;
+  const paginatedData = filtered.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   const openEdit = (emp: any) => {
     setEditForm({
@@ -90,9 +107,9 @@ const EmployeesTab: React.FC<{ employees: any[]; reload: () => void }> = ({ empl
             <table className="mmh-table">
               <thead><tr><th>ID</th><th>Employee</th><th>Role</th><th>Department</th><th>Basic Salary</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
               <tbody>
-                {filtered.length === 0 ? (
+                {paginatedData.length === 0 ? (
                   <tr><td colSpan={8} className="mmh-empty">No employees found</td></tr>
-                ) : filtered.map(emp => (
+                ) : paginatedData.map(emp => (
                   <tr key={emp._id}>
                     <td><span style={{ fontFamily: 'JetBrains Mono,monospace', color: '#38bdf8', fontWeight: 700, fontSize: 12 }}>{emp.employeeId}</span></td>
                     <td>
@@ -122,6 +139,13 @@ const EmployeesTab: React.FC<{ employees: any[]; reload: () => void }> = ({ empl
               </tbody>
             </table>
           </div>
+          <Pagination 
+            totalResults={totalResults}
+            currentPage={currentPage}
+            rowsPerPage={rowsPerPage}
+            onPageChange={setCurrentPage}
+            onRowsPerPageChange={setRowsPerPage}
+          />
         </div>
       </div>
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../api';
 import '../../styles/mmh.css';
 import { formatPhone, validatePhone, formatCNIC, validateCNIC } from '../../utils/validation';
+import Pagination from '../../components/Pagination';
 
 interface Patient {
   _id: string;
@@ -74,6 +75,10 @@ const PatientsPage: React.FC = () => {
   const [phoneError, setPhoneError] = useState('');
   const [cnicError, setCnicError] = useState('');
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   // Dropdown search states
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Patient[]>([]);
@@ -133,6 +138,7 @@ const PatientsPage: React.FC = () => {
   useEffect(() => {
     if (loading) return; // avoid race
     fetchPatients();
+    setCurrentPage(1); // Reset to page 1 on filter change
   }, [statusFilter, doctorFilter, startDate, endDate]);
 
   const handleDropdownSearch = (val: string) => {
@@ -173,6 +179,14 @@ const PatientsPage: React.FC = () => {
     // But we keep the frontend safety just in case
     return Array.isArray(patients) ? patients : [];
   }, [patients]);
+
+  const totalResults = filteredPatients.length;
+  const paginatedPatients = useMemo(() => {
+    return filteredPatients.slice(
+      (currentPage - 1) * rowsPerPage,
+      currentPage * rowsPerPage
+    );
+  }, [filteredPatients, currentPage, rowsPerPage]);
 
   const stats = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -350,9 +364,9 @@ const PatientsPage: React.FC = () => {
                 ) : filteredPatients.length === 0 ? (
                   <tr><td colSpan={10} className="mmh-empty">No patients found</td></tr>
                 ) : (
-                  filteredPatients.map((p, idx) => (
+                  paginatedPatients.map((p, idx) => (
                     <tr key={p._id}>
-                      <td>{idx + 1}</td>
+                      <td>{(currentPage - 1) * rowsPerPage + idx + 1}</td>
                       <td style={{ fontFamily: 'JetBrains Mono', color: 'var(--mmh-sky)', fontWeight: 700 }}>{p.mrNumber || '—'}</td>
                       <td className="mmh-td-name" style={{ color: 'white' }}>{p.name || '—'}</td>
                       <td>{p.age ?? '—'} / {p.gender || '—'}</td>
@@ -380,6 +394,13 @@ const PatientsPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+          <Pagination 
+            totalResults={totalResults}
+            currentPage={currentPage}
+            rowsPerPage={rowsPerPage}
+            onPageChange={setCurrentPage}
+            onRowsPerPageChange={setRowsPerPage}
+          />
         </div>
       </div>
 
