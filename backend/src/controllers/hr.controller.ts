@@ -482,10 +482,15 @@ export const applyLeave = async (req: AuthRequest, res: Response): Promise<void>
         basicSalary: 0,
         joiningDate: new Date(),
         annualLeaveBalance: 10,
+        annualLeaveTotal: 10,
         sickLeaveBalance: 6,
+        sickLeaveTotal: 6,
         emergencyLeaveBalance: 3,
+        emergencyLeaveTotal: 3,
         maternityLeaveBalance: 30,
+        maternityLeaveTotal: 30,
         unpaidLeaveBalance: 15,
+        unpaidLeaveTotal: 15,
       });
       employeeId = employee._id;
     }
@@ -916,19 +921,32 @@ export const getMyLeaves = async (req: AuthRequest, res: Response): Promise<void
 export const getMyBalance = async (req: AuthRequest, res: Response): Promise<void> => {
   const employee = await Employee.findOne(
     { user: req.user?.id },
-    'annualLeaveBalance sickLeaveBalance emergencyLeaveBalance maternityLeaveBalance unpaidLeaveBalance name employeeId department role'
+    'annualLeaveBalance annualLeaveTotal sickLeaveBalance sickLeaveTotal emergencyLeaveBalance emergencyLeaveTotal maternityLeaveBalance maternityLeaveTotal unpaidLeaveBalance unpaidLeaveTotal name employeeId department role'
   );
   if (!employee) {
     res.json({
       success: true, data: {
         annualLeaveBalance: 10,
+        annualLeaveTotal: 10,
         sickLeaveBalance: 6,
+        sickLeaveTotal: 6,
         emergencyLeaveBalance: 3,
+        emergencyLeaveTotal: 3,
         maternityLeaveBalance: 30,
+        maternityLeaveTotal: 30,
         unpaidLeaveBalance: 15,
+        unpaidLeaveTotal: 15,
       }
     });
     return;
   }
-  res.json({ success: true, data: employee });
+  const data = employee.toObject();
+  // Heal existing data: if Total is missing, use Balance as fallback
+  data.annualLeaveTotal = data.annualLeaveTotal ?? data.annualLeaveBalance;
+  data.sickLeaveTotal = data.sickLeaveTotal ?? data.sickLeaveBalance;
+  data.emergencyLeaveTotal = data.emergencyLeaveTotal ?? data.emergencyLeaveBalance;
+  data.maternityLeaveTotal = data.maternityLeaveTotal ?? data.maternityLeaveBalance;
+  data.unpaidLeaveTotal = data.unpaidLeaveTotal ?? data.unpaidLeaveBalance;
+
+  res.json({ success: true, data });
 };

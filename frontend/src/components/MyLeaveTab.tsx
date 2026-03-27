@@ -11,10 +11,15 @@ interface Employee {
   role: string;
   department: string;
   annualLeaveBalance: number;
+  annualLeaveTotal: number;
   sickLeaveBalance?: number;
+  sickLeaveTotal?: number;
   emergencyLeaveBalance?: number;
+  emergencyLeaveTotal?: number;
   maternityLeaveBalance?: number;
+  maternityLeaveTotal?: number;
   unpaidLeaveBalance?: number;
+  unpaidLeaveTotal?: number;
 }
 
 interface LeaveRecord {
@@ -179,11 +184,11 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
       return;
     }
 
-    const annual = employee?.annualLeaveBalance ?? 24;
-    const sick = employee?.sickLeaveBalance ?? 10;
-    const emergency = employee?.emergencyLeaveBalance ?? 3;
-    const maternity = employee?.maternityLeaveBalance ?? 90;
-    const unpaid = employee?.unpaidLeaveBalance ?? 30;
+    const annual = (employee?.annualLeaveBalance ?? 0) - (pendingByCard['Annual Leave'] || 0);
+    const sick = (employee?.sickLeaveBalance ?? 0) - (pendingByCard['Sick Leave'] || 0);
+    const emergency = (employee?.emergencyLeaveBalance ?? 0) - (pendingByCard['Emergency Leave'] || 0);
+    const maternity = (employee?.maternityLeaveBalance ?? 0) - (pendingByCard['Maternity Leave'] || 0);
+    const unpaid = (employee?.unpaidLeaveBalance ?? 0) - (pendingByCard['Unpaid Leave'] || 0);
 
     if (leaveType === 'Annual Leave' && days > annual) {
       setBanner({ type: 'error', msg: `Not enough Annual Leave balance. Remaining: ${annual}` });
@@ -272,11 +277,11 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
     }, {} as Record<string, number>);
 
   // Leave balance data (Balance - Pending)
-  const annual = (employee?.annualLeaveBalance ?? 10) - (pendingByCard['Annual Leave'] || 0);
-  const sick = (employee?.sickLeaveBalance ?? 6) - (pendingByCard['Sick Leave'] || 0);
-  const emergency = (employee?.emergencyLeaveBalance ?? 3) - (pendingByCard['Emergency Leave'] || 0);
-  const maternity = (employee?.maternityLeaveBalance ?? 30) - (pendingByCard['Maternity Leave'] || 0);
-  const unpaid = (employee?.unpaidLeaveBalance ?? 15) - (pendingByCard['Unpaid Leave'] || 0);
+  const annual = (employee?.annualLeaveBalance ?? 0) - (pendingByCard['Annual Leave'] || 0);
+  const sick = (employee?.sickLeaveBalance ?? 0) - (pendingByCard['Sick Leave'] || 0);
+  const emergency = (employee?.emergencyLeaveBalance ?? 0) - (pendingByCard['Emergency Leave'] || 0);
+  const maternity = (employee?.maternityLeaveBalance ?? 0) - (pendingByCard['Maternity Leave'] || 0);
+  const unpaid = (employee?.unpaidLeaveBalance ?? 0) - (pendingByCard['Unpaid Leave'] || 0);
 
   const activeRole = userRole || employee?.role;
   // Substitute options (doctors only, exclude self)
@@ -318,23 +323,48 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
       )}
 
       {/* ── Leave Balance Row ── */}
-      <div className="mmh-leave-bal-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 24 }}>
+      <div className="mmh-leave-bal-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 24 }}>
         {[
-          { label: 'Annual Leave', val: annual, max: 10, icon: '📅', color: '#10b981' },
-          { label: 'Sick Leave', val: sick, max: 6, icon: '🤒', color: '#f59e0b' },
-          { label: 'Emergency Leave', val: emergency, max: 3, icon: '🚨', color: '#ef4444' },
-          { label: 'Maternity Leave', val: maternity, max: 30, icon: '👶', color: '#8b5cf6' },
-          { label: 'Unpaid Leave', val: unpaid, max: 15, icon: '📝', color: '#64748b' },
+          { label: 'Annual Leave', val: annual, total: employee?.annualLeaveTotal ?? 0, icon: '📅', color: '#10b981' },
+          { label: 'Sick Leave', val: sick, total: employee?.sickLeaveTotal ?? 0, icon: '🤒', color: '#f59e0b' },
+          { label: 'Emergency Leave', val: emergency, total: employee?.emergencyLeaveTotal ?? 0, icon: '🚨', color: '#ef4444' },
+          { label: 'Maternity Leave', val: maternity, total: employee?.maternityLeaveTotal ?? 0, icon: '👶', color: '#8b5cf6' },
+          { label: 'Unpaid Leave', val: unpaid, total: employee?.unpaidLeaveTotal ?? 0, icon: '📝', color: '#64748b' },
         ].map((c) => (
-          <div key={c.label} className="mmh-leave-bal-card" style={{ margin: 0, borderTop: `4px solid ${c.color}` }}>
-            <div className="mmh-lbc-icon" style={{ fontSize: 20, marginBottom: 4 }}>{c.icon}</div>
-            <div className="mmh-lbc-number" style={{ color: '#f8fafc' }}>{c.val} <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 400 }}>Days</span></div>
-            <div className="mmh-lbc-label" style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', marginTop: 4 }}>{c.label}</div>
-            <div className="mmh-lbc-bar-track" style={{ marginTop: 12 }}>
-              <div className={`mmh-lbc-bar-fill ${barColor(c.val, c.max)}`} style={{ width: `${Math.min(100, (c.val / c.max) * 100)}%` }} />
+          <div key={c.label} className="mmh-leave-bal-card" style={{ margin: 0, padding: '16px 20px', display: 'flex', flexDirection: 'column', borderTop: `4px solid ${c.color}` }}>
+            {/* Title Top */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+              <span style={{ fontSize: 18 }}>{c.icon}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9', letterSpacing: '0.02em' }}>{c.label.toUpperCase()}</span>
             </div>
-            <div className="mmh-lbc-remaining" style={{ fontSize: 10, marginTop: 8, color: '#64748b' }}>
-              Available Balance
+
+            {/* Values Row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+              <div>
+                <div style={{ fontSize: 10, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: 2 }}>Total</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#f8fafc' }}>
+                  {c.total} <span style={{ fontSize: 11, fontWeight: 400, color: '#475569' }}>Days</span>
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 10, color: '#10b981', fontWeight: 600, textTransform: 'uppercase', marginBottom: 2 }}>Remaining</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#10b981' }}>
+                  {c.val} <span style={{ fontSize: 11, fontWeight: 400, color: 'rgba(16,185,129,0.5)' }}>Days</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mmh-lbc-bar-track" style={{ marginTop: 12, height: 4, background: 'rgba(255,255,255,0.05)' }}>
+              <div 
+                className={`mmh-lbc-bar-fill ${barColor(c.val, c.total)}`} 
+                style={{ 
+                  height: '100%',
+                  width: `${Math.max(0, Math.min(100, (c.val / (c.total || 1)) * 100))}%`,
+                  transition: 'width 0.5s ease-out'
+                }} 
+              />
             </div>
           </div>
         ))}

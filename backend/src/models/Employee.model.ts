@@ -14,10 +14,15 @@ export interface IEmployee extends Document {
   medicalAllowance: number;
   transportAllowance: number;
   annualLeaveBalance: number;
+  annualLeaveTotal: number;
   sickLeaveBalance: number;
+  sickLeaveTotal: number;
   emergencyLeaveBalance: number;
+  emergencyLeaveTotal: number;
   maternityLeaveBalance: number;
+  maternityLeaveTotal: number;
   unpaidLeaveBalance: number;
+  unpaidLeaveTotal: number;
   isActive: boolean;
 }
 
@@ -39,10 +44,15 @@ const EmployeeSchema = new Schema<IEmployee>(
     medicalAllowance: { type: Number, default: 0 },
     transportAllowance: { type: Number, default: 0 },
     annualLeaveBalance: { type: Number, default: 10 },
+    annualLeaveTotal: { type: Number, default: 10 },
     sickLeaveBalance: { type: Number, default: 6 },
+    sickLeaveTotal: { type: Number, default: 6 },
     emergencyLeaveBalance: { type: Number, default: 3 },
+    emergencyLeaveTotal: { type: Number, default: 3 },
     maternityLeaveBalance: { type: Number, default: 30 },
+    maternityLeaveTotal: { type: Number, default: 30 },
     unpaidLeaveBalance: { type: Number, default: 15 },
+    unpaidLeaveTotal: { type: Number, default: 15 },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
