@@ -24,12 +24,12 @@ const Pagination: React.FC<PaginationProps> = ({
   return (
     <div className="mmh-pagination">
       <div className="mmh-pagination-info">
-        Showing <span>{start}</span> to <span>{end}</span> of <span>{totalResults}</span> records
+        Showing <strong>{start}</strong>–<strong>{end}</strong> of <strong>{totalResults}</strong> records
       </div>
       
       <div className="mmh-pagination-controls">
         <div className="mmh-pagination-rows">
-          <label>Rows per page:</label>
+          <span className="mmh-pagination-label">Rows per page</span>
           <select 
             value={rowsPerPage} 
             onChange={(e) => onRowsPerPageChange(Number(e.target.value))}
@@ -41,21 +41,20 @@ const Pagination: React.FC<PaginationProps> = ({
           </select>
         </div>
 
-        <div className="mmh-pagination-buttons">
+        <div className="mmh-pagination-main">
           <button 
             className="mmh-pagination-btn" 
             disabled={currentPage === 1}
             onClick={() => onPageChange(currentPage - 1)}
             aria-label="Previous Page"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="m15 18-6-6 6-6"/>
             </svg>
-            <span>Previous</span>
           </button>
           
-          <div className="mmh-pagination-page-indicator">
-            Page <span>{currentPage}</span> of <span>{totalPages}</span>
+          <div className="mmh-pagination-pill">
+            Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong>
           </div>
 
           <button 
@@ -64,8 +63,7 @@ const Pagination: React.FC<PaginationProps> = ({
             onClick={() => onPageChange(currentPage + 1)}
             aria-label="Next Page"
           >
-            <span>Next</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="m9 18 6-6-6-6"/>
             </svg>
           </button>

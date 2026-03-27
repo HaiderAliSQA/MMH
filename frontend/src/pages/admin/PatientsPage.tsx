@@ -349,7 +349,7 @@ const PatientsPage: React.FC = () => {
 
       {/* Table */}
       <div className="mmh-card">
-        <div className="mmh-card-body">
+        <div className="mmh-card-body" style={{ padding: 0 }}>
           <div className="mmh-table-scroll">
             <table className="mmh-table">
               <thead>

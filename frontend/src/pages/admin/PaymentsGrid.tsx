@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api';
 import '../../styles/mmh.css';
+import Pagination from '../../components/Pagination';
 
 interface Payment {
   _id: string;
@@ -236,15 +237,13 @@ const PaymentsGrid: React.FC<{
           </div>
 
           {/* Pagination Footer */}
-          {totalPages > 1 && (
-            <div style={{ padding: '12px 24px', borderTop: '1px solid var(--mmh-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--mmh-bg2)' }}>
-                <div style={{ fontSize: 12, color: 'var(--mmh-text3)' }}>Showing {payments.length} of {totalCount} records — Page {page + 1} of {totalPages}</div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="mmh-btn mmh-btn-ghost mmh-btn-sm" disabled={page === 0} onClick={() => fetchPayments(page - 1)}>◀ Previous</button>
-                    <button className="mmh-btn mmh-btn-ghost mmh-btn-sm" disabled={page >= totalPages - 1} onClick={() => fetchPayments(page + 1)}>Next Page ▶</button>
-                </div>
-            </div>
-          )}
+          <Pagination 
+            totalResults={totalCount}
+            currentPage={page + 1}
+            rowsPerPage={limit}
+            onPageChange={(p) => fetchPayments(p - 1)}
+            onRowsPerPageChange={() => {}} // Limit is fixed in this grid
+          />
         </div>
       </div>
     </div>

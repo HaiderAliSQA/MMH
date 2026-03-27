@@ -492,13 +492,15 @@ const LeaveTab: React.FC<{ employees: any[] }> = ({ employees }) => {
           </div>
 
           <div className="mmh-card">
-            <Pagination
-              totalResults={totalResults}
-              currentPage={currentPage}
-              rowsPerPage={rowsPerPage}
-              onPageChange={setCurrentPage}
-              onRowsPerPageChange={setRowsPerPage}
-            />
+            <div className="mmh-card-body" style={{ padding: 0 }}>
+              <Pagination
+                totalResults={totalResults}
+                currentPage={currentPage}
+                rowsPerPage={rowsPerPage}
+                onPageChange={setCurrentPage}
+                onRowsPerPageChange={setRowsPerPage}
+              />
+            </div>
           </div>
         </>
       )}

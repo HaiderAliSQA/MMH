@@ -309,7 +309,19 @@ textarea {
   --mmh-sidebar-active-text: #fbbf24;
 }
 
+/* [data-accent="green"] {
+  --mmh-accent: #10b981;
+  --mmh-accent2: #059669;
+  --mmh-accent-hover: #059669;
+  --mmh-accent-soft: rgba(16, 185, 129, 0.12);
+  --mmh-accent-border: rgba(16, 185, 129, 0.30);
+  --mmh-accent-text: #34d399;
 
+  --mmh-sidebar-bg: #0b1425;
+  --mmh-sidebar-active-bg: rgba(16, 185, 129, 0.12);
+  --mmh-sidebar-active-border: #10b981;
+  --mmh-sidebar-active-text: #34d399;
+} */
 
 /* ════════════════════════════════
    LIGHT SCHEME SIDEBAR OVERRIDE
@@ -1131,6 +1143,7 @@ textarea {
   font-weight: 800;
   color: var(--mmh-text2);
 }
+
 .mmh-table th {
   text-align: left;
   font-size: 10px;
@@ -2379,7 +2392,33 @@ textarea {
 
 input[type="date"].mmh-input,
 input[type="time"].mmh-input {
+  position: relative;
+  cursor: pointer;
+}
+
+/* Cover the entire input with the picker trigger */
+input[type="date"].mmh-input::-webkit-calendar-picker-indicator,
+input[type="time"].mmh-input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: auto;
+  color: transparent;
+  background: transparent;
+  cursor: pointer;
+}
+
+[data-scheme="dark"] input[type="date"].mmh-input,
+[data-scheme="dark"] input[type="time"].mmh-input {
   color-scheme: dark;
+}
+
+[data-scheme="light"] input[type="date"].mmh-input,
+[data-scheme="light"] input[type="time"].mmh-input {
+  color-scheme: light;
 }
 
 /* SELECT — Fix */
@@ -5909,78 +5948,129 @@ input[type="time"].mmh-input {
 .mmh-pagination-info {
   font-size: 13px;
   color: var(--mmh-text3);
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
-.mmh-pagination-info span {
-  color: var(--mmh-text);
-  font-weight: 800;
+.mmh-pagination-info strong {
+  color: var(--mmh-accent);
   font-family: 'JetBrains Mono', monospace;
-  background: var(--mmh-accent-soft);
-  padding: 2px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--mmh-accent-border);
+  font-weight: 800;
+}
+
+.mmh-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.mmh-pagination-rows {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mmh-pagination-label {
   font-size: 12px;
+  color: var(--mmh-text3);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.mmh-pagination-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0,0,0,0.1);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--mmh-border);
 }
 
 .mmh-pagination-select {
-  height: 36px;
-  padding: 0 32px 0 12px;
-  background: var(--mmh-input-bg);
-  border: 1.5px solid var(--mmh-border);
-  border-radius: 10px;
+  height: 32px;
+  padding: 0 28px 0 10px;
+  background: var(--mmh-bg3);
+  border: 1px solid var(--mmh-border);
+  border-radius: 8px;
   color: var(--mmh-text);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 800;
   cursor: pointer;
   outline: none;
   transition: all 0.2s;
   appearance: none;
+  font-family: 'JetBrains Mono', monospace;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 12px center;
+  background-position: right 10px center;
+}
+
+.mmh-pagination-select:hover {
+  border-color: var(--mmh-accent);
 }
 
 .mmh-pagination-btn {
-  height: 36px;
-  padding: 0 16px;
+  height: 32px;
+  width: 32px;
   background: var(--mmh-card2);
-  border: 1.5px solid var(--mmh-border);
-  border-radius: 10px;
+  border: 1px solid var(--mmh-border);
+  border-radius: 8px;
   color: var(--mmh-text2);
-  font-size: 13px;
-  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
 }
 
 .mmh-pagination-btn:hover:not(:disabled) {
-  background: var(--mmh-accent-soft);
+  background: var(--mmh-accent);
   border-color: var(--mmh-accent);
-  color: var(--mmh-text);
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
-.mmh-pagination-page-indicator {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--mmh-text3);
-  padding: 0 12px;
+.mmh-pagination-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.mmh-pagination-pill {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mmh-text2);
+  padding: 0 8px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  white-space: nowrap;
 }
 
-.mmh-pagination-page-indicator span {
+.mmh-pagination-pill strong {
   color: var(--mmh-text);
   font-weight: 800;
   font-family: 'JetBrains Mono', monospace;
+  background: var(--mmh-accent-soft);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Light mode specifics */
+[data-scheme="light"] .mmh-pagination {
+  background: #ffffff;
+}
+
+[data-scheme="light"] .mmh-pagination-main {
+  background: #f1f5f9;
+}
+
+[data-scheme="light"] .mmh-pagination-pill strong {
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
 /* ════════════════════════════════
@@ -6114,4 +6204,4 @@ input[type="time"].mmh-input {
 
 [data-scheme="light"] .mmh-stat-label {
   color: #64748b;
-}
+}
