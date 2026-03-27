@@ -106,25 +106,23 @@ const ManageWards: React.FC = () => {
                       🏥
                     </div>
                     <div>
-                      <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>{ward.name}</h2>
-                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', fontWeight: 500, marginTop: 2 }}>{ward.department} Department</div>
+                      <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: 'var(--mmh-text-inverted)', letterSpacing: '-0.02em' }}>{ward.name}</h2>
+                      <div style={{ fontSize: 12, color: 'var(--mmh-text-inverted)', opacity: 0.8, fontWeight: 500, marginTop: 2 }}>{ward.department} Department</div>
                     </div>
                   </div>
                   
-                  <div style={{ display: 'flex', gap: 16 }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--mmh-success)', fontFamily: 'JetBrains Mono, monospace' }}>{available}</div>
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Available</div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <div style={{ textAlign: 'center', background: 'rgba(0,0,0,0.15)', padding: '6px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ fontSize: 22, fontWeight: 900, color: '#10b981', fontFamily: 'JetBrains Mono, monospace', lineHeight: 1.1 }}>{available}</div>
+                      <div style={{ fontSize: 9, color: '#ffffff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>Available</div>
                     </div>
-                    <div style={{ width: 1, background: 'rgba(255,255,255,0.1)' }} />
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--mmh-danger)', fontFamily: 'JetBrains Mono, monospace' }}>{occupied}</div>
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Occupied</div>
+                    <div style={{ textAlign: 'center', background: 'rgba(0,0,0,0.15)', padding: '6px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ fontSize: 22, fontWeight: 900, color: '#ef4444', fontFamily: 'JetBrains Mono, monospace', lineHeight: 1.1 }}>{occupied}</div>
+                      <div style={{ fontSize: 9, color: '#ffffff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>Occupied</div>
                     </div>
-                    <div style={{ width: 1, background: 'rgba(255,255,255,0.1)' }} />
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 20, fontWeight: 900, color: 'white', fontFamily: 'JetBrains Mono, monospace' }}>{wardBeds.length}</div>
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Beds</div>
+                    <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.1)', padding: '6px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)' }}>
+                      <div style={{ fontSize: 22, fontWeight: 900, color: '#ffffff', fontFamily: 'JetBrains Mono, monospace', lineHeight: 1.1 }}>{wardBeds.length}</div>
+                      <div style={{ fontSize: 9, color: '#ffffff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>Total Beds</div>
                     </div>
                   </div>
                 </div>
@@ -164,7 +162,7 @@ const ManageWards: React.FC = () => {
                             fontFamily: 'JetBrains Mono, monospace', 
                             fontSize: 13, 
                             fontWeight: 800, 
-                            color: 'white',
+                            color: 'var(--mmh-text)',
                             letterSpacing: '-0.05em',
                             marginBottom: bed.patient ? 0 : 4
                           }}>
@@ -173,7 +171,7 @@ const ManageWards: React.FC = () => {
                           {bed.patient ? (
                             <div style={{ 
                               fontSize: 10, 
-                              color: 'white', 
+                              color: 'var(--mmh-text2)', 
                               fontWeight: 700, 
                               marginBottom: 4, 
                               textAlign: 'center', 
@@ -188,12 +186,12 @@ const ManageWards: React.FC = () => {
                           ) : null}
                           <div style={{ 
                             fontSize: 9, 
-                            fontWeight: 700, 
+                            fontWeight: 900, 
                             textTransform: 'uppercase',
                             color: getStatusBorder(bed.status),
-                            background: 'rgba(0,0,0,0.2)',
-                            padding: '2px 6px',
-                            borderRadius: 4
+                            background: 'rgba(0,0,0,0.25)',
+                            padding: '3px 8px',
+                            borderRadius: 6
                           }}>
                             {bed.status}
                           </div>

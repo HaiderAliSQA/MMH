@@ -100,6 +100,7 @@ textarea {
   --mmh-text2: #94a3b8;
   --mmh-text3: #64748b;
   --mmh-text4: #475569;
+  --mmh-text-inverted: #0f172a;
 
   /* Table row alternating */
   --mmh-row-alt: rgba(255, 255, 255, 0.02);
@@ -125,6 +126,7 @@ textarea {
   --mmh-text2: #1e293b !important;
   --mmh-text3: #475569 !important;
   --mmh-text4: #64748b !important;
+  --mmh-text-inverted: #ffffff !important;
 
   /* Table row alternating */
   --mmh-row-alt: rgba(0, 0, 0, 0.02);
@@ -222,10 +224,11 @@ textarea {
   color: #475569 !important;
 }
 
+/* brute-force color overrides removed for safety — using semantic variables instead
 [data-scheme="light"] [style*="color: white"],
 [data-scheme="light"] [style*="color:white"] {
   color: #0f172a !important;
-}
+} */
 
 /* ════════════════════════════════
    ACCENT VARIABLES (6 colors)
@@ -306,19 +309,7 @@ textarea {
   --mmh-sidebar-active-text: #fbbf24;
 }
 
-[data-accent="green"] {
-  --mmh-accent: #10b981;
-  --mmh-accent2: #059669;
-  --mmh-accent-hover: #059669;
-  --mmh-accent-soft: rgba(16, 185, 129, 0.12);
-  --mmh-accent-border: rgba(16, 185, 129, 0.30);
-  --mmh-accent-text: #34d399;
 
-  --mmh-sidebar-bg: #0b1425;
-  --mmh-sidebar-active-bg: rgba(16, 185, 129, 0.12);
-  --mmh-sidebar-active-border: #10b981;
-  --mmh-sidebar-active-text: #34d399;
-}
 
 /* ════════════════════════════════
    LIGHT SCHEME SIDEBAR OVERRIDE
@@ -2605,9 +2596,7 @@ input[type="time"].mmh-input {
 }
 
 .mmh-stat-value {
-  font-size: 30px;
-  font-weight: 900;
-  color: white;
+  color: var(--mmh-text);
   font-family: 'JetBrains Mono', monospace;
   line-height: 1;
   display: block;
@@ -2889,7 +2878,7 @@ input[type="time"].mmh-input {
 .mmh-ward-name {
   font-size: 13px;
   font-weight: 700;
-  color: white;
+  color: var(--mmh-text);
   min-width: 160px;
 }
 
@@ -3164,7 +3153,7 @@ input[type="time"].mmh-input {
 .mmh-cart-item-name {
   font-size: 13px;
   font-weight: 700;
-  color: white;
+  color: var(--mmh-text);
 }
 
 .mmh-cart-item-detail {
@@ -3442,7 +3431,7 @@ input[type="time"].mmh-input {
 .mmh-search-result-name {
   font-size: 13px;
   font-weight: 700;
-  color: white;
+  color: var(--mmh-text);
   flex: 1;
 }
 
@@ -3481,7 +3470,7 @@ input[type="time"].mmh-input {
 .mmh-selected-patient-name {
   font-size: 15px;
   font-weight: 800;
-  color: white;
+  color: var(--mmh-text);
 }
 
 .mmh-selected-patient-mr {
@@ -3727,7 +3716,7 @@ input[type="time"].mmh-input {
 .mmh-dropdown-name {
   font-size: 13px !important;
   font-weight: 700 !important;
-  color: white !important;
+  color: var(--mmh-text) !important;
   flex: 1 !important;
 }
 
@@ -3791,12 +3780,12 @@ input[type="time"].mmh-input {
 .mmh-test-card-name {
   font-size: 13px;
   font-weight: 600;
-  color: #cbd5e1;
+  color: var(--mmh-text2);
   flex: 1;
 }
 
 .mmh-test-card.selected .mmh-test-card-name {
-  color: white;
+  color: var(--mmh-text-inverted);
 }
 
 .mmh-test-card-price {
@@ -4220,7 +4209,7 @@ input[type="time"].mmh-input {
 .mmh-week-label {
   font-size: 14px;
   font-weight: 700;
-  color: white;
+  color: var(--mmh-text);
   min-width: 200px;
   text-align: center;
 }
@@ -4412,7 +4401,7 @@ input[type="time"].mmh-input {
 .mmh-ts-option-label {
   font-size: 13px;
   font-weight: 600;
-  color: white;
+  color: var(--mmh-text);
 }
 
 .mmh-ts-option-sub {
@@ -4441,7 +4430,7 @@ input[type="time"].mmh-input {
 .mmh-ts-selected-label {
   font-size: 13px;
   font-weight: 700;
-  color: white;
+  color: var(--mmh-text);
 }
 
 .mmh-ts-clear {
@@ -6059,10 +6048,9 @@ input[type="time"].mmh-input {
 }
 
 [data-scheme="light"] .mmh-login-hospital-name {
-  background: linear-gradient(135deg, #0284c7, #059669);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #0284c7 !important;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
 }
 
 [data-scheme="light"] .mmh-login-hospital-sab {
@@ -6083,3 +6071,47 @@ input[type="time"].mmh-input {
   border-color: #e2e8f0;
   color: #64748b;
 }
+
+[data-scheme="light"] .mmh-search-dropdown,
+[data-scheme="light"] .mmh-ts-dropdown {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+[data-scheme="light"] .mmh-search-result-name,
+[data-scheme="light"] .mmh-dropdown-name,
+[data-scheme="light"] .mmh-ts-option-label,
+[data-scheme="light"] .mmh-ts-selected-label,
+[data-scheme="light"] .mmh-selected-patient-name,
+[data-scheme="light"] .mmh-cart-item-name,
+[data-scheme="light"] .mmh-ward-name,
+[data-scheme="light"] .mmh-week-label {
+  color: #1e293b !important;
+}
+
+[data-scheme="light"] .mmh-test-card {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+[data-scheme="light"] .mmh-test-card-name {
+  color: #475569;
+}
+
+[data-scheme="light"] .mmh-test-card.selected {
+  background: rgba(14, 165, 233, 0.08);
+  border-color: var(--mmh-accent);
+}
+
+[data-scheme="light"] .mmh-test-card.selected .mmh-test-card-name {
+  color: #0369a1;
+}
+
+[data-scheme="light"] .mmh-stat-value {
+  color: #1e293b;
+}
+
+[data-scheme="light"] .mmh-stat-label {
+  color: #64748b;
+}

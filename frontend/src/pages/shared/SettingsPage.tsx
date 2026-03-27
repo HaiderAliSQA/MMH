@@ -100,7 +100,6 @@ const SettingsPage: React.FC = () => {
     { id: 'rose',    label: 'Rose',    color: '#f43f5e' },
     { id: 'purple',  label: 'Purple',  color: '#8b5cf6' },
     { id: 'amber',   label: 'Amber',   color: '#f59e0b' },
-    { id: 'green',   label: 'Green',   color: '#10b981' },
   ];
 
   return (
