@@ -1270,7 +1270,7 @@ const PaymentTab: React.FC = () => {
   const [pTotalPages, setPTotalPages] = useState(0);
   const [pTotalCount, setPTotalCount] = useState(0);
   const [pTotalRevenue, setPTotalRevenue] = useState(0);
-  const pLimit = 10;
+  const [pLimit, setPLimit] = useState(10);
 
   const fetchRecent = async (page = pPage) => {
     setFetchLoading(true);
@@ -1290,7 +1290,7 @@ const PaymentTab: React.FC = () => {
     finally { setFetchLoading(false); }
   };
 
-  useEffect(() => { fetchRecent(0); }, [pFromDate, pToDate, pMethod]);
+  useEffect(() => { fetchRecent(0); }, [pFromDate, pToDate, pMethod, pLimit]);
 
   const s = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
@@ -1330,7 +1330,10 @@ const PaymentTab: React.FC = () => {
           <h1 className="mmh-page-title">Collect Payment</h1>
           <p className="mmh-page-subtitle">Record and view patient transactions</p>
         </div>
-        <button className="mmh-btn mmh-btn-ghost mmh-btn-sm" onClick={() => fetchRecent(pPage)}>🔄 Refresh List</button>
+        <button className="mmh-btn mmh-btn-ghost mmh-btn-sm" onClick={() => {
+          const today = new Date().toISOString().split('T')[0];
+          setPFromDate(today); setPToDate(today); setPMethod('');
+        }}>🔄 Refresh List</button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.8fr', gap: 20, alignItems: 'start' }}>
@@ -1407,7 +1410,10 @@ const PaymentTab: React.FC = () => {
                 <div style={{ fontSize: 9, color: 'var(--mmh-success)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Filtered Total</div>
                 <div style={{ fontSize: 17, fontWeight: 900, color: 'var(--mmh-success)', fontFamily: 'JetBrains Mono, monospace' }}>Rs. {pTotalRevenue.toLocaleString()}</div>
               </div>
-              <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" onClick={() => fetchRecent(pPage)}>🔄 Refresh</button>
+              <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" onClick={() => {
+                const today = new Date().toISOString().split('T')[0];
+                setPFromDate(today); setPToDate(today); setPMethod('');
+              }}>🔄 Refresh</button>
             </div>
           </div>
           
@@ -1471,7 +1477,7 @@ const PaymentTab: React.FC = () => {
             currentPage={pPage + 1}
             rowsPerPage={pLimit}
             onPageChange={(p) => fetchRecent(p - 1)}
-            onRowsPerPageChange={() => {}} 
+            onRowsPerPageChange={(v) => { setPLimit(v); setPPage(0); }} 
           />
         </div>
       </div>

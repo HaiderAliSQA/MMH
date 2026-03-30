@@ -6014,6 +6014,11 @@ input[type="time"].mmh-input::-webkit-calendar-picker-indicator {
   background-position: right 10px center;
 }
 
+.mmh-pagination-select option {
+  background: var(--mmh-bg);
+  color: var(--mmh-text);
+}
+
 .mmh-pagination-select:hover {
   border-color: var(--mmh-accent);
 }

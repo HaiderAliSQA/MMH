@@ -47,7 +47,7 @@ const PaymentsGrid: React.FC<{
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
-  const limit = 10;
+  const [limit, setLimit] = useState(10);
 
   const fetchPayments = async (p = page) => {
     setLoading(true);
@@ -97,7 +97,7 @@ const PaymentsGrid: React.FC<{
 
   useEffect(() => {
     fetchPayments(0);
-  }, [fromDate, toDate, method, source, collector]); // Auto-fetch on filter change
+  }, [fromDate, toDate, method, source, collector, limit]); // Auto-fetch on filter change
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,6 +172,10 @@ const PaymentsGrid: React.FC<{
             </div> 
             */}
             <button type="submit" className="mmh-btn mmh-btn-primary" style={{ height: 42, padding: '0 24px' }}>🔍 Search</button>
+            <button type="button" className="mmh-btn mmh-btn-ghost" style={{ height: 42, padding: '0 24px' }} onClick={() => {
+              const today = new Date().toISOString().split('T')[0];
+              setFromDate(today); setToDate(today); setMethod(''); setSource(''); setCollector('');
+            }}>🔄 Refresh</button>
           </form>
         </div>
       </div>
@@ -242,7 +246,7 @@ const PaymentsGrid: React.FC<{
             currentPage={page + 1}
             rowsPerPage={limit}
             onPageChange={(p) => fetchPayments(p - 1)}
-            onRowsPerPageChange={() => {}} // Limit is fixed in this grid
+            onRowsPerPageChange={(l) => { setLimit(l); setPage(0); }} 
           />
         </div>
       </div>

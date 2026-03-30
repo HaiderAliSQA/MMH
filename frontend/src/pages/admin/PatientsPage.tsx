@@ -236,7 +236,7 @@ const PatientsPage: React.FC = () => {
       {/* Filter Row */}
       <div className="mmh-card" style={{ marginBottom: 24, zIndex: 10, position: 'relative' }}>
         <div className="mmh-card-body">
-          <div className="mmh-form-grid" style={{ gridTemplateColumns: '1fr 200px 180px 150px 150px', gap: 12, alignItems: 'end' }}>
+          <div className="mmh-form-grid" style={{ gridTemplateColumns: '1fr 200px 180px 150px 150px auto', gap: 12, alignItems: 'end' }}>
             
             {/* Search with Dropdown */}
             <div className="mmh-field" style={{ position: 'relative' }} ref={dropdownRef}>
@@ -315,6 +315,18 @@ const PatientsPage: React.FC = () => {
               <label className="mmh-label">End Date</label>
               <input type="date" className="mmh-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
             </div>
+
+            <button 
+              type="button" 
+              className="mmh-btn mmh-btn-ghost mmh-btn-sm" 
+              style={{ height: 38 }}
+              onClick={() => {
+                const today = new Date().toISOString().split('T')[0];
+                setStartDate(today); setEndDate(today); setStatusFilter('All'); setDoctorFilter('All');
+              }}
+            >
+              🔄 Refresh
+            </button>
           </div>
         </div>
       </div>
