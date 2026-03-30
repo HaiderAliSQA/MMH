@@ -352,7 +352,7 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
             </div>
           )}
 
-          <div className="mmh-form-grid" style={{ gridTemplateColumns: 'minmax(0, 1fr) 400px', gap: '24px', alignItems: 'start' }}>
+          <div className="mmh-form-grid mmh-stack-mobile" style={{ gridTemplateColumns: 'minmax(0, 1fr) 400px', gap: '24px', alignItems: 'start' }}>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {/* Patient Selection Card — live search */}

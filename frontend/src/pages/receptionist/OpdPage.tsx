@@ -1336,9 +1336,9 @@ const PaymentTab: React.FC = () => {
         }}>🔄 Refresh List</button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.8fr', gap: 20, alignItems: 'start' }}>
+      <div className="mmh-payment-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 1.8fr', gap: 20, alignItems: 'start' }}>
         {/* Left: Entry Form */}
-        <div className="mmh-card" style={{ position: 'sticky', top: 0 }}>
+        <div className="mmh-card mmh-payment-form-card" style={{ position: 'sticky', top: 0 }}>
           <div className="mmh-card-accent-top" style={{ background: 'var(--mmh-accent)' }} />
           <div className="mmh-card-header"><div className="mmh-card-title">💳 New Payment</div></div>
           <div className="mmh-card-body">
@@ -1398,7 +1398,7 @@ const PaymentTab: React.FC = () => {
         </div>
 
         {/* Right: History Grid */}
-        <div className="mmh-table-card">
+        <div className="mmh-table-card mmh-payment-grid-card">
           <div className="mmh-table-card-top" style={{ background: 'var(--mmh-bg3)' }} />
           <div className="mmh-card-header" style={{ padding: '15px 20px', borderBottom: '1px solid var(--mmh-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>

@@ -128,15 +128,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: mobileOpen, onToggle: onMobil
   const role = user?.role || 'admin';
   const navConfig = getNavConfig();
 
+  const [isMobile, setIsMobile] = React.useState(() => window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <>
       {/* Mobile Overlay */}
       <div 
-        className={`mmh-sidebar-overlay ${mobileOpen ? 'open' : ''}`} 
+        className={`mmh-sidebar-overlay ${mobileOpen && isMobile ? 'visible' : ''}`} 
         onClick={onMobileToggle}
       />
 
-      <div className={`mmh-sidebar ${mobileOpen ? 'open' : ''} ${!sidebarOpen ? 'collapsed' : ''}`}>
+      <div className={`mmh-sidebar ${mobileOpen ? 'open' : ''} ${!sidebarOpen && !isMobile ? 'collapsed' : ''}`}>
         {/* Logo */}
         <div className="mmh-sidebar-logo">
           <div className="mmh-sidebar-icon">🏥</div>

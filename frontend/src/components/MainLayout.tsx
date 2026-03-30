@@ -40,8 +40,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ user, children, title, subtitle
             <button 
               className="mmh-topbar-icon-btn" 
               onClick={() => {
-                if (window.innerWidth <= 1024) {
-                  setSidebarOpen(true);
+                if (window.innerWidth < 768) {
+                  setSidebarOpen(prev => !prev);
                 } else {
                   window.dispatchEvent(new Event('toggle-desktop-sidebar'));
                 }
