@@ -1130,6 +1130,8 @@ textarea {
 
 .mmh-table-scroll {
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 280px);
 }
 
 .mmh-table {
@@ -1146,15 +1148,18 @@ textarea {
 
 .mmh-table th {
   text-align: left;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--mmh-text3);
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--mmh-text);
   text-transform: uppercase;
   letter-spacing: 0.09em;
   padding: 10px 20px;
   border-bottom: 1px solid var(--mmh-border);
   white-space: nowrap;
   background: var(--mmh-card2);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .mmh-table td {
@@ -6204,4 +6209,58 @@ input[type="time"].mmh-input::-webkit-calendar-picker-indicator {
 
 [data-scheme="light"] .mmh-stat-label {
   color: #64748b;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━
+   TOPBAR BUTTONS (Sidebar + Fullscreen)
+━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.mmh-topbar-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--mmh-card2);
+  border: 1px solid var(--mmh-border);
+  color: var(--mmh-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.mmh-topbar-icon-btn:hover {
+  background: var(--mmh-accent-soft);
+  border-color: var(--mmh-accent-border);
+  color: var(--mmh-accent-text);
+}
+/* SVG stroke bolder */
+.mmh-topbar-icon-btn svg {
+  stroke-width: 2.5;
+}
+
+.mmh-tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.mmh-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: #0f172a;
+  color: #e2eaf6;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 5px 10px;
+  border-radius: 7px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: all 0.15s;
+  z-index: 9999;
+  border: 1px solid #1e3050;
+}
+.mmh-tooltip-wrap:hover .mmh-tooltip {
+  opacity: 1;
+  transform: translateY(0);
 }

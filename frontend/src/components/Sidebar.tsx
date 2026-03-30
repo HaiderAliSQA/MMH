@@ -24,10 +24,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: mobileOpen, onToggle: onMobil
     return saved !== 'collapsed';
   });
 
+  React.useEffect(() => {
+    const handleToggle = () => {
+      setSidebarOpen(prev => {
+        const newState = !prev;
+        localStorage.setItem('mmh-sidebar', newState ? 'open' : 'collapsed');
+        return newState;
+      });
+    };
+    window.addEventListener('toggle-desktop-sidebar', handleToggle);
+    return () => window.removeEventListener('toggle-desktop-sidebar', handleToggle);
+  }, []);
+
   const toggleSidebar = () => {
-    const newState = !sidebarOpen;
-    setSidebarOpen(newState);
-    localStorage.setItem('mmh-sidebar', newState ? 'open' : 'collapsed');
+    window.dispatchEvent(new Event('toggle-desktop-sidebar'));
   };
 
   const handleLogout = () => {
@@ -127,33 +137,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: mobileOpen, onToggle: onMobil
       />
 
       <div className={`mmh-sidebar ${mobileOpen ? 'open' : ''} ${!sidebarOpen ? 'collapsed' : ''}`}>
-        {/* Toggle Button */}
-        <button
-          onClick={toggleSidebar}
-          style={{
-            position: 'absolute',
-            top: '20px',
-            right: sidebarOpen ? '10px' : '0',
-            left: sidebarOpen ? 'auto' : '0',
-            margin: sidebarOpen ? '0' : '0 auto',
-            width: '32px', height: '32px',
-            borderRadius: '9px',
-            background: 'var(--mmh-bg3)',
-            border: '1px solid var(--mmh-border)',
-            color: 'var(--mmh-text3)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '14px',
-            transition: 'all 0.15s',
-            zIndex: 10,
-          }}
-          title={sidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
-        >
-          {sidebarOpen ? '☰' : '›'}
-        </button>
-
         {/* Logo */}
         <div className="mmh-sidebar-logo">
           <div className="mmh-sidebar-icon">🏥</div>
