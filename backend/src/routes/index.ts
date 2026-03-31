@@ -80,7 +80,7 @@ router.get('/wards/:wardId/beds', getWardBeds);
 
 // ═══ HR MANAGEMENT ROUTES ═══════════════════════════════
 // Employees
-router.get('/hr/employees', protect, authorize('admin', 'manager'), getEmployees);
+router.get('/hr/employees', protect, authorize('admin', 'manager', 'doctor', 'pharmacist', 'receptionist', 'lab'), getEmployees);
 router.post('/hr/employees', protect, authorize('admin'), createEmployee);
 router.put('/hr/employees/:id', protect, authorize('admin'), updateEmployee);
 
@@ -90,11 +90,11 @@ router.post('/hr/shifts', protect, authorize('admin'), saveShift);
 router.get('/hr/shifts/employee/:id', protect, getEmployeeShifts);
 
 // Attendance
-router.get('/hr/attendance', protect, authorize('admin', 'manager'), getAttendance);
-router.get('/hr/attendance/range', protect, authorize('admin', 'manager'), getAttendanceRange);
+router.get('/hr/attendance', protect, authorize('admin', 'manager', 'doctor', 'pharmacist', 'receptionist', 'lab'), getAttendance);
+router.get('/hr/attendance/range', protect, authorize('admin', 'manager', 'doctor', 'pharmacist', 'receptionist', 'lab'), getAttendanceRange);
 router.post('/hr/attendance/mark', protect, authorize('admin'), markAttendance);
 router.post('/hr/attendance/bulk', protect, authorize('admin'), bulkAttendance);
-router.get('/hr/attendance/summary', protect, authorize('admin', 'manager'), getAttendanceSummary);
+router.get('/hr/attendance/summary', protect, authorize('admin', 'manager', 'doctor', 'pharmacist', 'receptionist', 'lab'), getAttendanceSummary);
 
 // Leaves
 router.get('/hr/leaves', protect, authorize('admin', 'manager'), getLeaves);
