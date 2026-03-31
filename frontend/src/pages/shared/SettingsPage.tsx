@@ -6,7 +6,7 @@ import '../../styles/mmh.css';
 const SettingsPage: React.FC = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'theme'>('profile');
-  
+
   // Profile state
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
@@ -24,9 +24,14 @@ const SettingsPage: React.FC = () => {
   const [passLoading, setPassLoading] = useState(false);
   const [passMsg, setPassMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  // Theme state
+  // Theme state (Applied / Saved)
   const [activeTheme, setActiveTheme] = useState('default');
   const [activeScheme, setActiveScheme] = useState('dark');
+
+  // Theme state (Temporary / Preview)
+  const [tempTheme, setTempTheme] = useState('default');
+  const [tempScheme, setTempScheme] = useState('dark');
+
   const [themeMsg, setThemeMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,15 +39,29 @@ const SettingsPage: React.FC = () => {
     const savedScheme = localStorage.getItem('mmh-scheme') || 'dark';
     setActiveTheme(savedAccent);
     setActiveScheme(savedScheme);
+    setTempTheme(savedAccent);
+    setTempScheme(savedScheme);
+
+    // Initial apply from storage
+    document.documentElement.setAttribute('data-accent', savedAccent);
+    document.documentElement.setAttribute('data-scheme', savedScheme);
   }, []);
 
-  const applyTheme = (accent: string, scheme: string) => {
+  const previewTheme = (accent: string, scheme: string) => {
+    setTempTheme(accent);
+    setTempScheme(scheme);
+    // Live Review: Apply attributes to DOM immediately for preview
     document.documentElement.setAttribute('data-accent', accent);
     document.documentElement.setAttribute('data-scheme', scheme);
-    localStorage.setItem('mmh-accent', accent);
-    localStorage.setItem('mmh-scheme', scheme);
-    setActiveTheme(accent);
-    setActiveScheme(scheme);
+  };
+
+  const saveTheme = () => {
+    localStorage.setItem('mmh-accent', tempTheme);
+    localStorage.setItem('mmh-scheme', tempScheme);
+    setActiveTheme(tempTheme);
+    setActiveScheme(tempScheme);
+    setThemeMsg('Theme saved and persisted successfully!');
+    setTimeout(() => setThemeMsg(null), 3000);
   };
 
   const getPasswordStrength = (pass: string) => {
@@ -96,10 +115,10 @@ const SettingsPage: React.FC = () => {
 
   const themeOptions = [
     { id: 'default', label: 'Default', color: '#0ea5e9' },
-    { id: 'teal',    label: 'Teal',    color: '#14b8a6' },
-    { id: 'rose',    label: 'Rose',    color: '#f43f5e' },
-    { id: 'purple',  label: 'Purple',  color: '#8b5cf6' },
-    { id: 'amber',   label: 'Amber',   color: '#f59e0b' },
+    { id: 'teal', label: 'Teal', color: '#14b8a6' },
+    { id: 'rose', label: 'Rose', color: '#f43f5e' },
+    { id: 'purple', label: 'Purple', color: '#8b5cf6' },
+    { id: 'amber', label: 'Amber', color: '#f59e0b' },
   ];
 
   return (
@@ -114,19 +133,19 @@ const SettingsPage: React.FC = () => {
       <div className="mmh-card">
         <div className="mmh-admin-tabs-wrap" style={{ padding: '0 20px' }}>
           <div className="mmh-admin-tabs">
-            <button 
+            <button
               className={`mmh-admin-tab ${activeTab === 'profile' ? 'active' : ''}`}
               onClick={() => setActiveTab('profile')}
             >
               👤 Profile
             </button>
-            <button 
+            <button
               className={`mmh-admin-tab ${activeTab === 'password' ? 'active' : ''}`}
               onClick={() => setActiveTab('password')}
             >
               🔐 Change Password
             </button>
-            <button 
+            <button
               className={`mmh-admin-tab ${activeTab === 'theme' ? 'active' : ''}`}
               onClick={() => setActiveTab('theme')}
             >
@@ -139,9 +158,9 @@ const SettingsPage: React.FC = () => {
           {activeTab === 'profile' && (
             <div style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: '40px' }}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ 
-                  width: '80px', height: '80px', 
-                  borderRadius: '50%', 
+                <div style={{
+                  width: '80px', height: '80px',
+                  borderRadius: '50%',
                   background: 'var(--mmh-accent)',
                   color: 'var(--mmh-text-inverted)',
                   fontSize: '32px',
@@ -163,29 +182,29 @@ const SettingsPage: React.FC = () => {
               <form onSubmit={handleProfileSave}>
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600' }}>Full Name</label>
-                  <input 
-                    className="mmh-input" 
+                  <input
+                    className="mmh-input"
                     value={profileData.name}
-                    onChange={e => setProfileData({...profileData, name: e.target.value})}
+                    onChange={e => setProfileData({ ...profileData, name: e.target.value })}
                   />
                 </div>
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600' }}>Email Address</label>
-                  <input 
-                    className="mmh-input" 
-                    value={user?.email} 
-                    disabled 
+                  <input
+                    className="mmh-input"
+                    value={user?.email}
+                    disabled
                     style={{ opacity: 0.5, cursor: 'not-allowed' }}
                   />
                   <small style={{ color: 'var(--mmh-text3)' }}>Email cannot be changed</small>
                 </div>
                 <div style={{ marginBottom: '24px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600' }}>Phone Number</label>
-                  <input 
-                    className="mmh-input" 
+                  <input
+                    className="mmh-input"
                     placeholder="0312-4422004"
                     value={profileData.phone}
-                    onChange={e => setProfileData({...profileData, phone: e.target.value})}
+                    onChange={e => setProfileData({ ...profileData, phone: e.target.value })}
                   />
                 </div>
                 {profileMsg && (
@@ -205,31 +224,31 @@ const SettingsPage: React.FC = () => {
               <form onSubmit={handlePasswordSave}>
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600' }}>Current Password</label>
-                  <input 
-                    type="password" 
-                    className="mmh-input" 
+                  <input
+                    type="password"
+                    className="mmh-input"
                     placeholder="Enter current password"
                     value={passData.currentPassword}
-                    onChange={e => setPassData({...passData, currentPassword: e.target.value})}
+                    onChange={e => setPassData({ ...passData, currentPassword: e.target.value })}
                     required
                   />
                 </div>
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600' }}>New Password</label>
-                  <input 
-                    type="password" 
-                    className="mmh-input" 
+                  <input
+                    type="password"
+                    className="mmh-input"
                     placeholder="Enter new password (min 6 chars)"
                     value={passData.newPassword}
-                    onChange={e => setPassData({...passData, newPassword: e.target.value})}
+                    onChange={e => setPassData({ ...passData, newPassword: e.target.value })}
                     required
                   />
                   {passData.newPassword && (
                     <div style={{ marginTop: '8px' }}>
                       <div className="mmh-strength-bar">
-                        <div style={{ 
-                          width: `${strength.score}%`, 
-                          height: '100%', 
+                        <div style={{
+                          width: `${strength.score}%`,
+                          height: '100%',
                           background: strength.color,
                           transition: 'all 0.3s'
                         }} />
@@ -242,12 +261,12 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <div style={{ marginBottom: '24px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600' }}>Confirm New Password</label>
-                  <input 
-                    type="password" 
-                    className="mmh-input" 
+                  <input
+                    type="password"
+                    className="mmh-input"
                     placeholder="Confirm new password"
                     value={passData.confirmPassword}
-                    onChange={e => setPassData({...passData, confirmPassword: e.target.value})}
+                    onChange={e => setPassData({ ...passData, confirmPassword: e.target.value })}
                     required
                   />
                 </div>
@@ -268,19 +287,20 @@ const SettingsPage: React.FC = () => {
               <div style={{ marginBottom: '32px' }}>
                 <h3 style={{ fontSize: '15px', color: 'var(--mmh-text)', marginBottom: '4px' }}>Color Theme</h3>
                 <p style={{ fontSize: '13px', color: 'var(--mmh-text3)', marginBottom: '20px' }}>Choose your preferred accent color</p>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
                   {themeOptions.map(opt => (
                     <button
                       key={opt.id}
-                      onClick={() => applyTheme(opt.id, activeScheme)}
+                      type="button"
+                      onClick={() => previewTheme(opt.id, tempScheme)}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '12px',
                         padding: '12px 16px',
-                        background: activeTheme === opt.id ? 'var(--mmh-accent-bg)' : 'var(--mmh-card2)',
-                        border: activeTheme === opt.id ? '2px solid var(--mmh-accent)' : '1px solid var(--mmh-border)',
+                        background: tempTheme === opt.id ? 'var(--mmh-accent-soft)' : 'var(--mmh-bg2)',
+                        border: tempTheme === opt.id ? '2px solid var(--mmh-accent)' : '1px solid var(--mmh-border)',
                         borderRadius: '12px',
                         cursor: 'pointer',
                         transition: 'all 0.15s',
@@ -293,11 +313,11 @@ const SettingsPage: React.FC = () => {
                         background: opt.color,
                         border: '2px solid var(--mmh-border)',
                         flexShrink: 0,
-                      }}/>
+                      }} />
                       <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--mmh-text)' }}>
                         {opt.label}
                       </span>
-                      {activeTheme === opt.id && (
+                      {tempTheme === opt.id && (
                         <span style={{ marginLeft: 'auto', color: 'var(--mmh-accent)', fontSize: '16px' }}>✓</span>
                       )}
                     </button>
@@ -308,46 +328,49 @@ const SettingsPage: React.FC = () => {
               <div>
                 <h3 style={{ fontSize: '15px', color: 'var(--mmh-text)', marginBottom: '4px' }}>Color Scheme</h3>
                 <p style={{ fontSize: '13px', color: 'var(--mmh-text3)', marginBottom: '20px' }}>Dark is easier on the eyes at night</p>
-                
+
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <button
-                    onClick={() => applyTheme(activeTheme, 'dark')}
+                    type="button"
+                    onClick={() => previewTheme(tempTheme, 'dark')}
                     className="mmh-btn"
                     style={{
                       flex: 1,
                       padding: '14px',
-                      background: activeScheme === 'dark' ? 'var(--mmh-accent-soft)' : 'var(--mmh-bg3)',
-                      border: activeScheme === 'dark' ? '2px solid var(--mmh-accent)' : '1px solid var(--mmh-border)',
-                      color: activeScheme === 'dark' ? 'var(--mmh-accent)' : 'var(--mmh-text2)',
+                      background: tempScheme === 'dark' ? 'var(--mmh-accent-soft)' : 'var(--mmh-bg2)',
+                      border: tempScheme === 'dark' ? '2px solid var(--mmh-accent)' : '1px solid var(--mmh-border)',
+                      color: tempScheme === 'dark' ? 'var(--mmh-accent)' : 'var(--mmh-text)',
                     }}
                   >
                     🌙 Dark
                   </button>
                   <button
-                    onClick={() => applyTheme(activeTheme, 'light')}
+                    type="button"
+                    onClick={() => previewTheme(tempTheme, 'light')}
                     className="mmh-btn"
                     style={{
                       flex: 1,
-                      padding: 'var(--mmh-spacing-lg)',
-                      background: activeScheme === 'light' ? 'var(--mmh-accent-soft)' : 'var(--mmh-bg3)',
-                      border: activeScheme === 'light' ? '2px solid var(--mmh-accent)' : '1px solid var(--mmh-border)',
-                      color: activeScheme === 'light' ? 'var(--mmh-accent)' : 'var(--mmh-text2)',
+                      padding: '14px',
+                      background: tempScheme === 'light' ? 'var(--mmh-accent-soft)' : 'var(--mmh-bg2)',
+                      border: tempScheme === 'light' ? '2px solid var(--mmh-accent)' : '1px solid var(--mmh-border)',
+                      color: tempScheme === 'light' ? 'var(--mmh-accent)' : 'var(--mmh-text)',
                     }}
                   >
                     ☀️ Light
                   </button>
                 </div>
               </div>
-              
-              <div style={{ marginTop: '30px', borderTop: '1px solid var(--mmh-border)', paddingTop: '20px' }}>
+
+              {/* <div style={{ marginTop: '30px', borderTop: '1px solid var(--mmh-border)', paddingTop: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <button 
                   className="mmh-btn mmh-btn-primary" 
-                  onClick={() => setThemeMsg('Theme saved! Changes apply immediately.')}
+                  onClick={saveTheme}
+                  disabled={tempTheme === activeTheme && tempScheme === activeScheme}
                 >
-                  Save Theme
+                  Save Theme Settings
                 </button>
-                {themeMsg && <p style={{ color: 'var(--mmh-accent)', fontSize: '13px', marginTop: '12px' }}>{themeMsg}</p>}
-              </div>
+                {themeMsg && <span style={{ color: 'var(--mmh-success)', fontSize: '13px', fontWeight: '700' }}>{themeMsg}</span>}
+              </div> */}
             </div>
           )}
         </div>

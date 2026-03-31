@@ -47,91 +47,122 @@ const FLAG_COLORS: Record<Flag, string> = {
 
 // --- Print Lab Report (dedicated popup window) ----------------------
 const printLabReport = (lab: LabReq) => {
-  const root = document.documentElement;
-  const accent = getComputedStyle(root).getPropertyValue('--mmh-accent').trim() || '#0ea5e9';
-  const text = getComputedStyle(root).getPropertyValue('--mmh-text').trim() || '#0f172a';
-  const border = getComputedStyle(root).getPropertyValue('--mmh-border').trim() || '#e2e8f0';
-  const bg2 = getComputedStyle(root).getPropertyValue('--mmh-bg2').trim() || '#f8fafc';
-  const success = getComputedStyle(root).getPropertyValue('--mmh-success').trim() || '#10b981';
-  const danger = getComputedStyle(root).getPropertyValue('--mmh-danger').trim() || '#f43f5e';
-  const warning = getComputedStyle(root).getPropertyValue('--mmh-warning').trim() || '#f59e0b';
-
-  const pw = window.open('', '_blank', 'width=700,height=900,menubar=no,toolbar=no,location=no,status=no');
+  const pw = window.open('', '_blank', 'width=800,height=900');
   if (!pw) { alert('Please allow popups for printing'); return; }
 
   const patient = lab.patient as any;
   const doctor  = lab.doctor  as any;
-
-  const flagBg    = (f?: string) => f === 'Critical' ? 'rgba(244,63,94,0.1)' : (f === 'High' || f === 'Low') ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)';
-  const flagColor = (f?: string) => f === 'Critical' ? danger : (f === 'High' || f === 'Low') ? warning : success;
-  const valColor  = (f?: string) => f === 'Critical' ? danger : (f === 'High' || f === 'Low') ? warning : success;
+  const labDate = new Date(lab.createdAt || Date.now()).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
+  const labTime = new Date(lab.createdAt || Date.now()).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
 
   const resultsHTML = lab.results && lab.results.length > 0
-    ? lab.results.map(r =>
-        `<tr style="background:${r.flag === 'Critical' ? 'rgba(244,63,94,0.05)' : 'white'};border-bottom:1px solid var(--mmh-border);">`
-        + `<td style="padding:8px 12px;font-size:12px;font-weight:600;color:var(--mmh-text);">${r.testName || '-'}</td>`
-        + `<td style="padding:8px 12px;font-size:12px;font-weight:800;text-align:center;color:${valColor(r.flag)};">${r.value || '-'}</td>`
-        + `<td style="padding:8px 12px;font-size:11px;color:#64748b;text-align:center;">${r.normalRange || '-'}</td>`
-        + `<td style="padding:8px 12px;font-size:11px;color:#64748b;text-align:center;">${r.unit || '-'}</td>`
-        + `<td style="padding:8px 12px;text-align:center;"><span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:800;background:${flagBg(r.flag)};color:${flagColor(r.flag)};">${r.flag || 'Normal'}</span></td>`
-        + '</tr>'
-      ).join('')
-    : '<tr><td colspan="5" style="padding:20px;text-align:center;color:#94a3b8;font-size:13px;">No results entered yet</td></tr>';
+    ? lab.results.map(r => `
+        <tr style="border-bottom: 1px solid #000;">
+          <td style="padding: 10px; font-weight: 700;">${r.testName || '-'}</td>
+          <td style="padding: 10px; text-align: center; font-weight: 800; font-size: 14px;">${r.value || '-'}</td>
+          <td style="padding: 10px; text-align: center;">${r.normalRange || '-'}</td>
+          <td style="padding: 10px; text-align: center;">${r.unit || '-'}</td>
+          <td style="padding: 10px; text-align: center; font-weight: 900;">
+            ${r.flag === 'Normal' ? 'Normal' : `[ ${r.flag.toUpperCase()} ]`}
+          </td>
+        </tr>
+      `).join('')
+    : '<tr><td colspan="5" style="padding: 30px; text-align: center; border: 1px solid #000;">Results pending or not available.</td></tr>';
 
-  const testsHTML = (lab.tests || [])
-    .map(t => `<span style="display:inline-block;padding:3px 10px;margin:2px;background:rgba(14,165,233,0.1);color:var(--mmh-accent);border-radius:6px;font-size:11px;font-weight:700;">${t}</span>`)
-    .join('');
+  pw.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Lab Report - ${lab.labId}</title>
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #000; background: #fff; padding: 20px; }
+        .report-box { border: 2px solid #000; padding: 0; }
+        .header { border-bottom: 2px solid #000; padding: 20px; display: flex; justify-content: space-between; }
+        .hospital-name { font-size: 24px; font-weight: 900; text-transform: uppercase; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 2px solid #000; }
+        .info-cell { padding: 15px; border-right: 1px solid #000; }
+        .info-cell:last-child { border-right: none; }
+        .label { font-size: 11px; text-transform: uppercase; font-weight: 900; color: #333; margin-bottom: 5px; }
+        .val { font-size: 15px; font-weight: 700; }
+        .results-table { width: 100%; border-collapse: collapse; }
+        .results-table th { background: #eee; border-bottom: 2px solid #000; padding: 10px; font-size: 12px; text-transform: uppercase; text-align: left; }
+        .footer { padding: 20px; display: flex; justify-content: space-between; align-items: flex-end; border-top: 2px solid #000; }
+        .urgent-banner { background: #000; color: #fff; padding: 5px; text-align: center; font-weight: 900; font-size: 14px; margin-bottom: -2px; }
+        @media print {
+          .no-print { display: none !important; }
+          body { padding: 0; }
+          .report-box { border: 1px solid #000; }
+        }
+      </style>
+    </head>
+    <body onload="window.focus();">
+      <div class="report-box">
+        ${lab.isUrgent ? '<div class="urgent-banner">URGENT - PRIORITY REPORT</div>' : ''}
+        
+        <div class="header">
+          <div>
+            <div class="hospital-name">Majida Memorial Hospital</div>
+            <div style="font-size: 12px; font-weight: 600;">Diagnostic & Pathology Management System</div>
+            <div style="font-size: 10px; margin-top: 5px;">Chiniot, Punjab, Pakistan</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 16px; font-weight: 900; border: 2px solid #000; padding: 5px 10px; display: inline-block;">${lab.labId || '-'}</div>
+            <div style="font-size: 11px; margin-top: 8px; font-weight: 700;">Report Date: ${labDate}</div>
+            <div style="font-size: 11px; font-weight: 700;">Report Time: ${labTime}</div>
+          </div>
+        </div>
 
-  const labDate    = new Date().toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
-  const labTime    = new Date().toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' });
-  const statusColor = lab.status === 'Done' ? success : lab.status === 'Processing' ? accent : warning;
+        <div class="info-grid">
+          <div class="info-cell">
+            <div class="label">Patient Name</div>
+            <div class="val">${patient?.name || '-'}</div>
+            <div style="font-size: 12px; margin-top: 4px;">MR#: <b>${patient?.mrNumber || '-'}</b></div>
+            <div style="font-size: 12px;">Age/Gender: <b>${patient?.age || '-'}Y / ${patient?.gender || '-'}</b></div>
+          </div>
+          <div class="info-cell">
+            <div class="label">Referred By</div>
+            <div class="val">Dr. ${doctor?.name || 'Reception'}</div>
+            <div style="font-size: 12px; margin-top: 4px;">Department: <b>${doctor?.department || 'General'}</b></div>
+            <div style="font-size: 12px;">Report Status: <b>${lab.status?.toUpperCase() || '-'}</b></div>
+          </div>
+        </div>
 
-  pw.document.write(
-    `<!DOCTYPE html><html lang="en"><head>`
-    + '<meta charset="UTF-8">'
-    + '<title>Lab Report - ' + lab.labId + '</title>'
-    + '<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">'
-    + `<style>
-      :root {
-        --mmh-accent: ${accent};
-        --mmh-text: ${text};
-        --mmh-border: ${border};
-        --mmh-bg2: ${bg2};
-        --mmh-success: ${success};
-        --mmh-danger: ${danger};
-        --mmh-warning: ${warning};
-      }
-      *{box-sizing:border-box;margin:0;padding:0}body{font-family:"Plus Jakarta Sans",sans-serif;background:white;color:var(--mmh-text);padding:24px;max-width:700px;margin:0 auto;}@page{size:A4;margin:15mm}@media print{body{padding:0;max-width:none}.no-print{display:none!important}}.hd{background:var(--mmh-accent);color:white;padding:20px 24px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:flex-start;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    </style>`
-    + '</head><body>'
-    + '<div class="hd">'
-    +   '<div><div style="font-size:20px;font-weight:900;font-style:italic;">Majida Memorial Hospital</div><div style="font-size:11px;opacity:.75;margin-top:3px;">Chiniot, Punjab - Laboratory Report</div></div>'
-    +   '<div style="text-align:right;"><div style="font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:900;background:rgba(255,255,255,.15);padding:4px 12px;border-radius:6px;">' + lab.labId + '</div><div style="font-size:11px;opacity:.7;margin-top:4px;">' + labDate + ' ' + labTime + '</div></div>'
-    + '</div>'
-    + (lab.isUrgent ? `<div style="background:rgba(244,63,94,0.05);border:2px solid var(--mmh-danger);padding:8px 16px;text-align:center;font-size:12px;font-weight:800;color:var(--mmh-danger);-webkit-print-color-adjust:exact;print-color-adjust:exact;">URGENT SAMPLE - PRIORITY PROCESSING</div>` : '')
-    + '<div style="border:1px solid var(--mmh-border);border-top:none;padding:16px 20px;background:var(--mmh-bg2);display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
-    +   '<div><div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">Patient Information</div><div style="font-size:15px;font-weight:800;">' + (patient?.name || '-') + '</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:var(--mmh-accent);margin-top:4px;">' + (patient?.mrNumber || '-') + '</div><div style="font-size:12px;color:#64748b;margin-top:3px;">' + (patient?.age || '-') + ' yrs / ' + (patient?.gender || '-') + '</div></div>'
-    +   '<div><div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">Referred By</div><div style="font-size:14px;font-weight:700;">' + (doctor?.name || 'Reception') + '</div><div style="font-size:12px;color:#64748b;margin-top:3px;">' + (doctor?.department || 'General') + '</div><div style="font-size:11px;color:#94a3b8;margin-top:6px;">Status: <span style="font-weight:700;color:' + statusColor + ';">' + lab.status + '</span></div></div>'
-    + '</div>'
-    + '<div style="border:1px solid var(--mmh-border);border-top:none;padding:14px 20px;background:white;"><div style="font-size:10px;font-weight:800;color:var(--mmh-accent);text-transform:uppercase;margin-bottom:10px;">Tests Requested</div><div>' + testsHTML + '</div></div>'
-    + '<div style="border:1px solid var(--mmh-border);border-top:none;"><div style="padding:12px 20px;background:#f1f5f9;border-bottom:1px solid var(--mmh-border);"><div style="font-size:10px;font-weight:800;color:var(--mmh-accent);text-transform:uppercase;">Test Results</div></div>'
-    + '<table style="width:100%;border-collapse:collapse;"><thead><tr style="background:var(--mmh-bg2);">'
-    + '<th style="text-align:left;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid var(--mmh-border);">Test Name</th>'
-    + '<th style="text-align:center;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid var(--mmh-border);">Result</th>'
-    + '<th style="text-align:center;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid var(--mmh-border);">Normal Range</th>'
-    + '<th style="text-align:center;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid var(--mmh-border);">Unit</th>'
-    + '<th style="text-align:center;padding:9px 12px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid var(--mmh-border);">Flag</th>'
-    + '</tr></thead><tbody>' + resultsHTML + '</tbody></table></div>'
-    + '<div style="margin-top:16px;border:1px solid var(--mmh-border);border-radius:0 0 12px 12px;padding:14px 20px;background:var(--mmh-bg2);display:flex;justify-content:space-between;align-items:center;">'
-    +   '<div style="font-size:10px;color:#94a3b8;">Generated: ' + new Date().toLocaleString('en-PK') + '<br/>MMH Laboratory Information System</div>'
-    +   '<div style="text-align:right;font-size:11px;color:#64748b;">Lab Technician Signature<br/><div style="margin-top:24px;border-top:1px solid #cbd5e1;padding-top:4px;min-width:150px;">___________________</div></div>'
-    + '</div>'
-    + '<div class="no-print" style="text-align:center;margin-top:20px;">'
-    +   '<button onclick="window.print()" style="padding:12px 32px;background:var(--mmh-accent);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Print Report</button>'
-    +   '<button onclick="window.close()" style="padding:12px 24px;background:#f1f5f9;color:#64748b;border:1px solid var(--mmh-border);border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-left:10px;font-family:inherit;">Close</button>'
-    + '</div>'
-    + '</body></html>'
-  );
+        <div>
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th style="text-align: left;">Test Name</th>
+                <th style="text-align: center;">Result</th>
+                <th style="text-align: center;">Normal Range</th>
+                <th style="text-align: center;">Unit</th>
+                <th style="text-align: center;">Abnormal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${resultsHTML}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="footer">
+          <div style="font-size: 10px;">
+            This is a computer generated diagnostic report.<br>
+            Powered by MMH Patho-Connect.
+          </div>
+          <div style="text-align: center; min-width: 200px; border-top: 1px solid #000; padding-top: 8px;">
+            <div style="font-size: 12px; font-weight: 800;">Authorized Signatory</div>
+            <div style="font-size: 10px;">Lab In-charge / Technologist</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="no-print" style="margin-top: 40px; text-align: center;">
+        <button onclick="window.print()" style="padding: 15px 40px; font-size: 16px; font-weight: 800; background: #000; color: #fff; border: none; cursor: pointer; border-radius: 8px;">PRINT REPORT</button>
+        <button onclick="window.close()" style="margin-left: 20px; padding: 15px 30px; font-size: 16px; font-weight: 800; background: #fff; color: #000; border: 2px solid #000; cursor: pointer; border-radius: 8px;">CLOSE</button>
+      </div>
+    </body>
+    </html>
+  `);
   pw.document.close();
 };
 
@@ -166,7 +197,10 @@ const LabPage: React.FC = () => {
 const PendingTab: React.FC = () => {
   const [labs, setLabs] = useState<LabReq[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('today');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [fromDate, setFromDate] = useState(new Date().toISOString().split('T')[0]);
+  const [toDate, setToDate] = useState(new Date().toISOString().split('T')[0]);
   const [patientFilter, setPatientFilter] = useState<PatientResult | null>(null);
   const [resultsModal, setResultsModal] = useState<LabReq | null>(null);
 
@@ -194,35 +228,121 @@ const PendingTab: React.FC = () => {
   };
 
   const filtered = labs.filter(l => {
-    const matchStatus = statusFilter === 'all' || l.status === statusFilter;
-    const matchPatient = !patientFilter || l.patient?._id === patientFilter._id;
-    return matchStatus && matchPatient;
+    // Status Filter (handle 'today' and 'all' specially if needed, but here we treat 'today' as All statuses + Date check)
+    const matchStatus = (statusFilter === 'all' || statusFilter === 'today') || l.status === statusFilter;
+    const matchPatientSelection = !patientFilter || l.patient?._id === patientFilter._id;
+
+    // Search Query (Name or MR Number)
+    const search = searchQuery.toLowerCase().trim();
+    const matchSearch = !search ||
+      (l.patient?.name || '').toLowerCase().includes(search) ||
+      (l.patient?.mrNumber || '').toLowerCase().includes(search) ||
+      (l.labId || '').toLowerCase().includes(search);
+
+    // Date Filter
+    let matchDate = true;
+    if (fromDate || toDate) {
+      const createdAt = new Date(l.createdAt);
+      createdAt.setHours(0, 0, 0, 0);
+      if (fromDate) {
+        const from = new Date(fromDate);
+        from.setHours(0, 0, 0, 0);
+        if (createdAt < from) matchDate = false;
+      }
+      if (toDate) {
+        const to = new Date(toDate);
+        to.setHours(0, 0, 0, 0);
+        if (createdAt > to) matchDate = false;
+      }
+    }
+
+    return matchStatus && matchPatientSelection && matchSearch && matchDate;
   });
 
-  const countFor = (s: string) => s === 'all' ? labs.length : labs.filter(l => l.status === s).length;
+  const isTodayValue = fromDate === new Date().toISOString().split('T')[0] && toDate === new Date().toISOString().split('T')[0];
+
+  const countFor = (s: string) => {
+    const matchingStatus = labs.filter(l => {
+      if (s === 'all' || s === 'today') return true;
+      return l.status === s;
+    });
+
+    return matchingStatus.filter(l => {
+      const search = searchQuery.toLowerCase().trim();
+      const mSearch = !search || (l.patient?.name || '').toLowerCase().includes(search) || (l.patient?.mrNumber || '').toLowerCase().includes(search) || (l.labId || '').toLowerCase().includes(search);
+      let mDate = true;
+      
+      let fDate = fromDate;
+      let tDate = toDate;
+      
+      // If we are counting for 'today' pill specifically, override dates for the count
+      if (s === 'today') {
+        const todayStr = new Date().toISOString().split('T')[0];
+        fDate = todayStr;
+        tDate = todayStr;
+      }
+
+      if (fDate || tDate) {
+        const c = new Date(l.createdAt); c.setHours(0,0,0,0);
+        if (fDate) { const f = new Date(fDate); f.setHours(0,0,0,0); if (c < f) mDate = false; }
+        if (tDate) { const t = new Date(tDate); t.setHours(0,0,0,0); if (c > t) mDate = false; }
+      }
+      return mSearch && mDate;
+    }).length;
+  };
 
   return (
     <div style={{ animation: 'mmh-slide-up 0.3s both' }}>
       <div className="mmh-page-header">
         <div>
           <h1 className="mmh-page-title">Lab Queue</h1>
-          <p className="mmh-page-subtitle">{labs.filter(l => l.status === 'Pending').length} pending · {labs.filter(l => l.status === 'Processing').length} in progress</p>
+          <p className="mmh-page-subtitle">
+            {labs.filter(l => l.status === 'Pending').length} pending · {labs.filter(l => l.status === 'Processing').length} in progress
+          </p>
         </div>
-        <button className="mmh-btn mmh-btn-ghost mmh-btn-sm" onClick={fetchLabs}>🔄 Refresh</button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            className="mmh-btn mmh-btn-ghost mmh-btn-sm"
+            onClick={() => {
+              const today = new Date().toISOString().split('T')[0];
+              setFromDate(today);
+              setToDate(today);
+              setSearchQuery('');
+              setPatientFilter(null);
+              setStatusFilter('all');
+              fetchLabs();
+            }}
+          >
+            🔄 Reset & Today
+          </button>
+          <button className="mmh-btn mmh-btn-primary mmh-btn-sm" onClick={fetchLabs}>🔄 Sync Data</button>
+        </div>
       </div>
 
       {/* Status filter pills */}
       <div className="mmh-status-filters">
         {[
-          { id: 'all',        label: 'All',         emoji: '📋' },
-          { id: 'Pending',    label: 'Pending',      emoji: '⏳' },
+          { id: 'today',      label: 'Today',       emoji: '📅' },
           { id: 'Processing', label: 'In Progress',  emoji: '🔬' },
+          { id: 'Pending',    label: 'Pending',      emoji: '⏳' },
           { id: 'Done',       label: 'Done',         emoji: '✅' },
+          { id: 'all',        label: 'All',         emoji: '📋' },
         ].map(s => (
           <button
             key={s.id}
             className={`mmh-status-filter-btn${statusFilter === s.id ? ` active-${s.id.toLowerCase()}` : ''}`}
-            onClick={() => setStatusFilter(s.id)}
+            onClick={() => {
+              setStatusFilter(s.id);
+              if (s.id === 'today') {
+                const today = new Date().toISOString().split('T')[0];
+                setFromDate(today);
+                setToDate(today);
+                setSearchQuery('');
+              } else if (s.id === 'all') {
+                setFromDate('');
+                setToDate('');
+              }
+            }}
           >
             {s.emoji} {s.label}
             <span className="mmh-status-count">{countFor(s.id)}</span>
@@ -230,16 +350,48 @@ const PendingTab: React.FC = () => {
         ))}
       </div>
 
-      {/* Patient filter */}
-      <div style={{ marginBottom: 20 }}>
-        <PatientSearch
-          label=""
-          placeholder="Filter by patient name or MR number..."
-          selectedPatient={patientFilter}
-          onSelect={setPatientFilter}
-          onClear={() => setPatientFilter(null)}
-          required={false}
-        />
+      {/* Filters Row */}
+      <div className="mmh-card" style={{ marginBottom: 25 }}>
+        <div className="mmh-card-body" style={{ padding: '15px 20px' }}>
+          <div className="mmh-filter-row" style={{ gap: 15, alignItems: 'flex-end' }}>
+            <div className="mmh-field" style={{ flex: 1, marginBottom: 0, minWidth: '200px' }}>
+              <label className="mmh-label">Search Patient</label>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔍</span>
+                <input
+                  className="mmh-input"
+                  style={{ paddingLeft: 35 }}
+                  placeholder="Patient Name, MR# or Lab ID..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="mmh-field" style={{ width: 'auto', marginBottom: 0 }}>
+              <label className="mmh-label">From Date</label>
+              <input type="date" className="mmh-input" value={fromDate} onChange={e => setFromDate(e.target.value)} />
+            </div>
+
+            <div className="mmh-field" style={{ width: 'auto', marginBottom: 0 }}>
+              <label className="mmh-label">To Date</label>
+              <input type="date" className="mmh-input" value={toDate} onChange={e => setToDate(e.target.value)} />
+            </div>
+
+            <div style={{ paddingBottom: 2 }}>
+               <button
+                  className="mmh-btn mmh-btn-ghost mmh-btn-sm"
+                  onClick={() => {
+                    const today = new Date().toISOString().split('T')[0];
+                    setFromDate(today); setToDate(today);
+                  }}
+                  style={{ height: '38px', whiteSpace: 'nowrap' }}
+               >
+                 Today
+               </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Cards */}
@@ -248,7 +400,9 @@ const PendingTab: React.FC = () => {
       ) : filtered.length === 0 ? (
         <div className="mmh-empty">
           <div className="mmh-empty-icon">🔬</div>
-          <div className="mmh-empty-text">No lab requests found</div>
+          <div className="mmh-empty-text">
+            {isTodayValue ? "No lab requests received for today." : "No lab records found for the selected filters."}
+          </div>
           <div className="mmh-empty-sub">Adjust filters or wait for new requests.</div>
         </div>
       ) : (

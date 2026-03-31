@@ -82,7 +82,7 @@ const Doctor: React.FC<DoctorProps> = ({ user }) => {
   };
 
   return (
-    <MainLayout user={user} title={`Welcome, Dr. ${user.name}`} subtitle={`${user.department || 'General Medicine'} Practitioner`}>
+    <MainLayout user={user} title={`Welcome,   ${user.name}`} subtitle={`${user.department || 'General Medicine'} Practitioner`}>
       {/* Tab Navigation */}
       <div className="mmh-page-tabs" style={{ marginBottom: '24px', padding: '0' }}>
         <button className={`mmh-page-tab ${tab === 'assigned' ? 'active' : ''}`} onClick={() => setSearchParams({ tab: 'assigned' })}>
@@ -108,34 +108,34 @@ const Doctor: React.FC<DoctorProps> = ({ user }) => {
             <div className="mmh-card-title">
               {tab === 'assigned' ? 'Today\'s Patient Queue' : tab === 'records' ? 'Past Consultations' : 'Medical Case History'}
             </div>
-            
+
             {(tab === 'records' || tab === 'history') && (
               <div style={{ display: 'flex', gap: '10px', flex: 1, maxWidth: '600px' }}>
-                <input 
-                  type="text" 
-                  className="mmh-input" 
-                  style={{ height: '36px', fontSize: '13px' }} 
-                  placeholder="Filter name or MR#..." 
+                <input
+                  type="text"
+                  className="mmh-input"
+                  style={{ height: '36px', fontSize: '13px' }}
+                  placeholder="Filter name or MR#..."
                   value={filters.search}
                   onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
                 />
-                <input 
-                  type="date" 
-                  className="mmh-input" 
-                  style={{ height: '36px', fontSize: '13px', width: '130px' }} 
+                <input
+                  type="date"
+                  className="mmh-input"
+                  style={{ height: '36px', fontSize: '13px', width: '130px' }}
                   value={filters.from}
                   onChange={e => setFilters(f => ({ ...f, from: e.target.value }))}
                 />
-                <input 
-                  type="date" 
-                  className="mmh-input" 
-                  style={{ height: '36px', fontSize: '13px', width: '130px' }} 
+                <input
+                  type="date"
+                  className="mmh-input"
+                  style={{ height: '36px', fontSize: '13px', width: '130px' }}
                   value={filters.to}
                   onChange={e => setFilters(f => ({ ...f, to: e.target.value }))}
                 />
               </div>
             )}
-            
+
             <button className="mmh-btn mmh-btn-ghost mmh-btn-sm" onClick={fetchVisits} disabled={loading}>
               {loading ? 'Refreshing...' : '🔄 Sync Queue'}
             </button>
@@ -159,7 +159,7 @@ const Doctor: React.FC<DoctorProps> = ({ user }) => {
                   {loading ? (
                     <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}><div className="mmh-spinner" style={{ margin: 'auto' }} /></td></tr>
                   ) : visits.length === 0 ? (
-                    <tr><td colSpan={6} className="mmh-empty">No patients found in this category.</td></tr>
+                    <tr><td colSpan={6} className="mmh-empty">No patients found.</td></tr>
                   ) : visits.map(v => (
                     <tr key={v._id}>
                       <td style={{ verticalAlign: 'middle' }}>
@@ -191,7 +191,7 @@ const Doctor: React.FC<DoctorProps> = ({ user }) => {
                       </td>
                       {tab === 'assigned' && (
                         <td>
-                          <select 
+                          <select
                             className="mmh-status-select"
                             value={v.status}
                             onChange={(e) => handleStatusUpdate(v._id, e.target.value)}
@@ -205,7 +205,7 @@ const Doctor: React.FC<DoctorProps> = ({ user }) => {
                         </td>
                       )}
                       <td>
-                        <button 
+                        <button
                           className={`mmh-btn mmh-btn-sm ${v.status === 'Examined' || v.status === 'Done' ? 'mmh-btn-ghost' : 'mmh-btn-primary'}`}
                           onClick={() => setExaminingVisit(v)}
                         >
@@ -223,9 +223,9 @@ const Doctor: React.FC<DoctorProps> = ({ user }) => {
 
       {/* Examine / Prescription Modal */}
       {examiningVisit && (
-        <ExamineModal 
-          visit={examiningVisit} 
-          onClose={() => setExaminingVisit(null)} 
+        <ExamineModal
+          visit={examiningVisit}
+          onClose={() => setExaminingVisit(null)}
           onSuccess={() => { setExaminingVisit(null); fetchVisits(); }}
           onHistoryClick={(p) => setSelectedPatientHistory(p)}
         />
@@ -233,9 +233,9 @@ const Doctor: React.FC<DoctorProps> = ({ user }) => {
 
       {/* Patient History Modal */}
       {selectedPatientHistory && (
-        <PatientHistoryModal 
-          patientId={selectedPatientHistory.id} 
-          mrNumber={selectedPatientHistory.mr} 
+        <PatientHistoryModal
+          patientId={selectedPatientHistory.id}
+          mrNumber={selectedPatientHistory.mr}
           onClose={() => setSelectedPatientHistory(null)}
         />
       )}
@@ -351,9 +351,9 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
 
               <div style={{ marginBottom: '16px' }}>
                 <label className="mmh-label">Final Diagnosis <span style={{ color: 'var(--mmh-danger)' }}>*</span></label>
-                <textarea 
-                  className="mmh-textarea" 
-                  placeholder="Clinical assessment and diagnosis..." 
+                <textarea
+                  className="mmh-textarea"
+                  placeholder="Clinical assessment and diagnosis..."
                   value={diagnosis}
                   onChange={e => setDiagnosis(e.target.value)}
                   style={{ minHeight: '120px' }}
@@ -362,9 +362,9 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
 
               <div>
                 <label className="mmh-label">Consultation Notes (Optional)</label>
-                <textarea 
-                  className="mmh-textarea" 
-                  placeholder="Internal notes or additional advice..." 
+                <textarea
+                  className="mmh-textarea"
+                  placeholder="Internal notes or additional advice..."
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
                   style={{ minHeight: '80px' }}
@@ -375,17 +375,17 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
             {/* Right: Prescription Cart */}
             <div style={{ borderLeft: '1px solid var(--mmh-border)', paddingLeft: '20px' }}>
               <label className="mmh-label">💊 Prescription Cart</label>
-              
+
               <div style={{ position: 'relative', marginBottom: '14px' }}>
-                <input 
-                  type="text" 
-                  className="mmh-input" 
-                  placeholder="Search medicine name..." 
+                <input
+                  type="text"
+                  className="mmh-input"
+                  placeholder="Search medicine name..."
                   value={medQuery}
                   onChange={e => setMedQuery(e.target.value)}
                 />
                 {searchingMed && <div className="mmh-spinner-sm" style={{ position: 'absolute', right: '14px', top: '14px' }} />}
-                
+
                 {medResults.length > 0 && (
                   <div style={{ position: 'absolute', top: '50px', left: 0, right: 0, background: 'var(--mmh-bg2)', border: '1px solid var(--mmh-border)', borderRadius: '12px', zIndex: 10, maxHeight: '200px', overflowY: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
                     {medResults.map(m => (
@@ -412,28 +412,28 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
                       </div>
                       <div className="mmh-form-grid-3" style={{ gap: '8px' }}>
                         <div>
-                          <input 
-                            className="mmh-input" 
-                            style={{ height: '32px', fontSize: '11px', padding: '0 8px' }} 
-                            placeholder="Dosage (1-0-1)" 
+                          <input
+                            className="mmh-input"
+                            style={{ height: '32px', fontSize: '11px', padding: '0 8px' }}
+                            placeholder="Dosage (1-0-1)"
                             value={item.dosage}
                             onChange={(e) => updateItem(idx, 'dosage', e.target.value)}
                           />
                         </div>
                         <div>
-                          <input 
-                            className="mmh-input" 
-                            style={{ height: '32px', fontSize: '11px', padding: '0 8px' }} 
-                            placeholder="Freq (Daily)" 
+                          <input
+                            className="mmh-input"
+                            style={{ height: '32px', fontSize: '11px', padding: '0 8px' }}
+                            placeholder="Freq (Daily)"
                             value={item.frequency}
                             onChange={(e) => updateItem(idx, 'frequency', e.target.value)}
                           />
                         </div>
                         <div>
-                          <input 
-                            className="mmh-input" 
-                            style={{ height: '32px', fontSize: '11px', padding: '0 8px' }} 
-                            placeholder="Dur (5 days)" 
+                          <input
+                            className="mmh-input"
+                            style={{ height: '32px', fontSize: '11px', padding: '0 8px' }}
+                            placeholder="Dur (5 days)"
                             value={item.duration}
                             onChange={(e) => updateItem(idx, 'duration', e.target.value)}
                           />
