@@ -53,14 +53,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: mobileOpen, onToggle: onMobil
     const config: Record<string, { basePath?: string; items: NavItem[] }> = {
       admin: {
         items: [
-          { path: '/dashboard',   label: 'Dashboard', icon: '🛡️' },
-          { path: '/patients',    label: 'Patients',  icon: '👥' },
-          { path: '/pharmacy',    label: 'Pharmacy',  icon: '💊' },
-          { path: '/wards',       label: 'Wards',     icon: '🏥' },
-          { path: '/payments',    label: 'Payments',  icon: '💰' },
-          { path: '/admin/users', label: 'Users',     icon: '👤' },
-          { path: '/hr',          label: 'HR Management', icon: '📋' },
-          { path: '/admin/managers', label: 'Managers', icon: '📊' },
+          { path: '/dashboard',        label: 'Dashboard',  icon: '🛡️' },
+          { path: '/patients',         label: 'Patients',   icon: '👥' },
+          { path: '/pharmacy',         label: 'Pharmacy',   icon: '💊' },
+          { path: '/admin/dispensary', label: 'Dispensary', icon: '🆓' },
+          { path: '/wards',            label: 'Wards',      icon: '🏥' },
+          { path: '/payments',         label: 'Payments',   icon: '💰' },
+          { path: '/admin/users',      label: 'Users',      icon: '👤' },
+          { path: '/hr',               label: 'HR Management', icon: '📋' },
+          { path: '/admin/managers',   label: 'Managers',   icon: '📊' },
         ]
       },
       doctor: {
@@ -111,6 +112,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: mobileOpen, onToggle: onMobil
         basePath: '/patient',
         items: [
           { tab: 'records',  label: 'My Records', icon: '📜' },
+        ]
+      },
+      dispensary: {
+        basePath: '/dispensary',
+        items: [
+          { tab: 'dispense', label: 'Dispense',  icon: '🎁' },
+          { tab: 'stock',    label: 'Stock',     icon: '📦' },
+          { tab: 'history',  label: 'History',   icon: '📋' },
+          { tab: 'my-leave', label: 'My Leave',  icon: '🏖️' },
         ]
       },
     };

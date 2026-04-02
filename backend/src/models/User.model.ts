@@ -19,7 +19,7 @@ const UserSchema = new Schema<IUser>(
     role: {
       type: String,
       required: true,
-      enum: ['receptionist', 'doctor', 'lab', 'pharmacist', 'admin', 'manager', 'patient'],
+      enum: ['receptionist', 'doctor', 'lab', 'pharmacist', 'admin', 'manager', 'patient', 'dispensary'],
     },
     phone: { type: String },
     isActive: { type: Boolean, default: true },

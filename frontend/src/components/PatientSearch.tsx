@@ -155,26 +155,25 @@ const PatientSearch: React.FC<PatientSearchProps> = ({
           )}
         </div>
 
-        {/* Dropdown */}
         {show && results.length > 0 && (
-          <div className="mmh-patient-dropdown">
+          <div className="mmh-search-dropdown">
             {results.map(p => (
               <div
                 key={p._id}
-                className="mmh-patient-dropdown-item"
+                className="mmh-search-result-item"
                 onClick={() => handleSelect(p)}
               >
                 <div style={{
                   width: 34, height: 34, borderRadius: 9,
                   background: 'var(--mmh-accent)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 900, color: 'var(--mmh-text-inverted)', flexShrink: 0,
+                  fontSize: 13, fontWeight: 900, color: 'white', flexShrink: 0,
                 }}>
                   {p.name.charAt(0).toUpperCase()}
                 </div>
-                <div className="mmh-dropdown-mr">{p.mrNumber}</div>
-                <div className="mmh-dropdown-name">{p.name}</div>
-                <div className="mmh-dropdown-meta">{p.age}y | {p.gender}</div>
+                <div className="mmh-search-result-mr">{p.mrNumber}</div>
+                <div className="mmh-search-result-name">{p.name}</div>
+                <div className="mmh-search-result-meta">{p.age}y | {p.gender}</div>
               </div>
             ))}
           </div>
@@ -182,10 +181,12 @@ const PatientSearch: React.FC<PatientSearchProps> = ({
 
         {/* No results */}
         {show && query.length >= 2 && results.length === 0 && !loading && (
-          <div className="mmh-patient-dropdown" style={{
-            padding: 16, textAlign: 'center', color: 'var(--mmh-text3)', fontSize: 13,
+          <div className="mmh-search-dropdown" style={{
+            padding: '24px 16px', textAlign: 'center',
           }}>
-            No patient found for &quot;{query}&quot;
+            <div style={{ fontSize: 24, marginBottom: 8 }}>🔍</div>
+            <div style={{ color: 'var(--mmh-text2)', fontWeight: 700 }}>No patient found</div>
+            <div style={{ color: 'var(--mmh-text3)', fontSize: 12 }}>Try searching for &quot;{query}&quot;</div>
           </div>
         )}
       </div>

@@ -161,3 +161,13 @@ export const notificationAPI = {
   markRead: (id: string) => api.put(`/notifications/${id}/read`),
   markAllRead: () => api.put('/notifications/read-all'),
 }
+
+export const dispensaryAPI = {
+  getStatus:       () => api.get('/dispensary/status'),
+  getStats:        () => api.get('/dispensary/stats'),
+  getMedicines:    (params?: object) => api.get('/dispensary/medicines', { params }),
+  addMedicine:     (data: object) => api.post('/dispensary/medicines', data),
+  updateMedicine:  (id: string, data: object) => api.put(`/dispensary/medicines/${id}`, data),
+  dispense:        (data: object) => api.post('/dispensary/dispense', data),
+  getHistory:      (params?: object) => api.get('/dispensary/history', { params }),
+}

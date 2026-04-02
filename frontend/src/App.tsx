@@ -13,6 +13,7 @@ import ManageWards from './pages/admin/ManageWards';
 import HRPage from './pages/admin/HRPage';
 import PaymentsGrid from './pages/admin/PaymentsGrid';
 import SettingsPage from './pages/shared/SettingsPage';
+import DispensaryPage from './pages/dispensary/DispensaryPage';
 
 // Original Portal Pages
 import Receptionist from './pages/Receptionist';
@@ -109,8 +110,12 @@ function App() {
         <Route path="/patient" element={<ProtectedRoute allowedRoles={['patient']}><Patient user={user} onLogout={logout} /></ProtectedRoute>} />
         <Route path="/my-records" element={<ProtectedRoute allowedRoles={['patient']}><Patient user={user} onLogout={logout} /></ProtectedRoute>} />
 
+        {/* Dispensary Portal */}
+        <Route path="/dispensary" element={<ProtectedRoute allowedRoles={['dispensary', 'admin']}><MainLayout user={user} title="Trust Dispensary"><DispensaryPage /></MainLayout></ProtectedRoute>} />
+        <Route path="/admin/dispensary" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Dispensary Management"><DispensaryPage /></MainLayout></ProtectedRoute>} />
+
         {/* Default Redirects */}
-        <Route path="/" element={user ? <Navigate to={`/${user.role === 'admin' ? 'dashboard' : user.role === 'pharmacist' ? 'dispense' : user.role === 'receptionist' ? 'receptionist' : user.role}`} replace /> : <Navigate to="/login" replace />} />
+        <Route path="/" element={user ? <Navigate to={`/${user.role === 'admin' ? 'dashboard' : user.role === 'pharmacist' ? 'dispense' : user.role === 'receptionist' ? 'receptionist' : user.role === 'dispensary' ? 'dispensary' : user.role}`} replace /> : <Navigate to="/login" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </ErrorBoundary>

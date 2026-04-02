@@ -19,6 +19,15 @@ import {
 } from '../controllers/hr.controller';
 import { uploadMiddleware } from '../config/upload';
 import { getNotifications, markRead, markAllRead } from '../controllers/notification.controller';
+import {
+  getStatus as getDispensaryStatus,
+  getStats as getDispensaryStats,
+  getMedicines as getDispensaryMedicines,
+  addMedicine as addDispensaryMedicine,
+  updateMedicine as updateDispensaryMedicine,
+  dispenseMedicine as dispenseFreeMedicine,
+  getHistory as getDispensaryHistory,
+} from '../controllers/dispensary.controller';
 
 const router = Router();
 
@@ -120,5 +129,14 @@ router.get('/hr/employees/my-balance', protect, getMyBalance);
 router.get('/notifications', protect, getNotifications);
 router.put('/notifications/read-all', protect, markAllRead);
 router.put('/notifications/:id/read', protect, markRead);
+
+// ═══ DISPENSARY ROUTES ═══════════════════════════════════════════════════
+router.get('/dispensary/status', protect, getDispensaryStatus);
+router.get('/dispensary/stats', protect, authorize('admin', 'manager'), getDispensaryStats);
+router.get('/dispensary/medicines', protect, authorize('dispensary', 'admin'), getDispensaryMedicines);
+router.post('/dispensary/medicines', protect, authorize('admin'), addDispensaryMedicine);
+router.put('/dispensary/medicines/:id', protect, authorize('admin', 'dispensary'), updateDispensaryMedicine);
+router.post('/dispensary/dispense', protect, authorize('dispensary', 'admin'), dispenseFreeMedicine);
+router.get('/dispensary/history', protect, authorize('dispensary', 'admin'), getDispensaryHistory);
 
 export default router;

@@ -9,6 +9,9 @@ import Employee, { generateEmployeeId } from '../models/Employee.model';
 import Attendance from '../models/Attendance.model';
 import LeaveRequest from '../models/LeaveRequest.model';
 import Payroll from '../models/Payroll.model';
+import Patient from '../models/Patient.model';
+import DispensaryMedicine from '../models/DispensaryMedicine.model';
+import DispensaryDispense from '../models/DispensaryDispense.model';
 import connectDB from '../config/db';
 
 dotenv.config();
@@ -27,16 +30,19 @@ const seedDB = async () => {
     await Attendance.deleteMany();
     await LeaveRequest.deleteMany();
     await Payroll.deleteMany();
+    await DispensaryMedicine.deleteMany();
+    await DispensaryDispense.deleteMany();
 
     // Create Users (7)
     const usersData = [
-      { name: 'Admin MMH',       email: 'admin@mmh.pk',      password: 'mmh1234', role: 'admin' },
-      { name: 'Zara Shahid',     email: 'reception@mmh.pk',  password: 'mmh1234', role: 'receptionist' },
-      { name: 'Dr. Hamid Raza',  email: 'doctor@mmh.pk',     password: 'mmh1234', role: 'doctor' },
-      { name: 'Asad Lab',        email: 'lab@mmh.pk',        password: 'mmh1234', role: 'lab' },
-      { name: 'Nida Pharma',     email: 'pharmacy@mmh.pk',   password: 'mmh1234', role: 'pharmacist' },
-      { name: 'Manager MMH',     email: 'manager@mmh.pk',    password: 'mmh1234', role: 'manager' },
-      { name: 'Test Patient',    email: 'patient@mmh.pk',    password: 'mmh1234', role: 'patient' }
+      { name: 'Admin MMH',         email: 'admin@mmh.pk',       password: 'mmh1234', role: 'admin' },
+      { name: 'Zara Shahid',       email: 'reception@mmh.pk',   password: 'mmh1234', role: 'receptionist' },
+      { name: 'Dr. Hamid Raza',    email: 'doctor@mmh.pk',      password: 'mmh1234', role: 'doctor' },
+      { name: 'Asad Lab',          email: 'lab@mmh.pk',         password: 'mmh1234', role: 'lab' },
+      { name: 'Nida Pharma',       email: 'pharmacy@mmh.pk',    password: 'mmh1234', role: 'pharmacist' },
+      { name: 'Manager MMH',       email: 'manager@mmh.pk',     password: 'mmh1234', role: 'manager' },
+      { name: 'Test Patient',      email: 'patient@mmh.pk',     password: 'mmh1234', role: 'patient' },
+      { name: 'Dispensary Staff',  email: 'dispensary@mmh.pk',  password: 'mmh1234', role: 'dispensary' },
     ];
 
     const createdUsers = [];
@@ -144,12 +150,12 @@ const seedDB = async () => {
 
     // ═══ SEED LEAVE REQUESTS ═══
     const leaveData = [
-      { ei: 1, type: 'Annual', from: '2026-03-25', to: '2026-03-27', reason: 'Family wedding in Lahore', status: 'Approved', days: 3 },
-      { ei: 2, type: 'Sick', from: '2026-03-10', to: '2026-03-11', reason: 'Flu and fever', status: 'Approved', days: 2 },
-      { ei: 3, type: 'Emergency', from: '2026-03-20', to: '2026-03-20', reason: 'Family emergency', status: 'Pending', days: 1 },
-      { ei: 4, type: 'Annual', from: '2026-04-01', to: '2026-04-03', reason: 'Personal travel', status: 'Pending', days: 3 },
-      { ei: 5, type: 'Sick', from: '2026-03-05', to: '2026-03-06', reason: 'Doctor appointment', status: 'Rejected', days: 2 },
-      { ei: 0, type: 'Annual', from: '2026-03-15', to: '2026-03-16', reason: 'Personal work', status: 'Approved', days: 2 },
+      { ei: 1, type: 'Annual Leave', from: '2026-03-25', to: '2026-03-27', reason: 'Family wedding in Lahore', status: 'Approved', days: 3 },
+      { ei: 2, type: 'Sick Leave', from: '2026-03-10', to: '2026-03-11', reason: 'Flu and fever', status: 'Approved', days: 2 },
+      { ei: 3, type: 'Emergency Leave', from: '2026-03-20', to: '2026-03-20', reason: 'Family emergency', status: 'Pending', days: 1 },
+      { ei: 4, type: 'Annual Leave', from: '2026-04-01', to: '2026-04-03', reason: 'Personal travel', status: 'Pending', days: 3 },
+      { ei: 5, type: 'Sick Leave', from: '2026-03-05', to: '2026-03-06', reason: 'Doctor appointment', status: 'Rejected', days: 2 },
+      { ei: 0, type: 'Annual Leave', from: '2026-03-15', to: '2026-03-16', reason: 'Personal work', status: 'Approved', days: 2 },
     ];
     for (const ld of leaveData) {
       if (createdEmployees[ld.ei]) {
@@ -180,16 +186,41 @@ const seedDB = async () => {
       });
     }
 
+    // ═══ SEED DISPENSARY MEDICINES ═══
+    const dispensaryUser = createdUsers.find(u => u.email === 'dispensary@mmh.pk');
+    const dispensaryMedsData = [
+      { name: 'Paracetamol 500mg', generic: 'Paracetamol', category: 'Analgesic', quantity: 500, minQuantity: 50, unit: 'Tablets', source: 'Government', addedBy: dispensaryUser?._id },
+      { name: 'Amoxicillin 250mg', generic: 'Amoxicillin', category: 'Antibiotic', quantity: 200, minQuantity: 30, unit: 'Capsules', source: 'Donated', donorName: 'Al-Khidmat Foundation', addedBy: dispensaryUser?._id },
+      { name: 'ORS Sachet', generic: 'ORS', category: 'Other', quantity: 300, minQuantity: 40, unit: 'Sachets', source: 'Government', addedBy: dispensaryUser?._id },
+      { name: 'Metformin 500mg', generic: 'Metformin', category: 'Antidiabetic', quantity: 150, minQuantity: 20, unit: 'Tablets', source: 'Trust Funded', addedBy: dispensaryUser?._id },
+      { name: 'Panadol Syrup 120ml', generic: 'Paracetamol', category: 'Analgesic', quantity: 8, minQuantity: 10, unit: 'Bottles', source: 'Donated', donorName: 'Local Donor', addedBy: dispensaryUser?._id },
+      { name: 'Chlorpheniramine', generic: 'Chlorpheniramine Maleate', category: 'Antiallergic', quantity: 0, minQuantity: 30, unit: 'Tablets', source: 'Government', addedBy: dispensaryUser?._id },
+    ];
+    await DispensaryMedicine.insertMany(dispensaryMedsData);
+
+    // ═══ SEED PATIENTS (with patientType) ═══
+    const patientSeedData = [
+      { mrNumber: 'MMH-0001', name: 'Ahmed Khan', age: 45, gender: 'Male', phone: '03001234567', patientType: 'Trust', status: 'OPD', createdBy: createdUsers[0]._id },
+      { mrNumber: 'MMH-0002', name: 'Fatima Bibi', age: 32, gender: 'Female', phone: '03111234567', patientType: 'BPL', status: 'OPD', createdBy: createdUsers[0]._id },
+      { mrNumber: 'MMH-0003', name: 'Muhammad Ali', age: 28, gender: 'Male', phone: '03221234567', patientType: 'Regular', status: 'OPD', createdBy: createdUsers[0]._id },
+      { mrNumber: 'MMH-0004', name: 'Ayesha Siddiqui', age: 55, gender: 'Female', phone: '03331234567', patientType: 'Trust', status: 'Admitted', createdBy: createdUsers[0]._id },
+      { mrNumber: 'MMH-0005', name: 'Usman Ghani', age: 67, gender: 'Male', phone: '03441234567', patientType: 'BPL', status: 'OPD', createdBy: createdUsers[0]._id },
+    ];
+    await Patient.insertMany(patientSeedData);
+
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('✅ MMH Database Seeded!');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`7 Users | 6 Doctors | 6 Wards + ${totalBedsCreated} Beds | 12 Medicines`);
+    console.log(`8 Users | 6 Doctors | 6 Wards + ${totalBedsCreated} Beds | 12 Medicines`);
     console.log(`${createdEmployees.length} Employees | ${attRecords.length} Attendance | ${leaveData.length} Leaves | ${createdEmployees.length} Payroll`);
+    console.log(`6 Dispensary Medicines | 5 Patients (2 Trust, 2 BPL, 1 Regular)`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('Login: admin@mmh.pk / mmh1234');
+    console.log('Dispensary: dispensary@mmh.pk / mmh1234');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━');
 
     process.exit(0);
+
   } catch (error) {
     console.error('❌ Seeding Failed:', error);
     process.exit(1);

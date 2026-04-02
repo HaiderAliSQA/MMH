@@ -13,6 +13,7 @@ const ROLES = [
   { id: 'pharmacist',    label: 'Pharmacy',  icon: '💊' },
   { id: 'manager',       label: 'Manager',   icon: '📊' },
   { id: 'patient',       label: 'Patient',   icon: '👤' },
+  { id: 'dispensary',    label: 'Dispensary',icon: '🆓' },
 ];
 
 const BACKEND_URL = (

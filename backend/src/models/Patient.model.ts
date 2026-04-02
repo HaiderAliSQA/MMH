@@ -9,6 +9,7 @@ export interface IPatient extends Document {
   phone: string;
   address?: string;
   bloodGroup?: string;
+  patientType: 'Regular' | 'Trust' | 'BPL' | 'Staff';
   status: 'OPD' | 'Admitted' | 'Discharged' | 'Waiting';
   doctor?: mongoose.Types.ObjectId;
   createdBy?: mongoose.Types.ObjectId;
@@ -24,6 +25,11 @@ const PatientSchema = new Schema<IPatient>(
     phone:      { type: String, required: true },        // REQUIRED — 11-digit number
     address:    { type: String },
     bloodGroup: { type: String },
+    patientType: {
+      type: String,
+      enum: ['Regular', 'Trust', 'BPL', 'Staff'],
+      default: 'Regular',
+    },
     status: {
       type: String,
       enum: ['OPD', 'Admitted', 'Discharged', 'Waiting'],
