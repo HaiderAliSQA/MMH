@@ -373,10 +373,10 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
       {/* ── Two-Column Layout ── */}
       <div className="mmh-leave-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'stretch' }}>
         {/* LEFT — Apply Leave Form */}
-        <div className="mmh-leave-form-card" style={{ height: '780px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="mmh-leave-form-card" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="mmh-leave-card-title">📝 Apply for Leave</div>
           
-          <div style={{ flex: 1, overflowY: 'auto', paddingRight: 8, paddingBottom: 20 }}>
+          <div style={{ paddingRight: 8 }}>
             <form onSubmit={handleSubmit}>
               <div className="mmh-form-grid" style={{ gridTemplateColumns: '1.2fr 1fr', gap: 16 }}>
                 <TypeSearch
@@ -534,28 +534,28 @@ const MyLeaveTab: React.FC<{ userRole?: string }> = ({ userRole }) => {
         </div>
 
         {/* RIGHT — Leave History */}
-        <div className="mmh-leave-hist-card" style={{ height: '780px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="mmh-leave-hist-card" style={{ display: 'flex', flexDirection: 'column', flex: 1, padding: '24px' }}>
           <div className="mmh-leave-card-title" style={{ display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
             <span>📋 Leave History</span>
             <span style={{ fontSize: 12, color: 'var(--mmh-text3)', fontWeight: 500 }}>{leaves.length} requests</span>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', paddingRight: 8, marginTop: 12, paddingBottom: 20 }}>
-            <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap', overflow: 'visible' }}>
+          <div style={{ height: '650px', overflowY: 'auto', paddingRight: 8, marginTop: 12 }}>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: 140 }}>
                 <input
                   className="mmh-input"
-                  placeholder="🔍 Search..."
+                  placeholder="🔍 Search reason..."
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
                 />
               </div>
-              <div style={{ width: 140, overflow: 'visible' }}>
+              <div style={{ width: 156 }}>
                 <TypeSearch
                   options={STATUS_OPTS}
                   value={statusFilter}
                   onChange={(v) => setStatusFilter(v)}
-                  placeholder="Filter status..."
+                  placeholder="All Statuses"
                 />
               </div>
             </div>

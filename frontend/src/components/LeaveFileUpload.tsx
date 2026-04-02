@@ -117,34 +117,30 @@ const LeaveFileUpload: React.FC<LeaveFileUploadProps> = ({ onFileSelect, selecte
           />
         </div>
       ) : (
-        <div className="mmh-file-preview">
-          <div className="mmh-file-preview-row">
-            <div className={`mmh-file-icon ${getFileIconClass(selectedFile.type)}`}>
-              {getFileIcon(selectedFile.type)}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="mmh-file-name">{selectedFile.name}</div>
-              <div className="mmh-file-meta">
-                {formatSize(selectedFile.size)} · {getTypeName(selectedFile.type)}
-              </div>
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onFileSelect(null);
-                if (fileInputRef.current) {
-                  fileInputRef.current.value = '';
-                }
-              }}
-              className="mmh-file-remove"
-              title="Remove file"
-            >
-              ✕
-            </button>
+        <div className="mmh-attachment-card" style={{ marginTop: 10 }}>
+          <div className="mmh-attachment-icon">
+            {getFileIcon(selectedFile.type)}
           </div>
-          <div className="mmh-file-note">
-            This document will be visible to admin when reviewing your leave request
+          <div className="mmh-attachment-info">
+            <div className="mmh-attachment-name">{selectedFile.name}</div>
+            <div className="mmh-attachment-meta">
+              {formatSize(selectedFile.size)} · {getTypeName(selectedFile.type)}
+            </div>
           </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onFileSelect(null);
+              if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+              }
+            }}
+            className="mmh-modal-close"
+            style={{ width: 30, height: 30, fontSize: 14, background: 'rgba(244, 63, 94, 0.1)', color: '#fb7185', border: '1px solid rgba(244, 63, 94, 0.2)' }}
+            title="Remove file"
+          >
+            ✕
+          </button>
         </div>
       )}
 

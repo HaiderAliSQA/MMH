@@ -33,7 +33,7 @@ const EmployeeSchema = new Schema<IEmployee>(
     name: { type: String, required: true, index: true },
     role: {
       type: String,
-      enum: ['receptionist', 'doctor', 'lab', 'pharmacist', 'admin', 'manager', 'patient'],
+      enum: ['receptionist', 'doctor', 'lab', 'pharmacist', 'admin', 'manager', 'patient', 'dispensary'],
     },
     department: { type: String, required: true },
     designation: { type: String },
