@@ -11,6 +11,17 @@ export interface IMedicine extends Document {
   expiryDate?: Date;
   manufacturer?: string;
   isActive: boolean;
+  purchasePrice?: number;
+  supplier?: string;
+  lastRestocked?: Date;
+  restockHistory?: {
+    quantity: number;
+    price?: number;
+    supplier?: string;
+    date: Date;
+    addedBy?: mongoose.Types.ObjectId;
+    notes?: string;
+  }[];
   hasStock: (requested: number) => boolean;
 }
 
@@ -31,6 +42,19 @@ const MedicineSchema = new Schema<IMedicine>(
     expiryDate: { type: Date },
     manufacturer: { type: String },
     isActive: { type: Boolean, default: true },
+    purchasePrice: { type: Number, default: 0 },
+    supplier: { type: String, default: '' },
+    lastRestocked: { type: Date },
+    restockHistory: [
+      {
+        quantity: Number,
+        price: Number,
+        supplier: String,
+        date: Date,
+        addedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+        notes: String,
+      }
+    ],
   },
   { timestamps: true }
 );

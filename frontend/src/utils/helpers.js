@@ -53,7 +53,7 @@ export function printOPD(p) {
     <div class="row"><span class="sl">${l}</span><span class="sv">${v}</span></div>`).join("")}
     <div class="ft">Please show this slip at Doctor's counter<br/>MMH — OPD Services | ${today()}</div>
   </div>
-  <script>window.onload=()=>{window.print();window.close()}<\/script>
+  <script>window.onload=()=>{window.print();window.close()}</script>
   </body></html>`);
   w.document.close();
 }
@@ -97,7 +97,7 @@ export function printAdmission(p) {
     </div></div>
     <div class="ft">Patient Signature: _____________________&nbsp;&nbsp;&nbsp;Doctor Signature: _____________________<br/>MMH — Admission Department</div>
   </div>
-  <script>window.onload=()=>{window.print();window.close()}<\/script>
+  <script>window.onload=()=>{window.print();window.close()}</script>
   </body></html>`);
   w.document.close();
 }
@@ -128,7 +128,7 @@ export function printLabResult(req) {
     </tbody></table>
     <div class="ft">Lab Technician: _______________________&nbsp;&nbsp;Doctor Sign: _______________________<br/>MMH — Laboratory Department | ${today()}</div>
   </div>
-  <script>window.onload=()=>{window.print();window.close()}<\/script>
+  <script>window.onload=()=>{window.print();window.close()}</script>
   </body></html>`);
   w.document.close();
 }

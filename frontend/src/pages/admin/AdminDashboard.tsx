@@ -6,7 +6,8 @@ interface Stats {
   totalPatients: number;
   admitted: number;
   pendingLabs: number;
-  lowStock: number;
+  pharmacyLowStock: number;
+  dispensaryCritical: number;
 }
 
 interface Ward {
@@ -23,7 +24,7 @@ interface Bed {
 }
 
 const AdminDashboard: React.FC = () => {
-  const [stats, setStats] = useState<Stats>({ totalPatients: 0, admitted: 0, pendingLabs: 0, lowStock: 0 });
+  const [stats, setStats] = useState<Stats>({ totalPatients: 0, admitted: 0, pendingLabs: 0, pharmacyLowStock: 0, dispensaryCritical: 0 });
   const [wards, setWards] = useState<Ward[]>([]);
   const [beds, setBeds] = useState<Bed[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,25 +32,29 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [pRes, admRes, labRes, medRes, wardRes] = await Promise.allSettled([
+        const [pRes, admRes, labRes, medRes, dispRes, wardRes] = await Promise.allSettled([
           api.get('/patients'),
           api.get('/admissions'),
           api.get('/labs'),
           api.get('/medicines'),
+          api.get('/dispensary/medicines'),
           api.get('/wards'),
         ]);
 
         const patients   = pRes.status   === 'fulfilled' ? pRes.value.data   : [];
         const admissions = admRes.status === 'fulfilled' ? admRes.value.data  : [];
         const labs       = labRes.status === 'fulfilled' ? labRes.value.data  : [];
-        const meds       = medRes.status === 'fulfilled' ? medRes.value.data  : [];
         const wardData   = wardRes.status === 'fulfilled' ? wardRes.value.data : [];
+
+        const pharmacyLowStock = medRes.status === 'fulfilled' ? (medRes.value.data?.summary?.low || 0) : 0;
+        const dispensaryCritical = dispRes.status === 'fulfilled' ? (dispRes.value.data?.summary?.critical || 0) : 0;
 
         setStats({
           totalPatients: patients.length,
           admitted:      admissions.filter((a: any) => a.status !== 'Discharged').length,
           pendingLabs:   labs.filter((l: any) => l.status === 'Pending').length,
-          lowStock:      meds.filter((m: any) => (m.quantity || 0) < (m.reorderLevel || 20)).length,
+          pharmacyLowStock,
+          dispensaryCritical,
         });
         setWards(wardData);
 
@@ -79,7 +84,8 @@ const AdminDashboard: React.FC = () => {
     { label: 'Total Patients', icon: '👥', value: stats.totalPatients, accent: 'var(--mmh-accent)' },
     { label: 'Admitted',       icon: '🏥', value: stats.admitted,      accent: 'var(--mmh-success)' },
     { label: 'Pending Labs',   icon: '🔬', value: stats.pendingLabs,   accent: 'var(--mmh-info)' },
-    { label: 'Low Stock',      icon: '💊', value: stats.lowStock,      accent: 'var(--mmh-warning)' },
+    { label: 'Pharmacy Low',   icon: '💊', value: stats.pharmacyLowStock, accent: '#f59e0b' },
+    { label: 'Disp. Critical', icon: '⚠️', value: stats.dispensaryCritical, accent: '#f43f5e' },
   ];
 
   return (

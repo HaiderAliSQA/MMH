@@ -73,7 +73,7 @@ const SlipTab: React.FC<{ employees: any[] }> = ({ employees }) => {
     <div class="row"><span class="lbl"><b>Total Deductions</b></span><span class="red"><b>${fmt(s.totalDeductions||0)}</b></span></div>
     <div class="net"><span class="net-l">NET SALARY</span><span class="net-v">${fmt(s.netSalary||0)}</span></div>
     </div><div class="ft">This is a system-generated salary slip — Majida Memorial Hospital, Chiniot</div>
-    </div><script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}<\/script></body></html>`);
+    </div><script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}</script></body></html>`);
     pw.document.close();
   };
 

@@ -3,16 +3,63 @@ import Medicine from '../models/Medicine.model';
 import Dispense from '../models/Dispense.model';
 import Payment from '../models/Payment.model';
 
+import { getPharmacyStockStatus, getDaysToExpiry, getExpiryStatus } from '../utils/stockUtils';
+
 export const getMedicines = async (req: Request, res: Response) => {
-  const { search } = req.query;
+  const { search, category, stock } = req.query;
   const query: any = { isActive: true };
 
   if (search) {
-    query.name = { $regex: search, $options: 'i' };
+    query.$or = [
+      { name: { $regex: String(search), $options: 'i' } },
+      { generic: { $regex: String(search), $options: 'i' } },
+    ];
+  }
+  if (category && category !== 'All') {
+    query.category = category;
   }
 
-  const medicines = await Medicine.find(query).sort({ name: 1 }).limit( search ? 15 : 100);
-  res.status(200).json(medicines);
+  // Stock filter
+  if (stock === 'low') {
+    query.$expr = { $lte: ['$quantity', '$minQuantity'] };
+    query.quantity = { $gt: 0 };
+  }
+  if (stock === 'out') {
+    query.quantity = 0;
+  }
+  if (stock === 'ok') {
+    query.$expr = { $gt: ['$quantity', '$minQuantity'] };
+  }
+
+  const medicines = await Medicine.find(query).sort({ name: 1 });
+
+  // Add computed fields
+  const enriched = medicines.map((m) => {
+    const obj = m.toObject() as any;
+    obj.stockStatus = getPharmacyStockStatus(m.quantity, m.minQuantity);
+    const daysLeft = getDaysToExpiry(m.expiryDate);
+    obj.daysToExpiry = daysLeft;
+    obj.expiryStatus = getExpiryStatus(daysLeft);
+    return obj;
+  });
+
+  // Summary counts
+  const lowCount = enriched.filter((m) => m.stockStatus === 'low').length;
+  const outCount = enriched.filter((m) => m.stockStatus === 'out').length;
+  const expiringCount = enriched.filter(
+    (m) => m.expiryStatus === 'critical' || m.expiryStatus === 'warning'
+  ).length;
+
+  res.status(200).json({
+    success: true,
+    data: enriched,
+    summary: {
+      total: enriched.length,
+      low: lowCount,
+      out: outCount,
+      expiringSoon: expiringCount,
+    },
+  });
 };
 
 export const createMedicine = async (req: Request, res: Response) => {
@@ -129,5 +176,42 @@ export const deleteMedicine = async (req: Request, res: Response) => {
   const medicine = await Medicine.findByIdAndDelete(req.params.id);
   if (!medicine) return res.status(404).json({ message: 'Medicine not found' });
   res.status(200).json({ message: 'Medicine deleted successfully' });
+};
+
+export const restockMedicine = async (req: any, res: Response) => {
+  const { quantity, price, supplier, notes } = req.body;
+  const medicine = await Medicine.findById(req.params.id);
+  if (!medicine) {
+    res.status(404).json({
+      success: false,
+      message: 'Medicine not found',
+    });
+    return;
+  }
+
+  const newQty = medicine.quantity + Number(quantity);
+
+  await Medicine.findByIdAndUpdate(req.params.id, {
+    $inc: { quantity: Number(quantity) },
+    purchasePrice: price || medicine.purchasePrice,
+    supplier: supplier || medicine.supplier,
+    lastRestocked: new Date(),
+    $push: {
+      restockHistory: {
+        quantity: Number(quantity),
+        price: Number(price) || 0,
+        supplier: supplier || '',
+        date: new Date(),
+        addedBy: req.user?.id,
+        notes: notes || '',
+      },
+    },
+  });
+
+  res.json({
+    success: true,
+    message: `Restocked ${quantity} units. New total: ${newQty}`,
+    newQuantity: newQty,
+  });
 };
 

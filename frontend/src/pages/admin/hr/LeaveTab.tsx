@@ -37,7 +37,7 @@ const fmtDate = (d: string) => d ? new Date(d).toLocaleDateString('en-PK', { day
 const getDocUrls = (doc: any) => {
   if (!doc) return { view: '#', download: '#' };
   let v = doc.viewUrl || doc.url || '';
-  if (v.includes('\\uploads\\') || v.includes('/uploads/')) {
+  if (v.includes('\\\\uploads\\\\') || v.includes('/uploads/')) {
     v = `/uploads/${v.split(/[\\/]/).pop()}`;
   }
   if (v && !v.startsWith('http')) {

@@ -8,10 +8,24 @@ export interface IDispensaryMedicine extends Document {
   minQuantity: number;
   unit: string;
   source: 'Donated' | 'Government' | 'Trust Funded';
+  maxQuantity: number;
   donorName?: string;
+  donorContact?: string;
+  donationDate?: Date;
+  govtBatchNo?: string;
+  govtSupplyDate?: Date;
+  batchNumber?: string;
   expiryDate?: Date;
   isActive: boolean;
   addedBy?: mongoose.Types.ObjectId;
+  restockHistory?: {
+    quantity: number;
+    source: string;
+    donorName?: string;
+    date: Date;
+    addedBy?: mongoose.Types.ObjectId;
+    notes?: string;
+  }[];
 }
 
 const DispensaryMedicineSchema = new Schema<IDispensaryMedicine>(
@@ -40,10 +54,26 @@ const DispensaryMedicineSchema = new Schema<IDispensaryMedicine>(
       enum: ['Donated', 'Government', 'Trust Funded'],
       default: 'Trust Funded',
     },
+    maxQuantity: { type: Number, required: true, default: 100 },
     donorName:  { type: String },
+    donorContact: { type: String },
+    donationDate: { type: Date },
+    govtBatchNo: { type: String },
+    govtSupplyDate: { type: Date },
+    batchNumber: { type: String },
     expiryDate: { type: Date },
     isActive:   { type: Boolean, default: true },
     addedBy:    { type: Schema.Types.ObjectId, ref: 'User' },
+    restockHistory: [
+      {
+        quantity: Number,
+        source: String,
+        donorName: String,
+        date: Date,
+        addedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+        notes: String,
+      }
+    ],
   },
   { timestamps: true }
 );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import api, { prescriptionAPI, dispensaryAPI } from '../../api';
+import api, { prescriptionAPI, dispensaryAPI, medicineAPI } from '../../api';
 import { getMedicineRoute, RoutingResult } from '../../utils/medicineRouting';
 import '../../styles/mmh.css';
 import DispensingSlip, { printSlip } from '../../components/DispensingSlip';
@@ -14,8 +14,12 @@ interface Medicine {
   category: string;
   unit: string;
   quantity: number;
-  minQty: number;
+  minQuantity: number;
   pricePerUnit: number;
+  stockStatus?: string;
+  daysToExpiry?: number | null;
+  expiryStatus?: string;
+  restockHistory?: any[];
 }
 
 interface Patient {
@@ -77,9 +81,12 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [stockFilter, setStockFilter] = useState('All');
+  const [inventoryStats, setInventoryStats] = useState({ total: 0, low: 0, out: 0, expiringSoon: 0, ok: 0 });
 
   // Add Medicine Modal State
   const [showAddModal, setShowAddModal] = useState(false);
+  const [restockModal, setRestockModal] = useState<any>(null);
+  const [historyModal, setHistoryModal] = useState<any>(null);
   const [newMed, setNewMed] = useState({
     name: '',
     generic: '',
@@ -108,8 +115,12 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const medsRes = await api.get('/medicines');
-      setMedicines(medsRes.data || []);
+      const medsRes = await medicineAPI.getAll();
+      setMedicines(medsRes.data?.data || []);
+      setInventoryStats({
+        ...medsRes.data?.summary,
+        ok: (medsRes.data?.summary?.total || 0) - (medsRes.data?.summary?.low || 0) - (medsRes.data?.summary?.out || 0)
+      });
       setDispenseHistory([
         { id: '1', patient: 'Ali Khan', medicines: 'Panadol (2), Amoxil (1)', total: 450, time: '10:30 AM', status: 'Completed' },
         { id: '2', patient: 'Sara Bibi', medicines: 'Brufen (1)', total: 120, time: '11:15 AM', status: 'Completed' }
@@ -266,16 +277,6 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
 
   const selectedMedicine = medicines.find(m => m._id === selectedMedId);
 
-  // --- Inventory Logic ---
-  const inventoryStats = useMemo(() => {
-    return {
-      total: medicines.length,
-      inStock: medicines.filter(m => m.quantity > (m.minQty || 0)).length,
-      lowStock: medicines.filter(m => m.quantity > 0 && m.quantity <= (m.minQty || 0)).length,
-      outOfStock: medicines.filter(m => m.quantity === 0).length
-    };
-  }, [medicines]);
-
   const filteredInventory = useMemo(() => {
     return medicines.filter(m => {
       const name = m.name || '';
@@ -284,7 +285,7 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
         generic.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = categoryFilter === 'All' || m.category === categoryFilter;
 
-      const minQty = m.minQty || 0;
+      const minQty = m.minQuantity || 0;
       let matchesStock = true;
       if (stockFilter === 'In Stock') matchesStock = m.quantity > 0;
       if (stockFilter === 'Low Stock') matchesStock = m.quantity > 0 && m.quantity <= minQty;
@@ -298,7 +299,7 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post('/medicines', newMed);
+      await medicineAPI.add(newMed);
       alert("Medicine added successfully!");
       setShowAddModal(false);
       setNewMed({
@@ -314,6 +315,27 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
     } catch (error) {
       console.error("Add Medicine Error:", error);
       alert("Failed to add medicine.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestock = async () => {
+    if (!restockModal || restockModal.quantity <= 0) return;
+    setLoading(true);
+    try {
+      await medicineAPI.restock(restockModal.medicine._id, {
+        quantity: restockModal.quantity,
+        price: restockModal.price,
+        supplier: restockModal.supplier,
+        notes: restockModal.notes
+      });
+      alert(`Restocked ${restockModal.quantity} units successfully!`);
+      setRestockModal(null);
+      fetchData();
+    } catch (error) {
+      console.error("Restock Error:", error);
+      alert("Failed to restock medicine.");
     } finally {
       setLoading(false);
     }
@@ -741,28 +763,34 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
             <div className="mmh-stat-card">
               <div className="mmh-stat-accent" style={{ background: 'var(--mmh-green-gradient)' }} />
               <span className="mmh-stat-icon">✅</span>
-              <span className="mmh-stat-value">{inventoryStats.inStock}</span>
+              <span className="mmh-stat-value">{inventoryStats.ok}</span>
               <span className="mmh-stat-label">In Stock</span>
             </div>
             <div className="mmh-stat-card">
               <div className="mmh-stat-accent" style={{ background: 'var(--mmh-amber-gradient)' }} />
               <span className="mmh-stat-icon">⚠️</span>
-              <span className="mmh-stat-value">{inventoryStats.lowStock}</span>
+              <span className="mmh-stat-value">{inventoryStats.low}</span>
               <span className="mmh-stat-label">Low Stock</span>
             </div>
             <div className="mmh-stat-card">
               <div className="mmh-stat-accent" style={{ background: 'var(--mmh-rose-gradient)' }} />
               <span className="mmh-stat-icon">❌</span>
-              <span className="mmh-stat-value">{inventoryStats.outOfStock}</span>
+              <span className="mmh-stat-value">{inventoryStats.out}</span>
               <span className="mmh-stat-label">Out of Stock</span>
+            </div>
+            <div className="mmh-stat-card">
+              <div className="mmh-stat-accent" style={{ background: 'var(--mmh-slate-gradient)' }} />
+              <span className="mmh-stat-icon">⏳</span>
+              <span className="mmh-stat-value">{inventoryStats.expiringSoon}</span>
+              <span className="mmh-stat-label">Expiring Soon</span>
             </div>
           </div>
 
-          {inventoryStats.lowStock > 0 && (
+          {inventoryStats.low > 0 && (
             <div className="mmh-alert mmh-alert-warning" style={{ marginBottom: '24px' }}>
               <span style={{ fontSize: '20px' }}>⚠️</span>
               <div>
-                <strong>Low Stock Alert:</strong> {inventoryStats.lowStock} medicines are below their minimum threshold. Please restock soon.
+                <strong>Low Stock Alert:</strong> {inventoryStats.low} medicines are below their minimum threshold. Please restock soon.
               </div>
             </div>
           )}
@@ -821,6 +849,7 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                       <th>Stock Level</th>
                       <th>Price</th>
                       <th>Status</th>
+                      <th>Expiry</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -829,9 +858,9 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                       <tr><td colSpan={8} className="mmh-empty">No medicines found matching criteria</td></tr>
                     ) : (
                       filteredInventory.map((m, idx) => {
-                        const minQty = m.minQty || 1; // Prevent division by zero
+                        const minQty = m.minQuantity || 1; // Prevent division by zero
                         const stockPct = (m.quantity / (minQty * 3)) * 100;
-                        const progressColor = m.quantity === 0 ? 'var(--mmh-danger)' : m.quantity <= (m.minQty || 0) ? 'var(--mmh-warning)' : 'var(--mmh-success)';
+                        const progressColor = m.quantity === 0 ? 'var(--mmh-danger)' : m.quantity <= (m.minQuantity || 0) ? 'var(--mmh-warning)' : 'var(--mmh-success)';
 
                         return (
                           <tr key={m._id}>
@@ -841,25 +870,45 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                             <td><span className="mmh-badge mmh-badge-gray">{m.category}</span></td>
                             <td>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                <div style={{ fontWeight: 700 }}>{m.quantity} Units (Min: {m.minQty || 0})</div>
-                                <div className="mmh-ward-bar-wrap" style={{ height: '6px', width: '120px' }}>
-                                  <div
-                                    className="mmh-ward-bar-fill"
-                                    style={{ width: `${Math.min(100, stockPct)}%`, background: progressColor }}
-                                  />
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                                  <span style={{
+                                    fontFamily: 'monospace', fontWeight: '700',
+                                    color: (m.stockStatus || m.quantity === 0 ? 'out' : m.quantity <= m.minQuantity ? 'low' : 'ok') === 'out' ? '#fb7185' : (m.stockStatus || m.quantity === 0 ? 'out' : m.quantity <= m.minQuantity ? 'low' : 'ok') === 'low' ? '#fbbf24' : '#34d399'
+                                  }}>
+                                    {m.quantity} {m.unit}
+                                  </span>
+                                  <span style={{ color: 'var(--mmh-text4)' }}>
+                                    min: {m.minQuantity}
+                                  </span>
+                                </div>
+                                <div style={{ height: '6px', background: 'var(--mmh-card2)', borderRadius: '3px', overflow: 'hidden', width: '120px' }}>
+                                  <div style={{
+                                    height: '100%', borderRadius: '3px',
+                                    width: `${Math.min(100, Math.round(m.quantity / Math.max(m.minQuantity * 3, 1) * 100))}%`,
+                                    background: (m.stockStatus || m.quantity === 0 ? 'out' : m.quantity <= m.minQuantity ? 'low' : 'ok') === 'out' ? '#f43f5e' : (m.stockStatus || m.quantity === 0 ? 'out' : m.quantity <= m.minQuantity ? 'low' : 'ok') === 'low' ? '#f59e0b' : '#10b981',
+                                    transition: 'width 0.4s ease'
+                                  }} />
                                 </div>
                               </div>
                             </td>
                             <td style={{ fontWeight: 700 }}>{m.pricePerUnit}</td>
                             <td>
-                              <span className={`mmh-badge ${m.quantity === 0 ? 'mmh-badge-rose' : m.quantity <= m.minQty ? 'mmh-badge-amber' : 'mmh-badge-green'}`}>
-                                {m.quantity === 0 ? 'No Stock' : m.quantity <= m.minQty ? 'Low stock' : 'Adequate'}
-                              </span>
+                              {m.stockStatus === 'out' ? <span className="mmh-badge" style={{ background: '#f43f5e', color: 'white' }}>OUT OF STOCK</span>
+                                : m.stockStatus === 'low' ? <span className="mmh-badge mmh-badge-amber">LOW STOCK ⚠️</span>
+                                : <span className="mmh-badge mmh-badge-green">In Stock ✓</span>}
+                            </td>
+                            <td>
+                              {m.expiryStatus === 'expired' ? <span style={{ color: '#f43f5e' }}>EXPIRED</span>
+                               : m.expiryStatus === 'critical' ? <span style={{ color: '#f43f5e' }}>{m.daysToExpiry} days</span>
+                               : m.expiryStatus === 'warning' ? <span style={{ color: '#f59e0b' }}>{m.daysToExpiry && m.daysToExpiry > 30 ? Math.floor(m.daysToExpiry / 30) + ' months' : m.daysToExpiry + ' days'}</span>
+                               : m.daysToExpiry !== null && m.daysToExpiry !== undefined ? <span style={{ color: 'var(--mmh-text3)' }}>{m.daysToExpiry > 30 ? Math.floor(m.daysToExpiry / 30) + 'm' : m.daysToExpiry + 'd'}</span>
+                               : <span style={{ color: 'var(--mmh-text3)' }}>—</span>}
                             </td>
                             <td>
                               <div style={{ display: 'flex', gap: '8px' }}>
                                 <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" title="Edit">✏️</button>
-                                <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" title="Restock">➕</button>
+                                <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" title="Restock" onClick={() => setRestockModal({ medicine: m, quantity: 1, price: m.pricePerUnit, supplier: '', notes: '' })}>➕</button>
+                                <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" title="History" onClick={() => setHistoryModal(m)}>📜</button>
                               </div>
                             </td>
                           </tr>
@@ -996,6 +1045,94 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Restock Modal */}
+      {restockModal && (
+        <div className="mmh-overlay" onClick={() => setRestockModal(null)}>
+          <div className="mmh-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className="mmh-modal-header">
+              <h2 className="mmh-modal-title">Restock — {restockModal.medicine.name}</h2>
+              <button className="mmh-modal-close" onClick={() => setRestockModal(null)}>×</button>
+            </div>
+            <div className="mmh-modal-body">
+              <div style={{ border: '1px solid var(--mmh-border)', padding: '12px', borderRadius: '10px', marginBottom: '16px' }}>
+                <div style={{ fontSize: '13px' }}>Current: <strong>{restockModal.medicine.quantity} {restockModal.medicine.unit}s</strong></div>
+                <div style={{ fontSize: '13px' }}>Min Stock: <strong>{restockModal.medicine.minQuantity}</strong></div>
+                <div style={{ fontSize: '13px', marginTop: '6px' }}>
+                  Status: {restockModal.medicine.stockStatus === 'out' ? '🚫 OUT OF STOCK' : restockModal.medicine.stockStatus === 'low' ? '⚠️ LOW STOCK' : '✅ OK'}
+                </div>
+              </div>
+              <div className="mmh-field">
+                <label className="mmh-label">Add Quantity <span className="mmh-required">*</span></label>
+                <input type="number" className="mmh-input" value={restockModal.quantity} onChange={e => setRestockModal({ ...restockModal, quantity: parseInt(e.target.value) || 0 })} required />
+              </div>
+              <div className="mmh-field">
+                <label className="mmh-label">Purchase Price per unit (PKR)</label>
+                <input type="number" className="mmh-input" value={restockModal.price} onChange={e => setRestockModal({ ...restockModal, price: parseFloat(e.target.value) || 0 })} />
+              </div>
+              <div className="mmh-field">
+                <label className="mmh-label">Supplier Name</label>
+                <input type="text" className="mmh-input" value={restockModal.supplier} onChange={e => setRestockModal({ ...restockModal, supplier: e.target.value })} />
+              </div>
+              <div className="mmh-field">
+                <label className="mmh-label">Notes</label>
+                <input type="text" className="mmh-input" value={restockModal.notes} onChange={e => setRestockModal({ ...restockModal, notes: e.target.value })} />
+              </div>
+              {restockModal.quantity > 0 && (
+                <div style={{ padding: '12px', background: 'rgba(16,185,129,0.1)', color: '#10b981', borderRadius: '8px', fontSize: '13px', fontWeight: 600 }}>
+                  New total will be: {restockModal.medicine.quantity} + {restockModal.quantity} = {restockModal.medicine.quantity + restockModal.quantity} {restockModal.medicine.unit}s ✅
+                </div>
+              )}
+            </div>
+            <div className="mmh-modal-footer">
+              <button type="button" className="mmh-btn mmh-btn-ghost" onClick={() => setRestockModal(null)}>Cancel</button>
+              <button type="button" className="mmh-btn mmh-btn-primary" disabled={loading || restockModal.quantity <= 0} onClick={handleRestock}>
+                {loading ? 'Restocking...' : 'Save Restock'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* History Modal */}
+      {historyModal && (
+        <div className="mmh-overlay" onClick={() => setHistoryModal(null)}>
+          <div className="mmh-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+            <div className="mmh-modal-header">
+              <h2 className="mmh-modal-title">Restock History — {historyModal.name}</h2>
+              <button className="mmh-modal-close" onClick={() => setHistoryModal(null)}>×</button>
+            </div>
+            <div className="mmh-modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+              <table className="mmh-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Added Qty</th>
+                    <th>Price</th>
+                    <th>Supplier</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(!historyModal.restockHistory || historyModal.restockHistory.length === 0) ? (
+                    <tr><td colSpan={5} className="mmh-empty">No history found</td></tr>
+                  ) : (
+                    [...historyModal.restockHistory].reverse().map((h: any, i: number) => (
+                      <tr key={i}>
+                        <td>{new Date(h.date).toLocaleDateString()}</td>
+                        <td style={{ fontWeight: 700, color: 'var(--mmh-green)' }}>+{h.quantity}</td>
+                        <td>{h.price}</td>
+                        <td>{h.supplier}</td>
+                        <td style={{ fontSize: '11px', color: 'var(--mmh-text3)' }}>{h.notes}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

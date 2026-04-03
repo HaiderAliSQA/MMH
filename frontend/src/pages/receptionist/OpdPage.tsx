@@ -90,7 +90,7 @@ const printOpdSlip = (visitData: any) => {
     </div>
     <div class="ft">⚠️ Please keep this slip safe — Show at doctor's counter<br/>MMH Chiniot | Majida Memorial Hospital</div>
   </div>
-  <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}<\/script>
+  <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}</script>
   </body></html>`);
   pw.document.close();
 };
@@ -166,7 +166,7 @@ const printAdmissionSlip = (admissionData: any) => {
     </div>
     <div class="ft">Please show to ward staff — MMH Chiniot</div>
   </div>
-  <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}<\/script>
+  <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}</script>
   </body></html>`);
   pw.document.close();
 };
@@ -233,7 +233,7 @@ const printDischargeSlip = (ad: any) => {
     </div>
     <div class="ft">Wishing you a speedy recovery!<br/>MMH Chiniot | Majida Memorial Hospital</div>
   </div>
-  <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}<\/script>
+  <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}</script>
   </body></html>`);
   pw.document.close();
 };
@@ -1020,7 +1020,7 @@ const printLabSlip = (labData: any) => {
     </div>
     <div class="ft">Please bring this slip to the lab counter<br/>MMH Laboratory | Majida Memorial Hospital Chiniot</div>
   </div>
-  <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}<\/script>
+  <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),500)}</script>
   </body></html>`);
   pw.document.close();
 };

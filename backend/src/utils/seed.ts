@@ -189,12 +189,12 @@ const seedDB = async () => {
     // ═══ SEED DISPENSARY MEDICINES ═══
     const dispensaryUser = createdUsers.find(u => u.email === 'dispensary@mmh.pk');
     const dispensaryMedsData = [
-      { name: 'Paracetamol 500mg', generic: 'Paracetamol', category: 'Analgesic', quantity: 500, minQuantity: 50, unit: 'Tablets', source: 'Government', addedBy: dispensaryUser?._id },
-      { name: 'Amoxicillin 250mg', generic: 'Amoxicillin', category: 'Antibiotic', quantity: 200, minQuantity: 30, unit: 'Capsules', source: 'Donated', donorName: 'Al-Khidmat Foundation', addedBy: dispensaryUser?._id },
-      { name: 'ORS Sachet', generic: 'ORS', category: 'Other', quantity: 300, minQuantity: 40, unit: 'Sachets', source: 'Government', addedBy: dispensaryUser?._id },
-      { name: 'Metformin 500mg', generic: 'Metformin', category: 'Antidiabetic', quantity: 150, minQuantity: 20, unit: 'Tablets', source: 'Trust Funded', addedBy: dispensaryUser?._id },
-      { name: 'Panadol Syrup 120ml', generic: 'Paracetamol', category: 'Analgesic', quantity: 8, minQuantity: 10, unit: 'Bottles', source: 'Donated', donorName: 'Local Donor', addedBy: dispensaryUser?._id },
-      { name: 'Chlorpheniramine', generic: 'Chlorpheniramine Maleate', category: 'Antiallergic', quantity: 0, minQuantity: 30, unit: 'Tablets', source: 'Government', addedBy: dispensaryUser?._id },
+      { name: 'Paracetamol 500mg', generic: 'Paracetamol', category: 'Analgesic', quantity: 500, maxQuantity: 1000, minQuantity: 50, unit: 'Tablets', source: 'Government', govtBatchNo: 'NHSP-2026-001', addedBy: dispensaryUser?._id },
+      { name: 'Amoxicillin 250mg', generic: 'Amoxicillin', category: 'Antibiotic', quantity: 60, maxQuantity: 500, minQuantity: 30, unit: 'Capsules', source: 'Donated', donorName: 'Al-Khidmat Foundation', addedBy: dispensaryUser?._id },
+      { name: 'ORS Sachet', generic: 'ORS', category: 'Other', quantity: 40, maxQuantity: 300, minQuantity: 40, unit: 'Sachets', source: 'Government', addedBy: dispensaryUser?._id },
+      { name: 'Metformin 500mg', generic: 'Metformin', category: 'Antidiabetic', quantity: 0, maxQuantity: 200, minQuantity: 20, unit: 'Tablets', source: 'Trust Funded', addedBy: dispensaryUser?._id },
+      { name: 'Panadol Syrup 120ml', generic: 'Paracetamol', category: 'Analgesic', quantity: 8, maxQuantity: 50, minQuantity: 10, unit: 'Bottles', source: 'Donated', donorName: 'Local Donor', addedBy: dispensaryUser?._id },
+      { name: 'Chlorpheniramine 4mg', generic: 'Chlorpheniramine', category: 'Antiallergic', quantity: 150, maxQuantity: 400, minQuantity: 30, unit: 'Tablets', source: 'Donated', donorName: 'Local Donor', expiryDate: new Date('2026-06-30'), addedBy: dispensaryUser?._id },
     ];
     await DispensaryMedicine.insertMany(dispensaryMedsData);
 

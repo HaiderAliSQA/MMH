@@ -97,6 +97,15 @@ export const pharmacyAPI = {
   dispense: (data: object) => api.post('/dispense', data),
 }
 
+export const medicineAPI = {
+  getAll:   (params?: object) => api.get('/medicines', { params }),
+  add:      (data: object) => api.post('/medicines', data),
+  update:   (id: string, data: object) => api.put(`/medicines/${id}`, data),
+  restock:  (id: string, data: object) => api.put(`/medicines/${id}/restock`, data),
+}
+
+
+
 export const paymentAPI = {
   getAll: (params?: object) => api.get('/payments', { params }),
   create: (data: object) => api.post('/payments', data),
@@ -168,6 +177,7 @@ export const dispensaryAPI = {
   getMedicines:    (params?: object) => api.get('/dispensary/medicines', { params }),
   addMedicine:     (data: object) => api.post('/dispensary/medicines', data),
   updateMedicine:  (id: string, data: object) => api.put(`/dispensary/medicines/${id}`, data),
+  restockMedicine: (data: object) => api.post('/dispensary/medicines/restock', data),
   dispense:        (data: object) => api.post('/dispensary/dispense', data),
   getHistory:      (params?: object) => api.get('/dispensary/history', { params }),
 }

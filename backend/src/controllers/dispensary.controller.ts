@@ -63,34 +63,68 @@ export const getStats = async (req: IAuthRequest, res: Response): Promise<void> 
   }
 };
 
+import { getDispensaryStockStatus, getStockPercent, getDaysToExpiry, getExpiryStatus } from '../utils/stockUtils';
+
 // ─── GET /api/dispensary/medicines ──────────────────────────────────────────
 export const getMedicines = async (req: IAuthRequest, res: Response): Promise<void> => {
   try {
-    const { search, category, stock } = req.query;
+    const { search, category, stock, source } = req.query;
     const query: any = { isActive: true };
 
-    if (category && category !== 'All') {
-      query.category = category;
-    }
     if (search) {
       query.$or = [
         { name: { $regex: String(search), $options: 'i' } },
         { generic: { $regex: String(search), $options: 'i' } },
       ];
     }
-    if (stock === 'low') {
-      query.$expr = { $lte: ['$quantity', '$minQuantity'] };
-      query.quantity = { $gt: 0 };
+    if (category && category !== 'All') {
+      query.category = category;
     }
-    if (stock === 'out') {
-      query.quantity = 0;
+    if (source && source !== 'All') {
+      query.source = source;
     }
 
-    const medicines = await DispensaryMedicine.find(query)
-      .populate('addedBy', 'name')
-      .sort({ name: 1 });
+    const medicines = await DispensaryMedicine.find(query).sort({ name: 1 });
 
-    res.json({ success: true, data: medicines });
+    const enriched = medicines.map((m) => {
+      const obj = m.toObject() as any;
+      const status = getDispensaryStockStatus(m.quantity, m.maxQuantity);
+      obj.stockStatus = status;
+      obj.stockPercent = getStockPercent(m.quantity, m.maxQuantity);
+      obj.lowStockThreshold = Math.ceil(m.maxQuantity * 0.20);
+      const daysLeft = getDaysToExpiry(m.expiryDate);
+      obj.daysToExpiry = daysLeft;
+      obj.expiryStatus = getExpiryStatus(daysLeft);
+      return obj;
+    });
+
+    // Apply stock filter after enrichment
+    let filtered = enriched;
+    if (stock === 'critical') {
+      filtered = enriched.filter((m: any) => m.stockStatus === 'critical');
+    } else if (stock === 'low') {
+      filtered = enriched.filter(
+        (m: any) => m.stockStatus === 'low' || m.stockStatus === 'critical'
+      );
+    } else if (stock === 'out') {
+      filtered = enriched.filter((m: any) => m.stockStatus === 'out');
+    }
+
+    const summary = {
+      total: enriched.length,
+      ok: enriched.filter((m: any) => m.stockStatus === 'ok').length,
+      low: enriched.filter((m: any) => m.stockStatus === 'low').length,
+      critical: enriched.filter((m: any) => m.stockStatus === 'critical').length,
+      out: enriched.filter((m: any) => m.stockStatus === 'out').length,
+      expiring: enriched.filter((m: any) => m.expiryStatus === 'critical').length,
+      bySource: {
+        donated: enriched.filter((m: any) => m.source === 'Donated').length,
+        government: enriched.filter((m: any) => m.source === 'Government').length,
+        trustFunded: enriched.filter((m: any) => m.source === 'Trust Funded').length,
+      },
+    };
+
+    res.json({ success: true, data: filtered, summary });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to fetch medicines' });
   }
@@ -278,5 +312,52 @@ export const getHistory = async (req: IAuthRequest, res: Response): Promise<void
     res.json({ success: true, data: dispenses });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message || 'Failed to fetch history' });
+  }
+};
+
+// ─── POST /api/dispensary/medicines/restock ─────────────────────────────────
+export const restockDispensary = async (req: IAuthRequest, res: Response): Promise<void> => {
+  try {
+    const {
+      medicineId,
+      quantity,
+      source,
+      donorName,
+      donorContact,
+      govtBatchNo,
+      notes,
+    } = req.body;
+
+    const medicine = await DispensaryMedicine.findById(medicineId);
+    if (!medicine) {
+      res.status(404).json({ success: false, message: 'Medicine not found' });
+      return;
+    }
+
+    await DispensaryMedicine.findByIdAndUpdate(medicineId, {
+      $inc: { quantity: Number(quantity) },
+      source: source || medicine.source,
+      ...(donorName && { donorName }),
+      ...(donorContact && { donorContact }),
+      ...(govtBatchNo && { govtBatchNo }),
+      $push: {
+        restockHistory: {
+          quantity: Number(quantity),
+          source: source || medicine.source,
+          donorName: donorName || '',
+          date: new Date(),
+          addedBy: req.user?.id,
+          notes: notes || '',
+        },
+      },
+    });
+
+    res.json({
+      success: true,
+      message: `${quantity} units added to dispensary stock`,
+      newQuantity: medicine.quantity + Number(quantity),
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || 'Failed to restock' });
   }
 };

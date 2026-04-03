@@ -1,6 +1,7 @@
-﻿const fs = require('fs');
+/* global require */
+const fs = require('fs');
 
-const css = \
+const css = `
 /* ========================================= */
 /* FIX: PAGINATION PAGEDOWN VISIBILITY       */
 /* ========================================= */
@@ -269,5 +270,5 @@ const css = \
   .mmh-att-cal-day { font-size: 10px; border-radius: 5px; }
   .mmh-leave-bal-row { grid-template-columns: 1fr !important; }
 }
-\;
+`;
 fs.appendFileSync('c:/Users/haider.ali/Downloads/AntiMMH/frontend/src/styles/mmh.css', css, 'utf8');

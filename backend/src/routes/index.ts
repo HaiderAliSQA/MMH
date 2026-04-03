@@ -6,7 +6,7 @@ import { getAdmissions, createAdmission, dischargePatient } from '../controllers
 import { getTodayOPD, createOpdVisit, updateOPDStatus, getDoctorAllVisits, getPatientOPD } from '../controllers/opd.controller';
 import { getDoctorPrescriptions, getPatientPrescriptions, createPrescription, updateRoutingStatus } from '../controllers/prescription.controller';
 import { getLabRequests, createLabRequest, updateLabStatus } from '../controllers/lab.controller';
-import { getMedicines, createMedicine, updateMedicine, dispenseMedicine } from '../controllers/pharmacy.controller';
+import { getMedicines, createMedicine, updateMedicine, dispenseMedicine, restockMedicine } from '../controllers/pharmacy.controller';
 import { getPayments, createPayment } from '../controllers/payment.controller';
 import { getStats, getUsers, createUser, updateUser, getDoctors, createDoctor, getWards, getWardBeds } from '../controllers/admin.controller';
 import {
@@ -27,6 +27,7 @@ import {
   updateMedicine as updateDispensaryMedicine,
   dispenseMedicine as dispenseFreeMedicine,
   getHistory as getDispensaryHistory,
+  restockDispensary,
 } from '../controllers/dispensary.controller';
 import {
   dispensarySummary,
@@ -84,6 +85,7 @@ router.put('/labs/:id', updateLabStatus);
 router.get('/medicines', protect, getMedicines);
 router.post('/medicines', protect, authorize('pharmacist', 'admin'), createMedicine);
 router.put('/medicines/:id', protect, authorize('pharmacist', 'admin'), updateMedicine);
+router.put('/medicines/:id/restock', protect, authorize('admin', 'pharmacist'), restockMedicine);
 router.post('/dispense', protect, authorize('pharmacist', 'admin'), dispenseMedicine);
 
 // Payment Routes (Secured)
@@ -144,6 +146,7 @@ router.get('/dispensary/stats', protect, authorize('admin', 'manager'), getDispe
 router.get('/dispensary/medicines', protect, authorize('dispensary', 'admin'), getDispensaryMedicines);
 router.post('/dispensary/medicines', protect, authorize('admin'), addDispensaryMedicine);
 router.put('/dispensary/medicines/:id', protect, authorize('admin', 'dispensary'), updateDispensaryMedicine);
+router.post('/dispensary/medicines/restock', protect, authorize('admin', 'dispensary'), restockDispensary);
 router.post('/dispensary/dispense', protect, authorize('dispensary', 'admin'), dispenseFreeMedicine);
 router.get('/dispensary/history', protect, authorize('dispensary', 'admin'), getDispensaryHistory);
 

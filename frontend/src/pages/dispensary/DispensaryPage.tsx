@@ -7,7 +7,7 @@ import '../../styles/mmh.css';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface DispensaryStatus { isOpen: boolean; message: string; opensAt?: string; }
-interface Medicine { _id: string; name: string; generic?: string; category: string; quantity: number; minQuantity: number; unit: string; source: string; donorName?: string; expiryDate?: string; isActive: boolean; }
+interface Medicine { _id: string; name: string; generic?: string; category: string; quantity: number; minQuantity: number; maxQuantity: number; unit: string; source: string; donorName?: string; donorContact?: string; govtBatchNo?: string; batchNumber?: string; expiryDate?: string; isActive: boolean; stockStatus?: string; expiryStatus?: string; daysToExpiry?: number | null; restockHistory?: any[]; }
 interface CartItem { medicine: string; medicineName: string; quantity: number; unit: string; available: number; }
 interface Patient { _id: string; name: string; mrNumber: string; patientType?: string; age?: number; gender?: string; phone?: string; }
 interface DispenseRecord { _id: string; patient: Patient; items: CartItem[]; dispensedBy: { name: string }; dispenseTime: string; notes?: string; }
@@ -228,6 +228,7 @@ const DispensaryPage: React.FC = () => {
     try {
       const r = await dispensaryAPI.getMedicines(params);
       setMedicines(r.data.data || []);
+      // Optional: set stats from r.data.summary if needed globally
     } catch { /* ignore */ }
   }, []);
 
@@ -617,7 +618,9 @@ const StockTab: React.FC<{ medicines: Medicine[]; fetchMedicines: (p?: object) =
   const [sourceFilter, setSourceFilter] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editMedicine, setEditMedicine] = useState<Medicine | null>(null);
-  const [form, setForm] = useState({ name: '', generic: '', category: 'Other', quantity: 0, minQuantity: 10, unit: 'Tablets', source: 'Trust Funded', donorName: '', expiryDate: '' });
+  const [restockModal, setRestockModal] = useState<any>(null);
+  const [historyModal, setHistoryModal] = useState<any>(null);
+  const [form, setForm] = useState({ name: '', generic: '', category: 'Other', quantity: 0, minQuantity: 10, maxQuantity: 100, unit: 'Tablets', source: 'Trust Funded', donorName: '', donorContact: '', govtBatchNo: '', batchNumber: '', expiryDate: '' });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -633,19 +636,19 @@ const StockTab: React.FC<{ medicines: Medicine[]; fetchMedicines: (p?: object) =
 
   const stats = {
     total: medicines.length,
-    low: medicines.filter(m => m.quantity > 0 && m.quantity <= m.minQuantity).length,
-    out: medicines.filter(m => m.quantity === 0).length,
-    thisMonth: medicines.length,
+    critical: medicines.filter(m => m.stockStatus === 'critical' || m.quantity === 0).length,
+    low: medicines.filter(m => m.stockStatus === 'low').length,
+    expiringSoon: medicines.filter(m => m.expiryStatus === 'warning' || m.expiryStatus === 'critical').length,
   };
 
   const openAdd = () => {
-    setForm({ name: '', generic: '', category: 'Other', quantity: 0, minQuantity: 10, unit: 'Tablets', source: 'Trust Funded', donorName: '', expiryDate: '' });
+    setForm({ name: '', generic: '', category: 'Other', quantity: 0, minQuantity: 10, maxQuantity: 100, unit: 'Tablets', source: 'Trust Funded', donorName: '', donorContact: '', govtBatchNo: '', batchNumber: '', expiryDate: '' });
     setEditMedicine(null);
     setShowAddModal(true);
   };
 
   const openEdit = (m: Medicine) => {
-    setForm({ name: m.name, generic: m.generic || '', category: m.category, quantity: m.quantity, minQuantity: m.minQuantity, unit: m.unit, source: m.source, donorName: m.donorName || '', expiryDate: m.expiryDate ? m.expiryDate.slice(0, 10) : '' });
+    setForm({ name: m.name, generic: m.generic || '', category: m.category, quantity: m.quantity, minQuantity: m.minQuantity, maxQuantity: m.maxQuantity || Math.max(m.minQuantity * 3, 100), unit: m.unit, source: m.source, donorName: m.donorName || '', donorContact: m.donorContact || '', govtBatchNo: m.govtBatchNo || '', batchNumber: m.batchNumber || '', expiryDate: m.expiryDate ? m.expiryDate.slice(0, 10) : '' });
     setEditMedicine(m);
     setShowAddModal(true);
   };
@@ -654,7 +657,12 @@ const StockTab: React.FC<{ medicines: Medicine[]; fetchMedicines: (p?: object) =
     e.preventDefault();
     setSaving(true);
     try {
-      const payload = { ...form, quantity: Number(form.quantity), minQuantity: Number(form.minQuantity) };
+      const payload = {
+        ...form,
+        quantity: Number(form.quantity),
+        minQuantity: Number(form.minQuantity),
+        maxQuantity: Number(form.maxQuantity)
+      };
       if (editMedicine) {
         await dispensaryAPI.updateMedicine(editMedicine._id, payload);
       } else {
@@ -669,13 +677,23 @@ const StockTab: React.FC<{ medicines: Medicine[]; fetchMedicines: (p?: object) =
     }
   };
 
-  const handleRestock = async (m: Medicine) => {
-    const qty = prompt(`Add units to ${m.name}\nCurrent: ${m.quantity} ${m.unit}\nEnter quantity to add:`);
-    if (!qty || isNaN(Number(qty))) return;
+  const submitRestock = async () => {
+    if (!restockModal || restockModal.quantity <= 0) return;
+    setSaving(true);
     try {
-      await dispensaryAPI.updateMedicine(m._id, { quantity: m.quantity + Number(qty) });
+      await dispensaryAPI.restockMedicine({
+        medicineId: restockModal.medicine._id,
+        quantity: restockModal.quantity,
+        batchNumber: restockModal.batchNumber,
+        govtBatchNo: restockModal.govtBatchNo,
+        donorName: restockModal.donorName,
+        donorContact: restockModal.donorContact
+      });
+      alert(`Restocked ${restockModal.quantity} units successfully!`);
+      setRestockModal(null);
       fetchMedicines();
-    } catch { alert('Failed to restock'); }
+    } catch { alert('Failed to restock. Please ensure required fields for the source are filled.'); }
+    finally { setSaving(false); }
   };
 
   return (
@@ -683,10 +701,10 @@ const StockTab: React.FC<{ medicines: Medicine[]; fetchMedicines: (p?: object) =
       {/* Stats */}
       <div className="mmh-stats-grid" style={{ marginBottom: 20 }}>
         {[
-          { label: 'Total Medicines', value: stats.total, icon: '💊', accent: 'var(--mmh-accent)' },
-          { label: 'Low Stock', value: stats.low, icon: '⚠️', accent: '#f59e0b' },
-          { label: 'Out of Stock', value: stats.out, icon: '🚫', accent: '#ef4444' },
-          { label: 'Added This Month', value: stats.thisMonth, icon: '📅', accent: '#10b981' },
+          { label: 'Total Medicines', value: stats.total, icon: '💊', accent: 'var(--mmh-sky-gradient)' },
+          { label: 'Critical Stock', value: stats.critical, icon: '⚠️', accent: 'var(--mmh-rose-gradient)' },
+          { label: 'Low Stock', value: stats.low, icon: '⚠️', accent: 'var(--mmh-amber-gradient)' },
+          { label: 'Expiring Soon', value: stats.expiringSoon, icon: '⏳', accent: 'var(--mmh-slate-gradient)' },
         ].map(c => (
           <div className="mmh-stat-card" key={c.label}>
             <div className="mmh-stat-accent" style={{ background: c.accent }} />
@@ -749,8 +767,6 @@ const StockTab: React.FC<{ medicines: Medicine[]; fetchMedicines: (p?: object) =
                   <tr><td colSpan={10} className="mmh-empty">No medicines found</td></tr>
                 ) : filtered.map((m, i) => {
                   const isOut = m.quantity === 0;
-                  const isLow = !isOut && m.quantity <= m.minQuantity;
-                  const color = getStockColor(m.quantity, m.minQuantity);
                   return (
                     <tr key={m._id}>
                       <td>{i + 1}</td>
@@ -758,17 +774,44 @@ const StockTab: React.FC<{ medicines: Medicine[]; fetchMedicines: (p?: object) =
                       <td style={{ color: 'var(--mmh-text3)', fontSize: 12 }}>{m.generic || '—'}</td>
                       <td><span className="mmh-badge mmh-badge-sky" style={{ fontSize: 10 }}>{m.category}</span></td>
                       <td>
-                        <span style={{ fontWeight: 800, color, fontFamily: 'monospace', fontSize: 14 }}>{m.quantity}</span>
-                        <span style={{ fontSize: 11, color: 'var(--mmh-text3)', marginLeft: 4 }}>{m.unit}</span>
-                        {isLow && !isOut && <span style={{ marginLeft: 6, fontSize: 10, background: '#422006', color: '#f59e0b', padding: '1px 6px', borderRadius: 10, fontWeight: 700 }}>LOW</span>}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                            <span style={{
+                              fontFamily: 'monospace', fontWeight: '700',
+                              color: m.stockStatus === 'critical' || isOut ? '#fb7185' : m.stockStatus === 'low' ? '#fbbf24' : '#34d399'
+                            }}>
+                              {m.quantity} {m.unit}
+                            </span>
+                            <span style={{ color: 'var(--mmh-text4)' }}>
+                              max: {m.maxQuantity || Math.max(m.minQuantity * 3, 100)}
+                            </span>
+                          </div>
+                          <div style={{ height: '6px', background: 'var(--mmh-card2)', borderRadius: '3px', overflow: 'hidden', width: '120px', position: 'relative' }}>
+                            <div style={{
+                              height: '100%', borderRadius: '3px',
+                              width: `${Math.min(100, Math.round(m.quantity / (m.maxQuantity || Math.max(m.minQuantity * 3, 100)) * 100))}%`,
+                              background: m.stockStatus === 'critical' || isOut ? '#f43f5e' : m.stockStatus === 'low' ? '#f59e0b' : '#10b981',
+                              transition: 'width 0.4s ease'
+                            }} />
+                            <div style={{ position: 'absolute', top: 0, bottom: 0, left: '20%', width: '2px', background: 'rgba(255,255,255,0.7)', zIndex: 1 }} title="20% Critical Threshold" />
+                          </div>
+                        </div>
                       </td>
                       <td style={{ fontSize: 12, color: 'var(--mmh-text3)' }}>{m.minQuantity}</td>
                       <td><span className={`mmh-badge ${getSourceBadge(m.source)}`} style={{ fontSize: 10 }}>{m.source}</span></td>
-                      <td style={{ fontSize: 12, color: 'var(--mmh-text3)' }}>{m.expiryDate ? new Date(m.expiryDate).toLocaleDateString() : '—'}</td>
+                      <td>
+                        {m.expiryStatus === 'expired' ? <span style={{ color: '#f43f5e' }}>EXPIRED</span>
+                         : m.expiryStatus === 'critical' ? <span style={{ color: '#f43f5e' }}>{m.daysToExpiry} days</span>
+                         : m.expiryStatus === 'warning' ? <span style={{ color: '#f59e0b' }}>{m.daysToExpiry && m.daysToExpiry > 30 ? Math.floor(m.daysToExpiry / 30) + ' months' : m.daysToExpiry + ' days'}</span>
+                         : m.daysToExpiry !== null && m.daysToExpiry !== undefined ? <span style={{ color: 'var(--mmh-text3)' }}>{m.daysToExpiry > 30 ? Math.floor(m.daysToExpiry / 30) + 'm' : m.daysToExpiry + 'd'}</span>
+                         : <span style={{ color: 'var(--mmh-text3)' }}>—</span>}
+                      </td>
                       <td>
                         {isOut ? (
                           <span className="mmh-badge mmh-badge-danger" style={{ fontSize: 10, fontWeight: 800 }}>OUT OF STOCK</span>
-                        ) : isLow ? (
+                        ) : m.stockStatus === 'critical' ? (
+                          <span style={{ fontSize: 10, color: '#f43f5e', fontWeight: 700 }}>⚠️ Critical</span>
+                        ) : m.stockStatus === 'low' ? (
                           <span style={{ fontSize: 10, color: '#f59e0b', fontWeight: 700 }}>⚠️ Low</span>
                         ) : (
                           <span style={{ fontSize: 10, color: '#34d399', fontWeight: 700 }}>✓ OK</span>
@@ -777,7 +820,8 @@ const StockTab: React.FC<{ medicines: Medicine[]; fetchMedicines: (p?: object) =
                       <td>
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" onClick={() => openEdit(m)}>✏️ Edit</button>
-                          <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" onClick={() => handleRestock(m)} style={{ color: '#34d399' }}>📦 Restock</button>
+                          <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" onClick={() => setRestockModal({ medicine: m, quantity: 1, batchNumber: '', govtBatchNo: '', donorName: m.donorName || '', donorContact: m.donorContact || '' })} style={{ color: '#34d399' }}>📦 Restock</button>
+                          <button className="mmh-btn mmh-btn-ghost mmh-btn-xs" title="History" onClick={() => setHistoryModal(m)}>📜</button>
                         </div>
                       </td>
                     </tr>
@@ -823,14 +867,24 @@ const StockTab: React.FC<{ medicines: Medicine[]; fetchMedicines: (p?: object) =
                     </select>
                   </div>
                 </div>
-                <div className="mmh-form-grid">
+                 <div className="mmh-form-grid">
                   <div className="mmh-field">
                     <label className="mmh-label">Quantity</label>
                     <input className="mmh-input" type="number" min={0} value={form.quantity} onChange={e => setForm({ ...form, quantity: Number(e.target.value) })} />
                   </div>
                   <div className="mmh-field">
-                    <label className="mmh-label">Min Stock Alert Level</label>
+                    <label className="mmh-label">Max Capacity</label>
+                    <input className="mmh-input" type="number" min={1} value={form.maxQuantity} onChange={e => setForm({ ...form, maxQuantity: Number(e.target.value) })} />
+                  </div>
+                </div>
+                <div className="mmh-form-grid">
+                  <div className="mmh-field">
+                    <label className="mmh-label">Min Stock Level (Alert)</label>
                     <input className="mmh-input" type="number" min={1} value={form.minQuantity} onChange={e => setForm({ ...form, minQuantity: Number(e.target.value) })} />
+                  </div>
+                  <div className="mmh-field">
+                    <label className="mmh-label">Batch/Lot Number</label>
+                    <input className="mmh-input" value={form.batchNumber} onChange={e => setForm({ ...form, batchNumber: e.target.value })} placeholder="e.g. B-902" />
                   </div>
                 </div>
                 <div className="mmh-form-grid">
@@ -845,10 +899,22 @@ const StockTab: React.FC<{ medicines: Medicine[]; fetchMedicines: (p?: object) =
                     <input className="mmh-input" type="date" value={form.expiryDate} onChange={e => setForm({ ...form, expiryDate: e.target.value })} />
                   </div>
                 </div>
-                {form.source === 'Donated' && (
+                 {form.source === 'Donated' && (
+                  <div className="mmh-form-grid">
+                    <div className="mmh-field">
+                      <label className="mmh-label">Donor Name</label>
+                      <input className="mmh-input" value={form.donorName} onChange={e => setForm({ ...form, donorName: e.target.value })} placeholder="e.g. Al-Khidmat" />
+                    </div>
+                    <div className="mmh-field">
+                      <label className="mmh-label">Donor Contact</label>
+                      <input className="mmh-input" value={form.donorContact} onChange={e => setForm({ ...form, donorContact: e.target.value })} placeholder="Phone/Email" />
+                    </div>
+                  </div>
+                )}
+                {form.source === 'Government' && (
                   <div className="mmh-field">
-                    <label className="mmh-label">Donor Name</label>
-                    <input className="mmh-input" value={form.donorName} onChange={e => setForm({ ...form, donorName: e.target.value })} placeholder="e.g. Al-Khidmat Foundation" />
+                    <label className="mmh-label">Government Batch No</label>
+                    <input className="mmh-input" value={form.govtBatchNo} onChange={e => setForm({ ...form, govtBatchNo: e.target.value })} placeholder="e.g. GOVT-PK-2023" />
                   </div>
                 )}
               </div>
@@ -859,6 +925,108 @@ const StockTab: React.FC<{ medicines: Medicine[]; fetchMedicines: (p?: object) =
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Restock Modal */}
+      {restockModal && (
+        <div className="mmh-overlay" onClick={() => setRestockModal(null)}>
+          <div className="mmh-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 500 }}>
+            <div className="mmh-modal-header">
+              <h2 className="mmh-modal-title">Restock — {restockModal.medicine.name}</h2>
+              <button className="mmh-modal-close" onClick={() => setRestockModal(null)}>×</button>
+            </div>
+            <div className="mmh-modal-body">
+              <div style={{ border: '1px solid var(--mmh-border)', padding: '12px', borderRadius: '10px', marginBottom: '16px', display: 'flex', gap: '16px' }}>
+                <div>
+                  <div style={{ fontSize: '12px', color: 'var(--mmh-text3)' }}>Current Stock</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800 }}>{restockModal.medicine.quantity} <span style={{ fontSize: '12px' }}>{restockModal.medicine.unit}s</span></div>
+                </div>
+                <div style={{ borderLeft: '1px solid var(--mmh-border)', paddingLeft: '16px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--mmh-text3)' }}>Source Type</div>
+                  <div style={{ fontSize: '14px', fontWeight: 700 }}><span className={`mmh-badge ${getSourceBadge(restockModal.medicine.source)}`}>{restockModal.medicine.source}</span></div>
+                </div>
+              </div>
+
+              <div className="mmh-field">
+                <label className="mmh-label">Add Quantity <span className="mmh-required">*</span></label>
+                <input type="number" className="mmh-input" value={restockModal.quantity} onChange={e => setRestockModal({ ...restockModal, quantity: parseInt(e.target.value) || 0 })} min={1} required />
+              </div>
+
+              {restockModal.medicine.source === 'Donated' && (
+                <>
+                  <div className="mmh-field">
+                    <label className="mmh-label">Donor Name <span className="mmh-required">*</span></label>
+                    <input type="text" className="mmh-input" value={restockModal.donorName} onChange={e => setRestockModal({ ...restockModal, donorName: e.target.value })} required />
+                  </div>
+                  <div className="mmh-field">
+                    <label className="mmh-label">Donor Contact</label>
+                    <input type="text" className="mmh-input" value={restockModal.donorContact} onChange={e => setRestockModal({ ...restockModal, donorContact: e.target.value })} />
+                  </div>
+                </>
+              )}
+
+              {restockModal.medicine.source === 'Government' && (
+                <div className="mmh-field">
+                  <label className="mmh-label">Govt Batch Number <span className="mmh-required">*</span></label>
+                  <input type="text" className="mmh-input" value={restockModal.govtBatchNo} onChange={e => setRestockModal({ ...restockModal, govtBatchNo: e.target.value })} required />
+                </div>
+              )}
+
+              <div className="mmh-field">
+                <label className="mmh-label">{restockModal.medicine.source === 'Government' ? 'Internal Batch No' : 'Batch/Lot Number'}</label>
+                <input type="text" className="mmh-input" value={restockModal.batchNumber} onChange={e => setRestockModal({ ...restockModal, batchNumber: e.target.value })} />
+              </div>
+            </div>
+            <div className="mmh-modal-footer">
+              <button type="button" className="mmh-btn mmh-btn-ghost" onClick={() => setRestockModal(null)}>Cancel</button>
+              <button type="button" className="mmh-btn mmh-btn-primary" disabled={saving || restockModal.quantity <= 0} onClick={submitRestock}>
+                {saving ? 'Saving...' : 'Save Restock'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* History Modal */}
+      {historyModal && (
+        <div className="mmh-overlay" onClick={() => setHistoryModal(null)}>
+          <div className="mmh-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 650 }}>
+            <div className="mmh-modal-header">
+              <h2 className="mmh-modal-title">Restock History — {historyModal.name}</h2>
+              <button className="mmh-modal-close" onClick={() => setHistoryModal(null)}>×</button>
+            </div>
+            <div className="mmh-modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+              <table className="mmh-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Qty Added</th>
+                    <th>Source Details</th>
+                    <th>Batch #</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(!historyModal.restockHistory || historyModal.restockHistory.length === 0) ? (
+                    <tr><td colSpan={4} className="mmh-empty">No restock history available</td></tr>
+                  ) : (
+                    [...historyModal.restockHistory].reverse().map((h: any, i: number) => (
+                      <tr key={i}>
+                        <td>{new Date(h.date).toLocaleDateString()}</td>
+                        <td style={{ fontWeight: 800, color: '#10b981' }}>+{h.quantity}</td>
+                        <td style={{ fontSize: '12px' }}>
+                          {h.sourceType === 'Donated' ? `Donor: ${h.donorName}` 
+                           : h.sourceType === 'Government' ? `Govt Batch: ${h.govtBatchNo}` 
+                           : h.sourceType}
+                        </td>
+                        <td style={{ fontSize: '11px', fontFamily: 'monospace' }}>{h.batchNumber || '—'}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
