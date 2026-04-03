@@ -5,6 +5,13 @@ export interface DispensaryStatus {
 }
 
 export const isDispensaryOpen = (): DispensaryStatus => {
+  // 24/7 override requested by user
+  return {
+    isOpen: true,
+    message: 'Open 24/7',
+  };
+  
+  /*
   const now = new Date();
   const hour = now.getHours();
   const minute = now.getMinutes();
@@ -64,4 +71,5 @@ export const isDispensaryOpen = (): DispensaryStatus => {
       ? 'Monday 8:00 AM' // Saturday → Monday
       : 'Tomorrow 8:00 AM',
   };
+  */
 };

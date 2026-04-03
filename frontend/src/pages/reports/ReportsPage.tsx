@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { reportsAPI } from '../../api';
+import Pagination from '../../components/Pagination';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 const fmt = (n: number) =>
@@ -120,8 +121,15 @@ const BarChart = ({ data, color = '#10b981' }: { data: { date: string; count: nu
 
 // ── Tab 1: Dispensary Summary ────────────────────────────────────────────────
 const DispensaryTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading }) => {
+  const [page, setPage] = React.useState(1);
+  const [rows, setRows] = React.useState(10);
+
   if (loading) return <Spinner />;
   if (!data) return <EmptyState />;
+
+  const items = data.topMedicines || [];
+  const displayItems = items.slice((page - 1) * rows, page * rows);
+
   return (
     <div style={{ animation: 'mmh-fade-in 0.35s ease' }}>
       <div className="mmh-stats-grid">
@@ -144,37 +152,49 @@ const DispensaryTab: React.FC<{ data: any; loading: boolean }> = ({ data, loadin
 
       <div className="mmh-card">
         <div className="mmh-card-header">
-          <div className="mmh-card-title">💊 Top 10 Dispensed Medicines</div>
+          <div className="mmh-card-title">💊 Dispensed Medicines</div>
         </div>
         <div className="mmh-card-body" style={{ padding: 0 }}>
-          {data.topMedicines?.length > 0 ? (
-            <table className="mmh-table">
-              <thead>
-                <tr>
-                  <th style={{ width: 50 }}>#</th>
-                  <th>Medicine Name</th>
-                  <th style={{ textAlign: 'right' }}>Total Units</th>
-                  <th style={{ textAlign: 'right' }}>Times Dispensed</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.topMedicines.map((m: any, i: number) => (
-                  <tr key={i}>
-                    <td>
-                      <span style={{
-                        display: 'inline-flex', width: 24, height: 24, borderRadius: '50%',
-                        background: i < 3 ? 'var(--mmh-accent)' : 'var(--mmh-card2)',
-                        color: i < 3 ? 'white' : 'var(--mmh-text3)',
-                        alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800,
-                      }}>{i + 1}</span>
-                    </td>
-                    <td style={{ fontWeight: 700 }}>{m.name}</td>
-                    <td style={{ textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', color: '#10b981', fontWeight: 700 }}>{fmt(m.totalQty)}</td>
-                    <td style={{ textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', color: 'var(--mmh-text2)' }}>{fmt(m.times)}</td>
+          {items.length > 0 ? (
+            <>
+              <table className="mmh-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: 50 }}>#</th>
+                    <th>Medicine Name</th>
+                    <th style={{ textAlign: 'right' }}>Total Units</th>
+                    <th style={{ textAlign: 'right' }}>Times Dispensed</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {displayItems.map((m: any, i: number) => {
+                    const absIdx = (page - 1) * rows + i;
+                    return (
+                      <tr key={absIdx}>
+                        <td>
+                          <span style={{
+                            display: 'inline-flex', width: 24, height: 24, borderRadius: '50%',
+                            background: absIdx < 3 ? 'var(--mmh-accent)' : 'var(--mmh-card2)',
+                            color: absIdx < 3 ? 'white' : 'var(--mmh-text3)',
+                            alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800,
+                          }}>{absIdx + 1}</span>
+                        </td>
+                        <td style={{ fontWeight: 700 }}>{m.name}</td>
+                        <td style={{ textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', color: '#10b981', fontWeight: 700 }}>{fmt(m.totalQty)}</td>
+                        <td style={{ textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', color: 'var(--mmh-text2)' }}>{fmt(m.times)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <Pagination
+                currentPage={page}
+                rowsPerPage={rows}
+                totalResults={items.length}
+                onPageChange={setPage}
+                onRowsPerPageChange={(r) => { setRows(r); setPage(1); }}
+              />
+            </>
           ) : <EmptyState />}
         </div>
       </div>
@@ -184,8 +204,15 @@ const DispensaryTab: React.FC<{ data: any; loading: boolean }> = ({ data, loadin
 
 // ── Tab 2: Beneficiaries ─────────────────────────────────────────────────────
 const BeneficiariesTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading }) => {
+  const [page, setPage] = React.useState(1);
+  const [rows, setRows] = React.useState(10);
+
   if (loading) return <Spinner />;
   if (!data) return <EmptyState />;
+
+  const items = data.beneficiaries || [];
+  const displayItems = items.slice((page - 1) * rows, page * rows);
+
   return (
     <div style={{ animation: 'mmh-fade-in 0.35s ease' }}>
       <div className="mmh-stats-grid">
@@ -206,41 +233,50 @@ const BeneficiariesTab: React.FC<{ data: any; loading: boolean }> = ({ data, loa
           <span style={{ fontSize: 12, color: 'var(--mmh-text3)' }}>{data.totalUniqueBeneficiaries} people served</span>
         </div>
         <div className="mmh-card-body" style={{ padding: 0 }}>
-          {data.beneficiaries?.length > 0 ? (
-            <table className="mmh-table">
-              <thead>
-                <tr>
-                  <th>MR #</th>
-                  <th>Patient Name</th>
-                  <th>Type</th>
-                  <th style={{ textAlign: 'center' }}>Visits</th>
-                  <th style={{ textAlign: 'center' }}>Medicines</th>
-                  <th>Last Visit</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.beneficiaries.map((b: any) => (
-                  <tr key={b._id} style={{
-                    background: b.patientType === 'Trust'
-                      ? 'rgba(16,185,129,0.04)'
-                      : b.patientType === 'BPL'
-                        ? 'rgba(14,165,233,0.04)'
-                        : undefined,
-                  }}>
-                    <td><span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--mmh-accent)' }}>{b.mrNumber}</span></td>
-                    <td style={{ fontWeight: 700 }}>{b.name}</td>
-                    <td>
-                      <span className={`mmh-badge ${b.patientType === 'Trust' ? 'mmh-badge-green' : b.patientType === 'BPL' ? 'mmh-badge-sky' : 'mmh-badge-gray'}`}>
-                        {b.patientType || 'Regular'}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'center', fontWeight: 700 }}>{b.visits}</td>
-                    <td style={{ textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', color: '#10b981' }}>{b.medicinesReceived}</td>
-                    <td style={{ fontSize: 12, color: 'var(--mmh-text3)' }}>{b.lastVisit ? fmtDate(b.lastVisit) : '—'}</td>
+          {items.length > 0 ? (
+            <>
+              <table className="mmh-table">
+                <thead>
+                  <tr>
+                    <th>MR #</th>
+                    <th>Patient Name</th>
+                    <th>Type</th>
+                    <th style={{ textAlign: 'center' }}>Visits</th>
+                    <th style={{ textAlign: 'center' }}>Medicines</th>
+                    <th>Last Visit</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {displayItems.map((b: any) => (
+                    <tr key={b._id} style={{
+                      background: b.patientType === 'Trust'
+                        ? 'rgba(16,185,129,0.04)'
+                        : b.patientType === 'BPL'
+                          ? 'rgba(14,165,233,0.04)'
+                          : undefined,
+                    }}>
+                      <td><span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--mmh-accent)' }}>{b.mrNumber}</span></td>
+                      <td style={{ fontWeight: 700 }}>{b.name}</td>
+                      <td>
+                        <span className={`mmh-badge ${b.patientType === 'Trust' ? 'mmh-badge-green' : b.patientType === 'BPL' ? 'mmh-badge-sky' : 'mmh-badge-gray'}`}>
+                          {b.patientType || 'Regular'}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'center', fontWeight: 700 }}>{b.visits}</td>
+                      <td style={{ textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', color: '#10b981' }}>{b.medicinesReceived}</td>
+                      <td style={{ fontSize: 12, color: 'var(--mmh-text3)' }}>{b.lastVisit ? fmtDate(b.lastVisit) : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <Pagination
+                currentPage={page}
+                rowsPerPage={rows}
+                totalResults={items.length}
+                onPageChange={setPage}
+                onRowsPerPageChange={(r) => { setRows(r); setPage(1); }}
+              />
+            </>
           ) : <EmptyState />}
         </div>
       </div>
@@ -327,6 +363,9 @@ const FundTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading }) =
 
 // ── Tab 4: Pharmacy Revenue ──────────────────────────────────────────────────
 const RevenueTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading }) => {
+  const [page, setPage] = React.useState(1);
+  const [rows, setRows] = React.useState(10);
+
   if (loading) return <Spinner />;
   if (!data) return <EmptyState />;
 
@@ -337,6 +376,9 @@ const RevenueTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading }
   const total = data.totalRevenue || 1;
   const purposes = Object.entries(data.byPurpose || {}) as [string, number][];
   const methods = Object.entries(data.byMethod || {}) as [string, number][];
+  
+  const sortedMethods = methods.sort((a,b)=>b[1]-a[1]);
+  const displayMethods = sortedMethods.slice((page - 1) * rows, page * rows);
 
   return (
     <div style={{ animation: 'mmh-fade-in 0.35s ease' }}>
@@ -373,24 +415,33 @@ const RevenueTab: React.FC<{ data: any; loading: boolean }> = ({ data, loading }
           <div className="mmh-card-header"><div className="mmh-card-title">💳 By Payment Method</div></div>
           <div className="mmh-card-body" style={{ padding: 0 }}>
             {methods.length > 0 ? (
-              <table className="mmh-table">
-                <thead>
-                  <tr>
-                    <th>Method</th>
-                    <th style={{ textAlign: 'right' }}>Amount</th>
-                    <th style={{ textAlign: 'right' }}>Share</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {methods.sort((a,b)=>b[1]-a[1]).map(([method, amount]) => (
-                    <tr key={method}>
-                      <td style={{ fontWeight: 700 }}>{method}</td>
-                      <td style={{ textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', color: '#10b981', fontWeight: 700 }}>{fmtPKR(amount)}</td>
-                      <td style={{ textAlign: 'right', color: 'var(--mmh-text3)', fontSize: 12 }}>{((amount / total) * 100).toFixed(1)}%</td>
+              <>
+                <table className="mmh-table">
+                  <thead>
+                    <tr>
+                      <th>Method</th>
+                      <th style={{ textAlign: 'right' }}>Amount</th>
+                      <th style={{ textAlign: 'right' }}>Share</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {displayMethods.map(([method, amount]) => (
+                      <tr key={method}>
+                        <td style={{ fontWeight: 700 }}>{method}</td>
+                        <td style={{ textAlign: 'right', fontFamily: 'JetBrains Mono, monospace', color: '#10b981', fontWeight: 700 }}>{fmtPKR(amount)}</td>
+                        <td style={{ textAlign: 'right', color: 'var(--mmh-text3)', fontSize: 12 }}>{((amount / total) * 100).toFixed(1)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <Pagination
+                  currentPage={page}
+                  rowsPerPage={rows}
+                  totalResults={methods.length}
+                  onPageChange={setPage}
+                  onRowsPerPageChange={(r) => { setRows(r); setPage(1); }}
+                />
+              </>
             ) : <EmptyState />}
           </div>
         </div>

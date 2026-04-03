@@ -13,60 +13,12 @@ export const getMedicineRoute = (
   prescriptionRoute?: string,
   userRole?: string
 ): RoutingResult => {
-  const dispensaryStatus = isDispensaryOpen();
-  const isEligible = patientType === 'Trust' || patientType === 'BPL';
-
-  // Regular patient → always pharmacy
-  if (!isEligible) {
-    return {
-      route: 'pharmacy',
-      canDispenseFree: false,
-      reason: 'Regular patient — paid pharmacy only',
-      needsOverride: false,
-    };
-  }
-
-  // Has prescription with free flag
-  if (prescriptionRoute === 'dispensary') {
-    if (dispensaryStatus.isOpen) {
-      return {
-        route: 'dispensary',
-        canDispenseFree: true,
-        reason: 'Doctor prescribed free dispensary',
-        needsOverride: false,
-      };
-    } else {
-      // Dispensary closed — need override
-      if (userRole === 'admin') {
-        return {
-          route: 'dispensary',
-          canDispenseFree: true,
-          reason: 'Doctor prescribed free — admin override',
-          warning: `Dispensary closed. ${dispensaryStatus.opensAt}. Admin override active.`,
-          needsOverride: true,
-        };
-      }
-      return {
-        route: 'pharmacy',
-        canDispenseFree: false,
-        reason: 'Dispensary closed — redirected to pharmacy',
-        warning: `Dispensary closed. ${dispensaryStatus.opensAt}. Contact admin for emergency free medicines.`,
-        needsOverride: true,
-      };
-    }
-  }
-
-  // Eligible patient, no specific route
-  // Give choice
+  // As per new business logic: ALL OPD patients go to Dispensary for FREE medicines.
+  // Pharmacy has zero relation to this flow.
   return {
-    route: 'both', // show both options
-    canDispenseFree: dispensaryStatus.isOpen,
-    reason: isEligible
-      ? 'Trust/BPL patient — choose dispensing route'
-      : 'Regular patient',
-    warning: !dispensaryStatus.isOpen
-      ? `Dispensary closed. Free option unavailable. ${dispensaryStatus.opensAt}`
-      : undefined,
+    route: 'dispensary',
+    canDispenseFree: true,
+    reason: 'All active OPD registered patients receive free medicines from the dispensary.',
     needsOverride: false,
   };
 };

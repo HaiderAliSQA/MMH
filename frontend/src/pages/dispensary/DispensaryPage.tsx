@@ -39,58 +39,111 @@ const getSourceBadge = (source: string) => {
 
 // ─── Print Slip ───────────────────────────────────────────────────────────────
 const printDispensarySlip = (dispense: any) => {
-  const w = window.open('', '_blank', 'width=520,height=700');
+  const w = window.open('', '_blank', 'width=420,height=700');
   if (!w) return;
-  w.document.write(`<!DOCTYPE html><html><head><title>Dispensary Slip</title><style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:Arial,sans-serif;background:white;color:#0f172a;padding:24px;max-width:480px;margin:0 auto}
-    .header{background:#065f46;color:white;padding:18px 22px;border-radius:12px 12px 0 0;text-align:center}
-    .hospital{font-size:18px;font-weight:800;font-style:italic}
-    .free-badge{display:inline-block;margin-top:8px;padding:4px 16px;background:rgba(255,255,255,0.2);border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.1em}
-    .body{padding:16px 22px}
-    .row{display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid #e2e8f0}
-    .label{font-size:11px;color:#64748b}
-    .value{font-size:13px;font-weight:700;color:#0f172a}
-    .trust-box{margin:12px 0;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:12px;color:#065f46;font-weight:700;text-align:center}
-    .sec{font-size:10px;font-weight:800;color:#065f46;text-transform:uppercase;letter-spacing:0.1em;margin:14px 0 8px;padding-bottom:4px;border-bottom:2px solid #bbf7d0}
-    .med{display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px dotted #f1f5f9}
-    .total{margin-top:12px;padding:12px 16px;background:#f0fdf4;border:2px solid #065f46;border-radius:10px;display:flex;justify-content:space-between;font-size:15px;font-weight:800;color:#065f46}
-    .footer{margin-top:20px;text-align:center;font-size:10px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:12px}
-    .sig{display:flex;justify-content:space-between;margin-top:24px;padding-top:16px;border-top:1px dashed #e2e8f0}
-    @media print{.no-print{display:none}}
+  w.document.write(`<!DOCTYPE html><html><head><title>Dispensary Slip</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --mmh-accent: #065f46;
+      --mmh-border: #bbf7d0;
+    }
+    body { margin: 0; padding: 16px; background: white; font-family: 'Plus Jakarta Sans', sans-serif; }
+    
+    .mmh-slip {
+      background: white;
+      color: #0f172a;
+      padding: 24px;
+      width: 350px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      background: var(--mmh-accent);
+      color: white;
+      padding: 16px;
+      border-radius: 10px 10px 0 0;
+      margin: -24px -24px 18px;
+    }
+    .hospital { font-size: 17px; font-weight: 900; font-style: italic; }
+    .sub { font-size: 11px; opacity: 0.75; margin-top: 3px; }
+    .badge { display: inline-block; margin-top: 8px; padding: 4px 16px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; }
+    
+    .sec { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mmh-accent); margin: 14px 0 8px; padding-bottom: 4px; border-bottom: 1.5px solid var(--mmh-border); }
+    .row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; }
+    .label { color: #64748b; min-width: 80px; }
+    .value { font-weight: 700; color: #0f172a; text-align: right; }
+    
+    .med { padding: 8px 0; border-bottom: 1px dashed var(--mmh-border); }
+    .med-name { font-size: 13px; font-weight: 700; color: #0f172a; }
+    .med-detail { font-size: 11px; color: #64748b; margin-top: 3px; display: flex; justify-content: space-between; }
+    
+    .total-box { background: #f0fdf4; border: 2px solid var(--mmh-accent); border-radius: 10px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; margin: 14px 0; }
+    .total-label { font-size: 13px; font-weight: 700; color: var(--mmh-accent); }
+    .total-amount { font-size: 20px; font-weight: 900; color: var(--mmh-accent); font-family: 'JetBrains Mono', monospace; }
+    
+    .footer { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--mmh-border); }
+    
+    @media print {
+      body { margin: 0; padding: 0; }
+      .no-print { display: none; }
+      .header, .total-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
   </style></head><body>
-  <div style="border:1px solid #e2e8f0;border-radius:12px;overflow:hidden">
+  <div class="mmh-slip">
     <div class="header">
-      <div class="hospital">🏥 Majida Memorial Hospital</div>
-      <div style="font-size:11px;opacity:0.8;margin-top:3px">Chiniot, Punjab — Trust Dispensary</div>
-      <div class="free-badge">FREE DISPENSARY SLIP</div>
+      <div class="hospital">Majida Memorial Hospital</div>
+      <div class="sub">MMH · Chiniot</div>
+      <div class="badge">FREE TRUST DISPENSARY</div>
     </div>
-    <div class="body">
-      <div class="row">
-        <div><div class="label">Patient Name</div><div class="value">${dispense.patient?.name || '—'}</div></div>
-        <div style="text-align:right"><div class="label">MR Number</div><div class="value" style="font-family:monospace;color:#065f46">${dispense.patient?.mrNumber || '—'}</div></div>
-      </div>
-      <div class="row">
-        <div><div class="label">Date &amp; Time</div><div class="value">${new Date().toLocaleString('en-PK')}</div></div>
-        <div style="text-align:right"><div class="label">Dispensed By</div><div class="value">${dispense.dispensedBy?.name || 'Staff'}</div></div>
-      </div>
-      <div class="trust-box">✓ Trust Beneficiary — No Charges Apply</div>
-      <div class="sec">Medicines Dispensed</div>
-      ${(dispense.items || []).map((item: any) => `<div class="med"><span>${item.medicineName}</span><span style="font-weight:700">${item.quantity} ${item.unit || 'units'}</span></div>`).join('')}
-      <div class="total"><span>Total Amount</span><span>FREE</span></div>
-      ${dispense.notes ? `<div style="margin-top:12px;font-size:11px;color:#64748b">Notes: ${dispense.notes}</div>` : ''}
-      <div class="sig">
-        <div style="text-align:center"><div style="border-top:1px solid #0f172a;width:120px;padding-top:4px;font-size:10px;color:#64748b">Patient Signature</div></div>
-        <div style="text-align:center"><div style="border-top:1px solid #0f172a;width:120px;padding-top:4px;font-size:10px;color:#64748b">Dispensary Staff</div></div>
-      </div>
+    
+    <div class="row">
+      <span class="label">Date:</span>
+      <span class="value">${new Date().toLocaleString('en-PK')}</span>
     </div>
-    <div class="footer">This is a free dispensary service by MMH Trust<br/>Majida Memorial Hospital · Chiniot, Punjab</div>
+    
+    <div class="sec">Patient Information</div>
+    <div class="row">
+      <span class="label">Name:</span>
+      <span class="value">${dispense.patient?.name || 'Walk-in'}</span>
+    </div>
+    <div class="row">
+      <span class="label">MR#:</span>
+      <span class="value">${dispense.patient?.mrNumber || 'N/A'}</span>
+    </div>
+
+    <div class="sec">Medicines Dispensed</div>
+    ${(dispense.items || []).map((item: any) => `
+      <div class="med">
+        <div class="med-name">${item.medicineName}</div>
+        <div class="med-detail">
+          <span>Qty: ${item.quantity} ${item.unit || 'units'}</span>
+          <span style="font-weight:700;color:var(--mmh-accent)">FREE</span>
+        </div>
+      </div>
+    `).join('')}
+
+    <div class="total-box">
+      <span class="total-label">AMOUNT:</span>
+      <span class="total-amount">FREE</span>
+    </div>
+    
+    ${dispense.notes ? `<div class="row"><span class="label">Notes:</span><span class="value">${dispense.notes}</span></div>` : ''}
+    <div class="row" style="margin-top:12px">
+      <span class="label">Dispensed by:</span>
+      <span class="value">${dispense.dispensedBy?.name || 'Staff'}</span>
+    </div>
+    
+    <div class="footer">
+      Please keep this slip safe<br />
+      MMH Trust Dispensary · Chiniot
+    </div>
   </div>
-  <div class="no-print" style="text-align:center;margin-top:20px">
-    <button onclick="window.print()" style="padding:10px 28px;background:#065f46;color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-right:8px">Print Slip</button>
-    <button onclick="window.close()" style="padding:10px 20px;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;border-radius:10px;font-size:13px;cursor:pointer">Close</button>
+  
+  <div class="no-print" style="text-align:center;margin-top:20px;padding-bottom:30px">
+    <button onclick="window.print()" style="padding:10px 28px;background:#065f46;color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-right:8px;box-shadow:0 4px 6px rgba(6,13,26,0.1)">🖨️ Print Slip</button>
+    <button onclick="window.close()" style="padding:10px 20px;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600">Close</button>
   </div>
-  <script>window.onload=()=>window.print()</script>
   </body></html>`);
   w.document.close();
 };
@@ -340,7 +393,7 @@ const DispenseTab: React.FC<{ status: DispensaryStatus | null; medicines: Medici
       setPatientQuery('');
       setCart([]);
       setNotes('');
-      alert('✅ Medicines dispensed successfully!');
+      // alert('✅ Medicines dispensed successfully!');
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Dispense failed';
       const errors = err.response?.data?.errors;
@@ -351,11 +404,11 @@ const DispenseTab: React.FC<{ status: DispensaryStatus | null; medicines: Medici
   };
 
   const typeBadge = selectedPatient ? getTypeBadge(selectedPatient.patientType) : null;
-  const isRegular = selectedPatient?.patientType === 'Regular';
+  const isRegular = false; // Business logic changed: All patients receive Free medicines at dispensary
   const filteredMeds = medicines.filter(m => m.name.toLowerCase().includes(medSearch.toLowerCase()) || (m.generic || '').toLowerCase().includes(medSearch.toLowerCase()));
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '20px', alignItems: 'start' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', alignItems: 'start' }}>
       {/* Left: Patient + Medicine Selection */}
       <div>
         {/* Step 1: Patient Search */}

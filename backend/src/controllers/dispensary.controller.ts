@@ -161,6 +161,7 @@ export const dispenseMedicine = async (req: IAuthRequest, res: Response): Promis
       return;
     }
 
+    /*
     if (patientRecord.patientType === 'Regular') {
       res.status(400).json({
         success: false,
@@ -169,6 +170,7 @@ export const dispenseMedicine = async (req: IAuthRequest, res: Response): Promis
       });
       return;
     }
+    */
 
     // Check all stock first
     const stockErrors: string[] = [];

@@ -154,7 +154,8 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
         user.role
       );
       setRouting(routeRes);
-      setPharmacyRoute(routeRes.route === 'dispensary' ? 'dispensary' : 'pharmacy');
+      // Pharmacy is completely separate, ignore routing logic and keep it paid pharmacy checkout
+      setPharmacyRoute('pharmacy');
       setAdminOverride(false);
     } catch (err) {
       console.error('Failed to fetch prescription:', err);
@@ -465,55 +466,7 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                     )}
                   </div>
                   
-                  {/* Routing UI for Selected Patient */}
-                  {selectedPatient && routing && (
-                    <div style={{ marginTop: '16px' }}>
-                      {routing.route === 'dispensary' && (
-                        <>
-                          <div style={{ padding:'12px 16px', background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.3)', borderRadius:'12px', marginBottom:'14px', display:'flex', alignItems:'center', gap:'12px' }}>
-                            <span style={{fontSize:'24px'}}>🎁</span>
-                            <div style={{flex:1}}>
-                              <div style={{ fontSize:'13px',fontWeight:'700', color:'#34d399' }}>Free Dispensary — Dr. prescribed FREE</div>
-                              <div style={{fontSize:'11px',color:'#64748b'}}>These medicines should be collected from Trust Dispensary at no charge</div>
-                            </div>
-                            <button onClick={() => window.location.href='/dispensary'} style={{ padding:'8px 16px', background:'#10b981', border:'none',borderRadius:'10px', color:'white',fontSize:'12px', fontWeight:'700',cursor:'pointer' }}>Go to Dispensary →</button>
-                          </div>
-                          
-                          {routing.warning && (
-                            <div style={{ padding:'12px 16px', background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:'12px',marginBottom:'14px' }}>
-                              <div style={{ fontSize:'13px',fontWeight:'700', color:'#fbbf24' }}>⚠️ Dispensary Closed</div>
-                              <div style={{ fontSize:'12px',color:'#64748b',marginTop:'4px' }}>{routing.warning}</div>
-                              {user.role === 'admin' && !adminOverride && (
-                                <button onClick={() => setAdminOverride(true)} style={{ marginTop:'8px', padding:'6px 14px', background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.4)', borderRadius:'8px',color:'#fbbf24', fontSize:'11px',fontWeight:'700', cursor:'pointer' }}>
-                                  🔓 Admin Override — Dispense FREE anyway
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </>
-                      )}
-                      
-                      {routing.route === 'both' && (
-                        <div style={{ padding:'14px 16px', background:'var(--mmh-card2)', border:'1px solid var(--mmh-border)', borderRadius:'12px',marginBottom:'14px' }}>
-                          <div style={{ fontSize:'12px',fontWeight:'700', color:'var(--mmh-text3)', textTransform:'uppercase', letterSpacing:'.06em',marginBottom:'10px' }}>
-                            This patient is eligible for FREE medicines
-                          </div>
-                          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
-                            <button onClick={() => setPharmacyRoute('dispensary')} style={{ padding:'14px', background: pharmacyRoute==='dispensary' ? 'rgba(16,185,129,0.12)' : 'var(--mmh-card)', border: pharmacyRoute==='dispensary' ? '2px solid #10b981' : '1px solid var(--mmh-border)', borderRadius:'12px',cursor:'pointer', opacity: !routing.canDispenseFree ? 0.5 : 1 }} disabled={!routing.canDispenseFree}>
-                              <div style={{fontSize:'24px',marginBottom:'6px'}}>🎁</div>
-                              <div style={{ fontSize:'13px',fontWeight:'700', color:'#34d399' }}>Free Dispensary</div>
-                              <div style={{ fontSize:'11px',color:'#64748b',marginTop:'3px' }}>{routing.canDispenseFree ? 'Trust funded — no charge' : 'Closed — opens tomorrow'}</div>
-                            </button>
-                            <button onClick={() => setPharmacyRoute('pharmacy')} style={{ padding:'14px', background: pharmacyRoute==='pharmacy' ? 'rgba(14,165,233,0.12)' : 'var(--mmh-card)', border: pharmacyRoute==='pharmacy' ? '2px solid #0ea5e9' : '1px solid var(--mmh-border)', borderRadius:'12px',cursor:'pointer' }}>
-                              <div style={{fontSize:'24px',marginBottom:'6px'}}>💊</div>
-                              <div style={{ fontSize:'13px',fontWeight:'700', color:'#38bdf8' }}>Paid Pharmacy</div>
-                              <div style={{ fontSize:'11px',color:'#64748b',marginTop:'3px' }}>Patient pays — 24/7 available</div>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {/* Routing UI for Selected Patient (Removed per business logic request - Pharmacy remains separate) */}
                 </div>
               </div>
 
