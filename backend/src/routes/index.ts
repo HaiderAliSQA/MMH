@@ -4,7 +4,7 @@ import { protect, authorize } from '../middleware/auth.middleware';
 import { getPatients, createPatient, updatePatient, searchPatients } from '../controllers/patient.controller';
 import { getAdmissions, createAdmission, dischargePatient } from '../controllers/admission.controller';
 import { getTodayOPD, createOpdVisit, updateOPDStatus, getDoctorAllVisits, getPatientOPD } from '../controllers/opd.controller';
-import { getDoctorPrescriptions, getPatientPrescriptions, createPrescription } from '../controllers/prescription.controller';
+import { getDoctorPrescriptions, getPatientPrescriptions, createPrescription, updateRoutingStatus } from '../controllers/prescription.controller';
 import { getLabRequests, createLabRequest, updateLabStatus } from '../controllers/lab.controller';
 import { getMedicines, createMedicine, updateMedicine, dispenseMedicine } from '../controllers/pharmacy.controller';
 import { getPayments, createPayment } from '../controllers/payment.controller';
@@ -28,6 +28,13 @@ import {
   dispenseMedicine as dispenseFreeMedicine,
   getHistory as getDispensaryHistory,
 } from '../controllers/dispensary.controller';
+import {
+  dispensarySummary,
+  beneficiariesReport,
+  fundUtilization,
+  pharmacyRevenue as pharmacyRevenueReport,
+  boardSummary,
+} from '../controllers/reports.controller';
 
 const router = Router();
 
@@ -61,6 +68,7 @@ router.put('/opd/:id/status', protect, authorize('receptionist', 'doctor', 'admi
 router.get('/prescriptions/doctor', protect, authorize('doctor', 'admin'), getDoctorPrescriptions);
 router.get('/prescriptions/patient/:patientId', protect, getPatientPrescriptions);
 router.post('/prescriptions', protect, authorize('doctor'), createPrescription);
+router.put('/prescriptions/:id/routing-status', protect, updateRoutingStatus);
 
 // Admission Routes
 router.get('/admissions', getAdmissions);
@@ -138,5 +146,12 @@ router.post('/dispensary/medicines', protect, authorize('admin'), addDispensaryM
 router.put('/dispensary/medicines/:id', protect, authorize('admin', 'dispensary'), updateDispensaryMedicine);
 router.post('/dispensary/dispense', protect, authorize('dispensary', 'admin'), dispenseFreeMedicine);
 router.get('/dispensary/history', protect, authorize('dispensary', 'admin'), getDispensaryHistory);
+
+// ═══ REPORTS ROUTES ═══════════════════════════════════════════════════════
+router.get('/reports/dispensary-summary', protect, authorize('admin', 'manager'), dispensarySummary);
+router.get('/reports/beneficiaries',      protect, authorize('admin', 'manager'), beneficiariesReport);
+router.get('/reports/fund-utilization',   protect, authorize('admin', 'manager'), fundUtilization);
+router.get('/reports/pharmacy-revenue',   protect, authorize('admin', 'manager'), pharmacyRevenueReport);
+router.get('/reports/board-summary',      protect, authorize('admin', 'manager'), boardSummary);
 
 export default router;

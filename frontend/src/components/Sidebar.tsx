@@ -61,7 +61,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: mobileOpen, onToggle: onMobil
           { path: '/payments',         label: 'Payments',   icon: '💰' },
           { path: '/admin/users',      label: 'Users',      icon: '👤' },
           { path: '/hr',               label: 'HR Management', icon: '📋' },
-          { path: '/admin/managers',   label: 'Managers',   icon: '📊' },
+          { path: '/reports',          label: 'Reports',    icon: '📊' },
+          { path: '/admin/managers',   label: 'Managers',   icon: '💼' },
         ]
       },
       doctor: {

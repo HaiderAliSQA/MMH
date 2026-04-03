@@ -14,6 +14,7 @@ interface Patient {
   phone?: string;
   status?: 'OPD' | 'Admitted' | 'Discharged';
   doctor?: { _id: string; name: string };
+  patientType?: 'Regular' | 'Trust' | 'BPL' | 'Staff';
   createdAt?: string;
 }
 
@@ -367,7 +368,7 @@ const PatientsPage: React.FC = () => {
               <thead>
                 <tr>
                   <th>#</th><th>MR#</th><th>Name</th><th>Age/Gender</th>
-                  <th>CNIC</th><th>Phone</th><th>Status</th><th>Doctor</th><th>Registered</th><th>Actions</th>
+                  <th>Patient Type</th><th>CNIC</th><th>Phone</th><th>Status</th><th>Doctor</th><th>Registered</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -382,6 +383,14 @@ const PatientsPage: React.FC = () => {
                       <td style={{ fontFamily: 'JetBrains Mono', color: 'var(--mmh-accent)', fontWeight: 700 }}>{p.mrNumber || '—'}</td>
                       <td className="mmh-td-name" style={{ color: 'var(--mmh-text)' }}>{p.name || '—'}</td>
                       <td>{p.age ?? '—'} / {p.gender || '—'}</td>
+                      <td>
+                        <span className={`mmh-badge ${
+                          p.patientType === 'Trust' ? 'mmh-badge-green' :
+                          p.patientType === 'BPL' ? 'mmh-badge-sky' : 'mmh-badge-gray'
+                        }`}>
+                          {p.patientType || 'Regular'}
+                        </span>
+                      </td>
                       <td style={{ fontSize: 12 }}>{p.cnic || '—'}</td>
                       <td>{p.phone || '—'}</td>
                       <td>
@@ -478,6 +487,16 @@ const PatientsPage: React.FC = () => {
                     }}
                   />
                   {cnicError && <span className="mmh-field-error">⚠️ {cnicError}</span>}
+                </div>
+                <div className="mmh-field">
+                  <label className="mmh-label">Patient Type</label>
+                  <select className="mmh-input-select" value={editPatient.patientType || 'Regular'}
+                    onChange={e => setEditPatient({ ...editPatient, patientType: e.target.value as any })}>
+                    <option value="Regular">Regular</option>
+                    <option value="Trust">Trust Beneficiary</option>
+                    <option value="BPL">Below Poverty Line (BPL)</option>
+                    <option value="Staff">Staff</option>
+                  </select>
                 </div>
                 <div className="mmh-form-grid">
                   <div className="mmh-field">

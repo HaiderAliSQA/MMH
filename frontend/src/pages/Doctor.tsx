@@ -249,6 +249,7 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
   const [notes, setNotes] = useState('');
   const [prescribedItems, setPrescribedItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dispensingRoute, setDispensingRoute] = useState('pharmacy');
 
   // Medicine Search
   const [medQuery, setMedQuery] = useState('');
@@ -280,7 +281,8 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
       frequency: 'Daily',
       duration: '5 Days',
       quantity: 1,
-      notes: ''
+      notes: '',
+      isFree: false
     }]);
     setMedQuery('');
     setMedResults([]);
@@ -294,6 +296,10 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
     setPrescribedItems(prev => prev.map((item, i) => i === idx ? { ...item, [field]: value } : item));
   };
 
+  const toggleItemFree = (idx: number) => {
+    setPrescribedItems(prev => prev.map((item, i) => i === idx ? { ...item, isFree: !item.isFree } : item));
+  };
+
   const handleSave = async () => {
     if (!diagnosis) return alert('Diagnosis is required');
     if (prescribedItems.length === 0) return alert('Add at least one medicine');
@@ -304,8 +310,17 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
         opdVisit: visit._id,
         patient: visit.patient?._id,
         diagnosis,
-        items: prescribedItems,
-        notes
+        items: prescribedItems.map(item => ({
+          ...item,
+          isFree: dispensingRoute === 'dispensary'
+            ? true
+            : dispensingRoute === 'pharmacy'
+              ? false
+              : item.isFree,
+        })),
+        notes,
+        dispensingRoute,
+        routingStatus: 'Pending',
       });
       onSuccess();
     } catch (err) {
@@ -341,6 +356,26 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
                   Patient Bio Data
                   <button className="mmh-mr-link" onClick={() => onHistoryClick({ id: visit.patient?._id, mr: visit.patient?.mrNumber })}>View Full History →</button>
                 </div>
+                
+                {visit.patient?.patientType === 'Trust' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', marginBottom: '14px' }}>
+                    <span style={{ fontSize: '18px' }}>✅</span>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#34d399' }}>Trust Beneficiary</div>
+                      <div style={{ fontSize: '11px', color: '#64748b' }}>This patient is eligible for free dispensary</div>
+                    </div>
+                  </div>
+                )}
+                {visit.patient?.patientType === 'BPL' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', background: 'rgba(14,165,233,0.1)', border: '1px solid rgba(14,165,233,0.3)', borderRadius: '10px', marginBottom: '14px' }}>
+                    <span style={{ fontSize: '18px' }}>✅</span>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#38bdf8' }}>BPL Beneficiary</div>
+                      <div style={{ fontSize: '11px', color: '#64748b' }}>This patient is eligible for free dispensary</div>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="mmh-info-list">
                   <div className="mmh-info-row"><span className="mmh-info-key">MR Number</span><span className="mmh-info-val" style={{ color: 'var(--mmh-accent)' }}>{visit.patient?.mrNumber}</span></div>
                   <div className="mmh-info-row"><span className="mmh-info-key">Age / Sex</span><span className="mmh-info-val">{visit.patient?.age}y / {visit.patient?.gender}</span></div>
@@ -359,6 +394,37 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
                   style={{ minHeight: '120px' }}
                 />
               </div>
+
+              {(visit.patient?.patientType === 'Trust' || visit.patient?.patientType === 'BPL') && (
+                <div className="mmh-field" style={{ marginBottom: '16px' }}>
+                  <label className="mmh-label">Dispensing Route</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                    {[
+                      { value: 'pharmacy', label: 'Pharmacy', sub: 'Patient pays', icon: '💊', color: '#0ea5e9', bg: 'rgba(14,165,233,0.1)' },
+                      { value: 'dispensary', label: 'Dispensary', sub: 'Free — Trust funded', icon: '🎁', color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
+                      { value: 'both', label: 'Mixed', sub: 'Set per medicine', icon: '⚖️', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+                    ].map(option => (
+                      <button
+                        key={option.value}
+                        onClick={() => setDispensingRoute(option.value)}
+                        style={{
+                          padding: '12px 10px',
+                          background: dispensingRoute === option.value ? option.bg : 'var(--mmh-card2)',
+                          border: dispensingRoute === option.value ? `2px solid ${option.color}` : '1px solid var(--mmh-border)',
+                          borderRadius: '12px',
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        <div style={{ fontSize: '20px', marginBottom: '4px' }}>{option.icon}</div>
+                        <div style={{ fontSize: '12px', fontWeight: '700', color: dispensingRoute === option.value ? option.color : 'var(--mmh-text)' }}>{option.label}</div>
+                        <div style={{ fontSize: '10px', color: 'var(--mmh-text3)', marginTop: '2px' }}>{option.sub}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="mmh-label">Consultation Notes (Optional)</label>
@@ -439,6 +505,25 @@ const ExamineModal = ({ visit, onClose, onSuccess, onHistoryClick }: { visit: an
                           />
                         </div>
                       </div>
+                      
+                      {dispensingRoute === 'both' && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 8px', background: 'var(--mmh-card)', borderRadius: '6px', marginTop: '4px' }}>
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>Free:</span>
+                          <button
+                            onClick={() => toggleItemFree(idx)}
+                            style={{
+                              width: '36px', height: '20px', borderRadius: '10px',
+                              background: item.isFree ? '#10b981' : '#1e3050',
+                              border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+                            }}
+                          >
+                            <span style={{ position: 'absolute', width: '14px', height: '14px', background: 'white', borderRadius: '50%', top: '3px', left: item.isFree ? '19px' : '3px', transition: 'left 0.2s' }} />
+                          </button>
+                          <span style={{ fontSize: '11px', fontWeight: '700', color: item.isFree ? '#34d399' : '#64748b' }}>
+                            {item.isFree ? 'FREE' : 'Paid'}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ))
                 )}

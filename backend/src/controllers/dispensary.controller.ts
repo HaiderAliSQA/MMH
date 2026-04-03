@@ -147,7 +147,7 @@ export const dispenseMedicine = async (req: IAuthRequest, res: Response): Promis
       // Admin gets warning but can proceed
     }
 
-    const { patient, items, prescription, notes } = req.body;
+    const { patient, items, prescription, notes, isEmergencyOverride, overrideReason } = req.body;
 
     if (!patient || !items || items.length === 0) {
       res.status(400).json({ success: false, message: 'Patient and items are required' });
@@ -210,6 +210,8 @@ export const dispenseMedicine = async (req: IAuthRequest, res: Response): Promis
       dispensedBy: req.user?.id,
       notes,
       dispenseTime: new Date(),
+      isEmergencyOverride: isEmergencyOverride || false,
+      overrideBy: isEmergencyOverride ? req.user?.id : undefined,
     });
 
     // Populate for response

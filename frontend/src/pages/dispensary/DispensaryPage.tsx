@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { dispensaryAPI, patientAPI } from '../../api';
+import { dispensaryAPI, patientAPI, prescriptionAPI } from '../../api';
+import { getMedicineRoute } from '../../utils/medicineRouting';
 import MyLeaveTab from '../../components/MyLeaveTab';
 import '../../styles/mmh.css';
 
@@ -257,8 +258,15 @@ const DispenseTab: React.FC<{ status: DispensaryStatus | null; medicines: Medici
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [medSearch, setMedSearch] = useState('');
+  const [prescription, setPrescription] = useState<any>(null);
+  const [routing, setRouting] = useState<any>(null);
   const searchTimer = useRef<any>(null);
   const dropRef = useRef<HTMLDivElement>(null);
+  
+  const user = (() => {
+    try { return JSON.parse(localStorage.getItem('mmh_user') || '{}'); }
+    catch { return {}; }
+  })();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -281,11 +289,26 @@ const DispenseTab: React.FC<{ status: DispensaryStatus | null; medicines: Medici
     }, 350);
   };
 
-  const selectPatient = (p: Patient) => {
+  const selectPatient = async (p: Patient) => {
     setSelectedPatient(p);
     setPatientQuery(p.name);
     setShowDropdown(false);
     setCart([]);
+    
+    try {
+      const res = await prescriptionAPI.getForPatient(p._id);
+      const activeRx = res.data?.data?.[0];
+      setPrescription(activeRx);
+      
+      const routeRes = getMedicineRoute(
+        p.patientType || 'Regular',
+        activeRx?.dispensingRoute,
+        user.role
+      );
+      setRouting(routeRes);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const addToCart = (med: Medicine) => {
@@ -306,8 +329,12 @@ const DispenseTab: React.FC<{ status: DispensaryStatus | null; medicines: Medici
       const r = await dispensaryAPI.dispense({
         patient: selectedPatient._id,
         items: cart,
+        prescription: prescription?._id,
         notes,
       });
+      if (prescription?._id && routing?.route !== 'both') {
+        await prescriptionAPI.updateRoutingStatus(prescription._id, 'Complete');
+      }
       printDispensarySlip(r.data.data);
       setSelectedPatient(null);
       setPatientQuery('');
@@ -394,13 +421,22 @@ const DispenseTab: React.FC<{ status: DispensaryStatus | null; medicines: Medici
                     </span>
                   </div>
                 )}
+                
+                {routing && routing.route === 'pharmacy' && !isRegular && (
+                  <div style={{ marginTop: 14, padding: '14px 16px', background: 'rgba(239,68,68,0.1)', border: '1px solid #ef4444', borderRadius: '10px' }}>
+                    <div style={{ fontWeight: 800, color: '#ef4444', fontSize: 14, marginBottom: 6 }}>⚠️ Routing Conflict</div>
+                    <div style={{ color: 'var(--mmh-text2)', fontSize: 12 }}>
+                      {routing.reason}. Provide paid medicines at the Pharmacy instead.
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
 
         {/* Step 2: Add Medicines */}
-        {selectedPatient && !isRegular && (
+        {selectedPatient && (!isRegular && (!routing || routing.route !== 'pharmacy')) && (
           <div className="mmh-card" style={{ position: 'relative' }}>
             {!isOpen && <ClosedOverlay opensAt={status?.opensAt} />}
             <div className="mmh-card-header">

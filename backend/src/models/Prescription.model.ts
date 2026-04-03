@@ -7,6 +7,7 @@ export interface IPrescriptionItem {
   duration: string;
   quantity: number;
   notes?: string;
+  isFree?: boolean;
 }
 
 export interface IPrescription extends Document {
@@ -16,6 +17,8 @@ export interface IPrescription extends Document {
   diagnosis: string;
   items: IPrescriptionItem[];
   notes?: string;
+  dispensingRoute: string;
+  routingStatus: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +30,7 @@ const prescriptionItemSchema = new Schema<IPrescriptionItem>({
   duration: { type: String, required: true },
   quantity: { type: Number, required: true },
   notes: { type: String },
+  isFree: { type: Boolean, default: false },
 });
 
 const prescriptionSchema = new Schema<IPrescription>(
@@ -37,6 +41,23 @@ const prescriptionSchema = new Schema<IPrescription>(
     diagnosis: { type: String, required: true },
     items: [prescriptionItemSchema],
     notes: { type: String },
+    dispensingRoute: {
+      type: String,
+      enum: ['pharmacy', 'dispensary', 'both'],
+      default: 'pharmacy',
+    },
+    routingStatus: {
+      type: String,
+      enum: [
+        'Pending',
+        'PartialFree',
+        'PartialPaid',
+        'FullFree',
+        'FullPaid',
+        'Complete',
+      ],
+      default: 'Pending',
+    },
   },
   { timestamps: true }
 );

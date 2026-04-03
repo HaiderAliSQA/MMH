@@ -49,7 +49,6 @@ export const authAPI = {
     api.put('/auth/profile', data),
 }
 
-// All other APIs same as before...
 export const patientAPI = {
   getAll:  (params?: object) => api.get('/patients', { params }),
   getOne:  (id: string) => api.get(`/patients/${id}`),
@@ -71,6 +70,7 @@ export const prescriptionAPI = {
   getForDoctor: () => api.get('/prescriptions/doctor'),
   getForPatient: (patientId: string) => api.get(`/prescriptions/patient/${patientId}`),
   create: (data: object) => api.post('/prescriptions', data),
+  updateRoutingStatus: (id: string, routingStatus: string) => api.put(`/prescriptions/${id}/routing-status`, { routingStatus }),
 }
 
 export const admissionAPI = {
@@ -170,4 +170,17 @@ export const dispensaryAPI = {
   updateMedicine:  (id: string, data: object) => api.put(`/dispensary/medicines/${id}`, data),
   dispense:        (data: object) => api.post('/dispensary/dispense', data),
   getHistory:      (params?: object) => api.get('/dispensary/history', { params }),
+}
+
+export const reportsAPI = {
+  dispensarySummary: (params: object) =>
+    api.get('/reports/dispensary-summary', { params }),
+  beneficiaries: (params: object) =>
+    api.get('/reports/beneficiaries', { params }),
+  fundUtilization: (params: object) =>
+    api.get('/reports/fund-utilization', { params }),
+  pharmacyRevenue: (params: object) =>
+    api.get('/reports/pharmacy-revenue', { params }),
+  boardSummary: (params: object) =>
+    api.get('/reports/board-summary', { params }),
 }

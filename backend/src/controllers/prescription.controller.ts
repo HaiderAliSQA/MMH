@@ -10,6 +10,8 @@ interface IAuthRequest extends Request {
   };
 }
 
+import { isDispensaryOpen } from '../utils/dispensaryHours';
+
 export const getDoctorPrescriptions = async (req: IAuthRequest, res: Response): Promise<void> => {
   const doctor = await Doctor.findOne({ user: req.user?.id });
   if (!doctor) {
@@ -28,8 +30,18 @@ export const getPatientPrescriptions = async (req: Request, res: Response): Prom
   const prescriptions = await Prescription.find({ patient: req.params.patientId })
     .populate('doctor', 'name department')
     .sort({ createdAt: -1 });
-    
-  res.json({ success: true, data: prescriptions });
+
+  const status = isDispensaryOpen();
+
+  res.json({
+    success: true,
+    data: prescriptions,
+    dispensaryStatus: {
+      isOpen: status.isOpen,
+      message: status.message,
+      opensAt: status.opensAt
+    }
+  });
 };
 
 export const createPrescription = async (req: IAuthRequest, res: Response): Promise<void> => {
@@ -54,4 +66,15 @@ export const createPrescription = async (req: IAuthRequest, res: Response): Prom
   await OpdVisit.findByIdAndUpdate(opdVisit, { status: 'Examined' });
 
   res.status(201).json({ success: true, data: rx });
+};
+
+export const updateRoutingStatus = async (
+  req: IAuthRequest, res: Response
+) => {
+  const { routingStatus } = req.body;
+  await Prescription.findByIdAndUpdate(
+    req.params.id,
+    { routingStatus }
+  );
+  res.json({ success: true });
 };

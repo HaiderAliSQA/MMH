@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import api from '../../api';
+import api, { prescriptionAPI, dispensaryAPI } from '../../api';
+import { getMedicineRoute, RoutingResult } from '../../utils/medicineRouting';
 import '../../styles/mmh.css';
 import DispensingSlip, { printSlip } from '../../components/DispensingSlip';
 import MyLeaveTab from '../../components/MyLeaveTab';
@@ -24,6 +25,7 @@ interface Patient {
   age?: number;
   gender?: string;
   phone?: string;
+  patientType?: string;
 }
 
 interface CartItem {
@@ -56,6 +58,12 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [stockErrors, setStockErrors] = useState<string[]>([]);
   const [dispenseRecord, setDispenseRecord] = useState<any>(null);
+
+  // Routing State
+  const [prescription, setPrescription] = useState<any>(null);
+  const [routing, setRouting] = useState<RoutingResult | null>(null);
+  const [pharmacyRoute, setPharmacyRoute] = useState<'pharmacy' | 'dispensary'>('pharmacy');
+  const [adminOverride, setAdminOverride] = useState(false);
 
   // Add Medicine Form State
   const [selectedMedId, setSelectedMedId] = useState('');
@@ -129,16 +137,38 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
     }, 300);
   };
 
-  const selectPatient = (p: Patient) => {
+  const selectPatient = async (p: Patient) => {
     setSelectedPatient(p);
     setPatientSearch('');
     setPatientResults([]);
+    
+    // Fetch prescription and routing info
+    try {
+      const res = await prescriptionAPI.getForPatient(p._id);
+      const activeRx = res.data?.data?.[0]; // Usually latest is at 0
+      setPrescription(activeRx);
+      
+      const routeRes = getMedicineRoute(
+        p.patientType || 'Regular',
+        activeRx?.dispensingRoute,
+        user.role
+      );
+      setRouting(routeRes);
+      setPharmacyRoute(routeRes.route === 'dispensary' ? 'dispensary' : 'pharmacy');
+      setAdminOverride(false);
+    } catch (err) {
+      console.error('Failed to fetch prescription:', err);
+    }
   };
 
   const clearPatient = () => {
     setSelectedPatient(null);
     setPatientSearch('');
     setPatientResults([]);
+    setPrescription(null);
+    setRouting(null);
+    setPharmacyRoute('pharmacy');
+    setAdminOverride(false);
   };
 
   // --- Dispense Logic ---
@@ -188,13 +218,31 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
     setLoading(true);
     setStockErrors([]);
     try {
-      const res = await api.post('/dispense', {
-        patient: selectedPatient._id,
-        items: cart.map(c => ({ medicine: c.medicineId, quantity: c.qty })),
-        totalAmount: runningTotal,
-        notes: dispenseNotes,
-        paymentMethod: paymentMethod
-      });
+      let res;
+      if (pharmacyRoute === 'dispensary') {
+        res = await dispensaryAPI.dispense({
+          patient: selectedPatient._id,
+          items: cart.map(c => ({ medicine: c.medicineId, quantity: c.qty })),
+          prescription: prescription?._id,
+          notes: dispenseNotes,
+          isEmergencyOverride: adminOverride,
+          overrideReason: adminOverride ? 'Admin override — after hours' : undefined,
+        });
+        if (prescription?._id) {
+          await prescriptionAPI.updateRoutingStatus(prescription._id, 'Complete');
+        }
+      } else {
+        res = await api.post('/dispense', {
+          patient: selectedPatient._id,
+          items: cart.map(c => ({ medicine: c.medicineId, quantity: c.qty })),
+          totalAmount: runningTotal,
+          notes: dispenseNotes,
+          paymentMethod: paymentMethod
+        });
+        if (prescription?._id) {
+          await prescriptionAPI.updateRoutingStatus(prescription._id, 'PartialPaid');
+        }
+      }
 
       setDispenseRecord(res.data.data);
       setCart([]);
@@ -409,12 +457,63 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                           <div className="mmh-selected-patient-meta">
                             {selectedPatient.age}y | {selectedPatient.gender}
                             {selectedPatient.phone && ` | ${selectedPatient.phone}`}
+                            {selectedPatient.patientType && ` | ${selectedPatient.patientType}`}
                           </div>
                         </div>
                         <button className="mmh-selected-patient-clear" type="button" onClick={clearPatient} title="Change patient">×</button>
                       </div>
                     )}
                   </div>
+                  
+                  {/* Routing UI for Selected Patient */}
+                  {selectedPatient && routing && (
+                    <div style={{ marginTop: '16px' }}>
+                      {routing.route === 'dispensary' && (
+                        <>
+                          <div style={{ padding:'12px 16px', background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.3)', borderRadius:'12px', marginBottom:'14px', display:'flex', alignItems:'center', gap:'12px' }}>
+                            <span style={{fontSize:'24px'}}>🎁</span>
+                            <div style={{flex:1}}>
+                              <div style={{ fontSize:'13px',fontWeight:'700', color:'#34d399' }}>Free Dispensary — Dr. prescribed FREE</div>
+                              <div style={{fontSize:'11px',color:'#64748b'}}>These medicines should be collected from Trust Dispensary at no charge</div>
+                            </div>
+                            <button onClick={() => window.location.href='/dispensary'} style={{ padding:'8px 16px', background:'#10b981', border:'none',borderRadius:'10px', color:'white',fontSize:'12px', fontWeight:'700',cursor:'pointer' }}>Go to Dispensary →</button>
+                          </div>
+                          
+                          {routing.warning && (
+                            <div style={{ padding:'12px 16px', background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:'12px',marginBottom:'14px' }}>
+                              <div style={{ fontSize:'13px',fontWeight:'700', color:'#fbbf24' }}>⚠️ Dispensary Closed</div>
+                              <div style={{ fontSize:'12px',color:'#64748b',marginTop:'4px' }}>{routing.warning}</div>
+                              {user.role === 'admin' && !adminOverride && (
+                                <button onClick={() => setAdminOverride(true)} style={{ marginTop:'8px', padding:'6px 14px', background:'rgba(245,158,11,0.15)', border:'1px solid rgba(245,158,11,0.4)', borderRadius:'8px',color:'#fbbf24', fontSize:'11px',fontWeight:'700', cursor:'pointer' }}>
+                                  🔓 Admin Override — Dispense FREE anyway
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      )}
+                      
+                      {routing.route === 'both' && (
+                        <div style={{ padding:'14px 16px', background:'var(--mmh-card2)', border:'1px solid var(--mmh-border)', borderRadius:'12px',marginBottom:'14px' }}>
+                          <div style={{ fontSize:'12px',fontWeight:'700', color:'var(--mmh-text3)', textTransform:'uppercase', letterSpacing:'.06em',marginBottom:'10px' }}>
+                            This patient is eligible for FREE medicines
+                          </div>
+                          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr',gap:'10px'}}>
+                            <button onClick={() => setPharmacyRoute('dispensary')} style={{ padding:'14px', background: pharmacyRoute==='dispensary' ? 'rgba(16,185,129,0.12)' : 'var(--mmh-card)', border: pharmacyRoute==='dispensary' ? '2px solid #10b981' : '1px solid var(--mmh-border)', borderRadius:'12px',cursor:'pointer', opacity: !routing.canDispenseFree ? 0.5 : 1 }} disabled={!routing.canDispenseFree}>
+                              <div style={{fontSize:'24px',marginBottom:'6px'}}>🎁</div>
+                              <div style={{ fontSize:'13px',fontWeight:'700', color:'#34d399' }}>Free Dispensary</div>
+                              <div style={{ fontSize:'11px',color:'#64748b',marginTop:'3px' }}>{routing.canDispenseFree ? 'Trust funded — no charge' : 'Closed — opens tomorrow'}</div>
+                            </button>
+                            <button onClick={() => setPharmacyRoute('pharmacy')} style={{ padding:'14px', background: pharmacyRoute==='pharmacy' ? 'rgba(14,165,233,0.12)' : 'var(--mmh-card)', border: pharmacyRoute==='pharmacy' ? '2px solid #0ea5e9' : '1px solid var(--mmh-border)', borderRadius:'12px',cursor:'pointer' }}>
+                              <div style={{fontSize:'24px',marginBottom:'6px'}}>💊</div>
+                              <div style={{ fontSize:'13px',fontWeight:'700', color:'#38bdf8' }}>Paid Pharmacy</div>
+                              <div style={{ fontSize:'11px',color:'#64748b',marginTop:'3px' }}>Patient pays — 24/7 available</div>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -550,52 +649,72 @@ const PharmacyPage: React.FC<PharmacyProps> = ({ user }) => {
                       })}
                     </div>
 
-                    <div className="mmh-field" style={{ marginBottom: '20px' }}>
-                      <label className="mmh-label">Payment Method <span className="mmh-required">*</span></label>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                        {[
-                          { id: 'Cash', icon: '💵', label: 'Cash' },
-                          { id: 'Card', icon: '💳', label: 'Card' },
-                          { id: 'Insurance', icon: '🏥', label: 'Insurance' },
-                          { id: 'JazzCash', icon: '📱', label: 'JazzCash' },
-                          { id: 'EasyPaisa', icon: '📱', label: 'EasyPaisa' },
-                          { id: 'Bank Transfer', icon: '🏦', label: 'Bank' }
-                        ].map(m => (
-                          <div 
-                            key={m.id}
-                            className={`mmh-payment-method-card ${paymentMethod === m.id ? 'active' : ''}`}
-                            onClick={() => setPaymentMethod(m.id)}
-                            style={{
-                              padding: '12px 8px',
-                              borderRadius: '12px',
-                              textAlign: 'center',
-                              cursor: 'pointer',
-                              background: paymentMethod === m.id ? 'var(--mmh-bg4)' : 'var(--mmh-bg3)',
-                              border: `1px solid ${paymentMethod === m.id ? 'var(--mmh-sky)' : 'var(--mmh-border)'}`,
-                              transition: 'all 0.2s ease'
-                            }}
-                          >
-                            <div style={{ fontSize: '18px', marginBottom: '4px' }}>{m.icon}</div>
-                            <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase' }}>{m.label}</div>
+                    {pharmacyRoute === 'pharmacy' ? (
+                      <>
+                        <div className="mmh-field" style={{ marginBottom: '20px' }}>
+                          <label className="mmh-label">Payment Method <span className="mmh-required">*</span></label>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                            {[
+                              { id: 'Cash', icon: '💵', label: 'Cash' },
+                              { id: 'Card', icon: '💳', label: 'Card' },
+                              { id: 'Insurance', icon: '🏥', label: 'Insurance' },
+                              { id: 'JazzCash', icon: '📱', label: 'JazzCash' },
+                              { id: 'EasyPaisa', icon: '📱', label: 'EasyPaisa' },
+                              { id: 'Bank Transfer', icon: '🏦', label: 'Bank' }
+                            ].map(m => (
+                              <div 
+                                key={m.id}
+                                className={`mmh-payment-method-card ${paymentMethod === m.id ? 'active' : ''}`}
+                                onClick={() => setPaymentMethod(m.id)}
+                                style={{
+                                  padding: '12px 8px',
+                                  borderRadius: '12px',
+                                  textAlign: 'center',
+                                  cursor: 'pointer',
+                                  background: paymentMethod === m.id ? 'var(--mmh-bg4)' : 'var(--mmh-bg3)',
+                                  border: `1px solid ${paymentMethod === m.id ? 'var(--mmh-sky)' : 'var(--mmh-border)'}`,
+                                  transition: 'all 0.2s ease'
+                                }}
+                              >
+                                <div style={{ fontSize: '18px', marginBottom: '4px' }}>{m.icon}</div>
+                                <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase' }}>{m.label}</div>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </div>
+                        </div>
 
-                    <div className="mmh-field" style={{ marginBottom: '16px' }}>
-                      <label className="mmh-label">Additional Notes (Optional)</label>
-                      <input
-                        className="mmh-input"
-                        placeholder="e.g. Take after meal..."
-                        value={dispenseNotes}
-                        onChange={e => setDispenseNotes(e.target.value)}
-                      />
-                    </div>
+                        <div className="mmh-field" style={{ marginBottom: '16px' }}>
+                          <label className="mmh-label">Additional Notes (Optional)</label>
+                          <input
+                            className="mmh-input"
+                            placeholder="e.g. Take after meal..."
+                            value={dispenseNotes}
+                            onChange={e => setDispenseNotes(e.target.value)}
+                          />
+                        </div>
 
-                    <div className="mmh-cart-total">
-                      <span className="mmh-cart-total-label">TOTAL</span>
-                      <span className="mmh-cart-total-amount">PKR {runningTotal}</span>
-                    </div>
+                        <div className="mmh-cart-total">
+                          <span className="mmh-cart-total-label">TOTAL PAID</span>
+                          <span className="mmh-cart-total-amount">PKR {runningTotal}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="mmh-field" style={{ marginBottom: '16px' }}>
+                          <label className="mmh-label">Notes</label>
+                          <input
+                            className="mmh-input"
+                            placeholder="Optional notes..."
+                            value={dispenseNotes}
+                            onChange={e => setDispenseNotes(e.target.value)}
+                          />
+                        </div>
+                        <div className="mmh-cart-total" style={{ background: 'rgba(16,185,129,0.1)', borderColor: 'rgba(16,185,129,0.3)' }}>
+                          <span className="mmh-cart-total-label" style={{ color: '#34d399' }}>AMOUNT TO PAY</span>
+                          <span className="mmh-cart-total-amount" style={{ color: '#34d399' }}>FREE</span>
+                        </div>
+                      </>
+                    )}
 
                     <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
                       <button

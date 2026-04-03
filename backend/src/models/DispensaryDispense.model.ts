@@ -14,6 +14,8 @@ export interface IDispensaryDispense extends Document {
   dispensedBy: mongoose.Types.ObjectId;
   notes?: string;
   dispenseTime: Date;
+  isEmergencyOverride?: boolean;
+  overrideBy?: mongoose.Types.ObjectId;
 }
 
 const DispensaryDispenseSchema = new Schema<IDispensaryDispense>(
@@ -31,6 +33,8 @@ const DispensaryDispenseSchema = new Schema<IDispensaryDispense>(
     dispensedBy:  { type: Schema.Types.ObjectId, ref: 'User', required: true },
     notes:        { type: String },
     dispenseTime: { type: Date, default: Date.now },
+    isEmergencyOverride: { type: Boolean, default: false },
+    overrideBy: { type: Schema.Types.ObjectId, ref: 'User' },
   },
   { timestamps: true }
 );

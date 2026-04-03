@@ -14,6 +14,7 @@ import HRPage from './pages/admin/HRPage';
 import PaymentsGrid from './pages/admin/PaymentsGrid';
 import SettingsPage from './pages/shared/SettingsPage';
 import DispensaryPage from './pages/dispensary/DispensaryPage';
+import ReportsPage from './pages/reports/ReportsPage';
 
 // Original Portal Pages
 import Receptionist from './pages/Receptionist';
@@ -113,6 +114,9 @@ function App() {
         {/* Dispensary Portal */}
         <Route path="/dispensary" element={<ProtectedRoute allowedRoles={['dispensary', 'admin']}><MainLayout user={user} title="Trust Dispensary"><DispensaryPage /></MainLayout></ProtectedRoute>} />
         <Route path="/admin/dispensary" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Dispensary Management"><DispensaryPage /></MainLayout></ProtectedRoute>} />
+
+        {/* Reports Portal */}
+        <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><MainLayout user={user} title="Trust Reports"><ReportsPage /></MainLayout></ProtectedRoute>} />
 
         {/* Default Redirects */}
         <Route path="/" element={user ? <Navigate to={`/${user.role === 'admin' ? 'dashboard' : user.role === 'pharmacist' ? 'dispense' : user.role === 'receptionist' ? 'receptionist' : user.role === 'dispensary' ? 'dispensary' : user.role}`} replace /> : <Navigate to="/login" replace />} />
