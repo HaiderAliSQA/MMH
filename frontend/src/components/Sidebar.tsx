@@ -40,8 +40,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: mobileOpen, onToggle: onMobil
     window.dispatchEvent(new Event('toggle-desktop-sidebar'));
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();  // marks session inactive in DB before clearing local state
     navigate('/login', { replace: true });
   };
 

@@ -23,28 +23,74 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// Handle responses
+// 401 interceptor — clears session and sends user to login.
+// We intentionally exclude auth-endpoint URLs so that:
+//   - login (POST /auth/login) can surface its own errors (wrong password, 409 etc.)
+//   - verify (GET /auth/verify) can bubble errors up to useSessionGuard
+//   - force-login (POST /auth/force-login) can bubble errors up to Login.tsx
+// Every other 401 means the token/session is gone → hard redirect.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('mmh_token')
-      localStorage.removeItem('mmh_user')
-      window.location.href = '/login'
+    const url    = error.config?.url || '';
+    const is401  = error.response?.status === 401;
+
+    // Endpoints that handle their own 401 / error responses
+    const isAuthEndpoint =
+      url.includes('/auth/login')       ||
+      url.includes('/users/login')      ||
+      url.includes('/auth/force-login') ||
+      url.includes('/auth/verify')      ||
+      url.includes('/auth/logout');
+
+    if (is401 && !isAuthEndpoint) {
+      // Persist a helpful message for the Login page
+      const code = error.response?.data?.code;
+      if (code === 'SESSION_INVALID') {
+        localStorage.setItem('mmh_logout_msg', 'Your session was ended on another device.');
+      } else if (code === 'SESSION_EXPIRED') {
+        localStorage.setItem('mmh_logout_msg', 'Your session expired. Please log in again.');
+      } else {
+        localStorage.setItem('mmh_logout_msg', 'Your session has ended. Please log in again.');
+      }
+
+      localStorage.removeItem('mmh_token');
+      localStorage.removeItem('mmh_user');
+      localStorage.removeItem('mmh_expires');
+
+      // Always redirect — works for ALL portals including Doctor/Lab/Receptionist
+      // that don't use MainLayout/useSessionGuard
+      window.location.href = '/login';
     }
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
 )
 
 export default api
 
-// Auth API
+// ─── Auth API ────────────────────────────────────────────────────────────────
 export const authAPI = {
-  login: (email: string, password: string) =>
-    api.post('/auth/login', { email, password }),
+  /** Session-aware login. Returns 409 SESSION_EXISTS when already logged in. */
+  login: (data: { email: string; password: string }) =>
+    api.post('/auth/login', data),
+
+  /** Force-login: kills the old session and creates a new one here. */
+  forceLogin: (data: { conflictToken: string }) =>
+    api.post('/auth/force-login', data),
+
+  /** Marks the current DB session as manually logged out. */
+  logout: () =>
+    api.post('/auth/logout'),
+
+  /** Ping the server to verify the session is still active (called every 5 min). */
+  verifySession: () =>
+    api.get('/auth/verify'),
+
   getMe: () => api.get('/auth/me'),
+
   changePassword: (data: object) =>
     api.post('/auth/change-password', data),
+
   updateProfile: (data: object) =>
     api.put('/auth/profile', data),
 }

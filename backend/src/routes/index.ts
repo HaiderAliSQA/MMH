@@ -1,5 +1,13 @@
 import { Router } from 'express';
-import { login, getMe, changePassword, updateProfile } from '../controllers/auth.controller';
+import {
+  login,
+  forceLogin,
+  logout,
+  verifySession,
+  getMe,
+  changePassword,
+  updateProfile,
+} from '../controllers/auth.controller';
 import { protect, authorize } from '../middleware/auth.middleware';
 import { getPatients, createPatient, updatePatient, searchPatients } from '../controllers/patient.controller';
 import { getAdmissions, createAdmission, dischargePatient } from '../controllers/admission.controller';
@@ -39,9 +47,14 @@ import {
 
 const router = Router();
 
-// Auth / User Routes
-router.post('/users/login', login);
+// ─── Auth / Session Routes ────────────────────────────────────────────────────
+router.post('/users/login', login);              // legacy alias (kept for compatibility)
+router.post('/auth/login', login);               // session-aware login
+router.post('/auth/force-login', forceLogin);    // kill old session → login here
+router.post('/auth/logout', protect, logout);    // session-aware logout
+router.get('/auth/verify', protect, verifySession); // session health check (every 5 min)
 router.get('/users/me', protect, getMe);
+router.get('/auth/me', protect, getMe);
 router.put('/auth/profile', protect, updateProfile);
 router.post('/auth/change-password', protect, changePassword);
 

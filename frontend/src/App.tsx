@@ -119,7 +119,7 @@ function App() {
         <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><MainLayout user={user} title="Trust Reports"><ReportsPage /></MainLayout></ProtectedRoute>} />
 
         {/* Default Redirects */}
-        <Route path="/" element={user ? <Navigate to={`/${user.role === 'admin' ? 'dashboard' : user.role === 'pharmacist' ? 'dispense' : user.role === 'receptionist' ? 'receptionist' : user.role === 'dispensary' ? 'dispensary' : user.role}`} replace /> : <Navigate to="/login" replace />} />
+        <Route path="/" element={user ? <Navigate to={`/${(user.role as string) === 'admin' ? 'dashboard' : (user.role as string) === 'pharmacist' ? 'dispense' : (user.role as string) === 'receptionist' ? 'receptionist' : (user.role as string) === 'dispensary' ? 'dispensary' : user.role}`} replace /> : <Navigate to="/login" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </ErrorBoundary>

@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.model';
+import Session from '../models/Session.model';
 
-interface AuthRequest extends Request {
+export interface AuthRequest extends Request {
   user?: {
     id: string;
     role: string;
@@ -11,45 +12,90 @@ interface AuthRequest extends Request {
   files?: any;
 }
 
-export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  let token;
+// ─── protect ─────────────────────────────────────────────────────────────────
+// Validates JWT AND checks that the session is still active in the DB.
+// This way midnight-job invalidations and "replaced" sessions are enforced
+// on every API call without waiting for JWT expiry.
+export const protect = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  let token: string | undefined;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
     token = req.headers.authorization.split(' ')[1];
   } else if (req.query.token) {
     token = req.query.token as string;
   }
 
   if (!token) {
-    return res.status(401).json({ success: false, message: 'Not authorized to access this route' });
+    res.status(401).json({
+      success: false,
+      code:    'NO_TOKEN',
+      message: 'Not authorized to access this route',
+    });
+    return;
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as any;
-    
-    const user = await User.findById(decoded.id);
-    if (!user) {
-      return res.status(401).json({ success: false, message: 'User not found' });
+    // 1. Verify JWT signature + expiry
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'secret'
+    ) as { id: string; role: string };
+
+    // 2. Check that the session is still marked active in DB
+    const session = await Session.findOne({ token, isActive: true });
+
+    if (!session) {
+      res.status(401).json({
+        success: false,
+        code:    'SESSION_INVALID',
+        message: 'Session ended. Please login again.',
+      });
+      return;
     }
 
-    req.user = {
-      id: user.id,
-      role: user.role
-    };
-    
+    // 3. Check DB-level expiry (belt-and-suspenders — JWT also checks this)
+    if (new Date() > session.expiresAt) {
+      await Session.findByIdAndUpdate(session._id, {
+        isActive:     false,
+        loggedOutAt:  new Date(),
+        logoutReason: 'expired',
+      });
+      res.status(401).json({
+        success: false,
+        code:    'SESSION_EXPIRED',
+        message: 'Session expired. Please login again.',
+      });
+      return;
+    }
+
+    // 4. Attach user info for downstream handlers
+    req.user = { id: decoded.id, role: decoded.role };
     next();
   } catch (err) {
-    return res.status(401).json({ success: false, message: 'Not authorized to access this route' });
+    res.status(401).json({
+      success: false,
+      code:    'TOKEN_INVALID',
+      message: 'Invalid token. Please login again.',
+    });
   }
 };
 
+// ─── authorize ───────────────────────────────────────────────────────────────
 export const authorize = (...roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({
+      res.status(403).json({
         success: false,
         message: `Role '${req.user?.role}' is not authorized to access this route`,
       });
+      return;
     }
     next();
   };

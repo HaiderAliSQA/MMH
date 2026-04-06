@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { authAPI } from '../api';
 
 interface User {
   _id: string;
@@ -12,7 +13,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (userData: ProxyObject | User, token: string) => void;
+  login: (userData: ProxyObject | User, token: string, expiresAt?: string) => void;
   logout: () => void;
 }
 
@@ -43,18 +44,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(false);
   }, []);
 
-  const login = (userData: User, authToken: string) => {
+  const login = (userData: User, authToken: string, expiresAt?: string) => {
     setUser(userData);
     setToken(authToken);
     localStorage.setItem('mmh_user', JSON.stringify(userData));
     localStorage.setItem('mmh_token', authToken);
+    if (expiresAt) {
+      localStorage.setItem('mmh_expires', expiresAt);
+    }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // ── Tell the backend to mark this session as inactive in the DB ──────────
+    // This is CRITICAL: without this, the DB session stays isActive:true
+    // and the next login from ANY device/browser sees a false conflict.
+    try {
+      await authAPI.logout();
+    } catch {
+      // Silently ignore — if the server is down or token already gone,
+      // we still want to clear local state.
+    }
+
     setUser(null);
     setToken(null);
     localStorage.removeItem('mmh_user');
     localStorage.removeItem('mmh_token');
+    localStorage.removeItem('mmh_expires');
   };
 
   return (
