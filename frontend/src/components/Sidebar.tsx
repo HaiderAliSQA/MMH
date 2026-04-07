@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import '../styles/mmh.css';
 
 interface SidebarProps {

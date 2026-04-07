@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { authAPI } from '../api';
 import SessionConflictModal from '../components/SessionConflictModal';
 import '../styles/mmh.css';

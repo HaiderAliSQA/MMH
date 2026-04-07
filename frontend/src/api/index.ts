@@ -11,13 +11,25 @@ const api = axios.create({
   withCredentials: false,
 })
 
-// Add JWT token to every request
+// Add JWT token and log API calls with portal context
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('mmh_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    // Portal detection based on current URL path
+    const portal = window.location.pathname.split('/')[1] || 'root';
+    const timestamp = new Date().toLocaleTimeString();
+
+    console.log(
+      `%c 🚀 [${timestamp}] [API ${config.method?.toUpperCase()}] %c ${config.url} %c | Portal: ${portal}`,
+      'color: #0ea5e9; font-weight: bold;',
+      'color: #94a3b8;',
+      'color: #10b981; font-weight: bold;'
+    );
+
     return config
   },
   (error) => Promise.reject(error)
