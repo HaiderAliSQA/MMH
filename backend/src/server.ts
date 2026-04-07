@@ -8,6 +8,7 @@ import 'express-async-errors';
 import connectDB from './config/db';
 import routes from './routes';
 import { startMidnightJob, startCleanupJob } from './jobs/midnightLogout';
+import { requestLogger, errorLogger } from './middleware/logger';
 
 const app = express();
 
@@ -37,6 +38,10 @@ app.use(cors({
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Custom Loggers — before routes
+app.use(requestLogger);
+app.use(errorLogger);
 
 // Health check — responds immediately, used by keep-alive ping
 app.get('/health', (req, res) => {
@@ -79,6 +84,44 @@ app.use((
   });
 });
 
+const printStartupBanner = () => {
+  const CYAN    = '\x1b[36m'
+  const GREEN   = '\x1b[32m'
+  const YELLOW  = '\x1b[33m'
+  const MAGENTA = '\x1b[35m'
+  const BOLD    = '\x1b[1m'
+  const RESET   = '\x1b[0m'
+
+  console.log('\n' + BOLD + CYAN +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' +
+    RESET)
+  console.log(BOLD + MAGENTA +
+    '  🏥  MMH — Majida Memorial Hospital' +
+    RESET)
+  console.log(BOLD + CYAN +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' +
+    RESET)
+  console.log(GREEN +
+    `  ✅  Server running on port ${PORT}` + RESET)
+  console.log(GREEN +
+    `  ✅  Database connected` + RESET)
+  console.log(GREEN +
+    `  ✅  Midnight logout job scheduled` + RESET)
+  console.log(YELLOW +
+    `  📡  API: http://localhost:${PORT}/api` + RESET)
+  console.log(YELLOW +
+    `  🌐  Env: ${process.env.NODE_ENV}` + RESET)
+  console.log(BOLD + CYAN +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━' +
+    RESET)
+  console.log(BOLD +
+    '  📋  Request Log Format:' + RESET)
+  console.log('  [TIME] [ROLE        ] METHOD URL STATUS TIME')
+  console.log(BOLD + CYAN +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+    RESET)
+}
+
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
@@ -89,8 +132,7 @@ const startServer = async () => {
   startCleanupJob();    // Deletes old (>7d) session records at 1:00 AM PKT
 
   app.listen(PORT, () => {
-    console.log(`🏥 MMH Server running on port ${PORT}`);
-    console.log(`🌐 CORS: All origins allowed`);
+    printStartupBanner();
   });
 };
 

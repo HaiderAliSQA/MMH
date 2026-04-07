@@ -82,7 +82,7 @@ const Doctor: React.FC<DoctorProps> = ({ user }) => {
   };
 
   return (
-    <MainLayout user={user} title={`Welcome,   ${user.name}`} subtitle={`${user.department || 'General Medicine'} Practitioner`}>
+    <div style={{ animation: 'mmh-fade-in 0.3s ease' }}>
       {/* Tab Navigation */}
       <div className="mmh-page-tabs" style={{ marginBottom: '24px', padding: '0' }}>
         <button className={`mmh-page-tab ${tab === 'assigned' ? 'active' : ''}`} onClick={() => setSearchParams({ tab: 'assigned' })}>
@@ -239,7 +239,7 @@ const Doctor: React.FC<DoctorProps> = ({ user }) => {
           onClose={() => setSelectedPatientHistory(null)}
         />
       )}
-    </MainLayout>
+    </div>
   );
 };
 

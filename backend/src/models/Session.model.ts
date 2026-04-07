@@ -34,7 +34,5 @@ const SessionSchema = new Schema<ISession>(
 SessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 // Index for fast lookup by user + active status
 SessionSchema.index({ user: 1, isActive: 1 });
-// Index for fast token lookup
-SessionSchema.index({ token: 1 });
 
 export default mongoose.model<ISession>('Session', SessionSchema);

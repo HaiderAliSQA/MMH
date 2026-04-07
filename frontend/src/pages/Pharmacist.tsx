@@ -58,7 +58,7 @@ const Pharmacist: React.FC = () => {
     };
 
     return (
-        <MainLayout user={user} title="Pharmacy & Dispensary" subtitle="Inventory management & prescription fulfillment">
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '24px' }}>
             <div className="mmh-admin-tabs" style={{ marginBottom: '24px' }}>
                 <button className={`mmh-admin-tab ${tab === 'dispense' ? 'active' : ''}`} onClick={() => setTab('dispense')}>Prescription Dispensing</button>
                 <button className={`mmh-admin-tab ${tab === 'inv' ? 'active' : ''}`} onClick={() => setTab('inv')}>Live Inventory Status</button>
@@ -185,7 +185,7 @@ const Pharmacist: React.FC = () => {
                     </div>
                 </div>
             )}
-        </MainLayout>
+        </div>
     );
 };
 

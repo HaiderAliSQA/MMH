@@ -44,7 +44,7 @@ const Manager: React.FC<ManagerProps> = ({ onLogout }) => {
   }, []);
 
   return (
-    <MainLayout title="Hospital Manager Operations" subtitle="Operations Control & Analytics Portal">
+    <div style={{ animation: 'mmh-fade-in 0.3s ease' }}>
       <div className="mmh-admin-tabs" style={{ marginBottom: '24px' }}>
         <button className={`mmh-admin-tab ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setSearchParams({ tab: 'dashboard' })}>Operations Overview</button>
         <button className={`mmh-admin-tab ${activeTab === 'records' ? 'active' : ''}`} onClick={() => setSearchParams({ tab: 'records' })}>Historical Records</button>
@@ -101,7 +101,7 @@ const Manager: React.FC<ManagerProps> = ({ onLogout }) => {
           </div>
         </div>
       )}
-    </MainLayout>
+    </div>
   );
 };
 

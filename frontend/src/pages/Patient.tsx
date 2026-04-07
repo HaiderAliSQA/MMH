@@ -37,7 +37,7 @@ const Patient: React.FC<PatientProps> = ({ user: propUser, onLogout }) => {
   }, [user]);
 
   return (
-    <MainLayout user={user} title="Patient Portal" subtitle="Your Health Records & Reports">
+    <div style={{ animation: 'mmh-fade-in 0.3s ease' }}>
       <div className="mmh-page-header">
         <div>
           <h1 className="mmh-page-title">Welcome, {user?.name || 'Patient'}</h1>
@@ -119,7 +119,7 @@ const Patient: React.FC<PatientProps> = ({ user: propUser, onLogout }) => {
           )}
         </>
       )}
-    </MainLayout>
+    </div>
   );
 };
 
