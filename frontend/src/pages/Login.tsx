@@ -5,6 +5,7 @@ import { authAPI } from '../api';
 import SessionConflictModal from '../components/SessionConflictModal';
 import '../styles/mmh.css';
 import { wakeUpServer } from '../utils/keepAlive';
+import { getDefaultPath } from '../utils/routes';
 
 const ROLES = [
   { id: 'admin',        label: 'Admin',      icon: '🛡️' },
@@ -21,12 +22,6 @@ const BACKEND_URL = (
   import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 ).replace('/api', '');
 
-const getDefaultRoute = (roleId: string): string => {
-  if (roleId === 'admin')        return '/dashboard';
-  if (roleId === 'pharmacist')   return '/dispense';
-  if (roleId === 'receptionist') return '/receptionist';
-  return `/${roleId}`;
-};
 
 const Login: React.FC = () => {
   const { login } = useAuth();
@@ -103,7 +98,7 @@ const Login: React.FC = () => {
       localStorage.setItem('mmh_token',   token);
       localStorage.setItem('mmh_expires', expiresAt || '');
       login(user, token, expiresAt);
-      navigate(getDefaultRoute(user.role), { replace: true });
+      navigate(getDefaultPath(user.role), { replace: true });
 
     } catch (err: any) {
       const status  = err.response?.status;
@@ -176,7 +171,7 @@ const Login: React.FC = () => {
       localStorage.setItem('mmh_expires', expiresAt || '');
       login(user, token, expiresAt);
       setShowConflictModal(false);
-      navigate(getDefaultRoute(user.role), { replace: true });
+      navigate(getDefaultPath(user.role), { replace: true });
 
     } catch (err: any) {
       setError(

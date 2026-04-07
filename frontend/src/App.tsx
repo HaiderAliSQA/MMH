@@ -1,45 +1,54 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
-import MainLayout from './components/MainLayout';
+
+// Layout Wrappers
+import {
+  AdminLayout,
+  DoctorLayout,
+  ReceptionistLayout,
+  LabLayout,
+  PharmacyLayout,
+  DispensaryLayout,
+  ManagerLayout,
+  PatientLayout
+} from './components/layouts';
 
 // Pages
-import Login from './pages/Login';
-import AdminDashboard from './pages/admin/AdminDashboard';
+import LoginPage from './pages/Login';
+import DashboardPage from './pages/admin/AdminDashboard';
 import PatientsPage from './pages/admin/PatientsPage';
-import PharmacyPage from './pages/pharmacy/PharmacyPage';
-import ManageUsers from './pages/admin/ManageUsers';
-import ManageWards from './pages/admin/ManageWards';
+import AdminPharmacyPage from './pages/pharmacy/PharmacyPage';
+import WardsPage from './pages/admin/ManageWards';
+import PaymentsPage from './pages/admin/PaymentsGrid';
+import UsersPage from './pages/admin/ManageUsers';
 import HRPage from './pages/admin/HRPage';
-import PaymentsGrid from './pages/admin/PaymentsGrid';
-import SettingsPage from './pages/shared/SettingsPage';
-import DispensaryPage from './pages/dispensary/DispensaryPage';
 import ReportsPage from './pages/reports/ReportsPage';
+import AdminDispensaryPage from './pages/dispensary/DispensaryPage';
+import SettingsPage from './pages/shared/SettingsPage';
+import NotFoundPage from './pages/NotFoundPage';
 
-// Original Portal Pages
-import Receptionist from './pages/Receptionist';
-import Doctor from './pages/Doctor';
-import Lab from './pages/Lab';
-import Manager from './pages/Manager';
-import Patient from './pages/Patient';
+// Portal Main Pages
+import DoctorPage from './pages/Doctor';
+import OpdPage from './pages/Receptionist';
+import LabPage from './pages/Lab';
+import PharmacistPage from './pages/pharmacy/PharmacyPage';
+import DispensaryPage from './pages/dispensary/DispensaryPage';
+import ManagerPage from './pages/Manager';
+import PatientPage from './pages/Patient';
 
+import { getDefaultPath } from './utils/routes';
 import './styles/mmh.css';
 
-// Placeholder for missing pages
-const PlaceholderPage = ({ title }: { title: string }) => (
-  <div style={{ padding: '40px', textAlign: 'center' }}>
-    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚧</div>
-    <h2 style={{ color: 'var(--mmh-text)', fontSize: '20px' }}>{title}</h2>
-    <p style={{ color: 'var(--mmh-text3)', marginTop: '8px' }}>
-      Coming soon...
-    </p>
-  </div>
-);
-
-// Protected Route Wrapper
-const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
+// Role guard component:
+const RoleRoute = ({
+  allowedRole,
+  children,
+}: {
+  allowedRole: string | string[];
+  children: React.ReactNode;
+}) => {
   const { user, loading } = useAuth();
-  const location = useLocation();
 
   if (loading) return (
     <div className="mmh-loading-container">
@@ -49,78 +58,147 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
   );
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
+  const roles = Array.isArray(allowedRole) ? allowedRole : [allowedRole];
+
+  if (!roles.includes(user.role)) {
+    // Redirect to correct portal
+    return <Navigate to={getDefaultPath(user.role)} replace />;
   }
 
   return <>{children}</>;
 };
 
-function App() {
-  const { user, logout } = useAuth();
+// RootRedirect:
+const RootRedirect = () => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  return <Navigate to={getDefaultPath(user.role)} replace />;
+};
 
+function App() {
   return (
     <ErrorBoundary>
       <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<Login />} />
+        {/* Public */}
+        <Route path="/login" element={<LoginPage />} />
 
-        {/* Admin Routes */}
-        <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Admin Dashboard"><AdminDashboard /></MainLayout></ProtectedRoute>} />
-        <Route path="/patients" element={<ProtectedRoute allowedRoles={['admin', 'receptionist']}><MainLayout user={user} title="Patients"><PatientsPage /></MainLayout></ProtectedRoute>} />
-        <Route path="/pharmacy" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Pharmacy"><PharmacyPage user={user} /></MainLayout></ProtectedRoute>} />
-        <Route path="/wards" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Wards"><ManageWards /></MainLayout></ProtectedRoute>} />
-        <Route path="/payments" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Payments"><PaymentsGrid /></MainLayout></ProtectedRoute>} />
-        <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Manage Users"><ManageUsers /></MainLayout></ProtectedRoute>} />
-        <Route path="/admin/managers" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Manage Managers"><PlaceholderPage title="Managers Management" /></MainLayout></ProtectedRoute>} />
-        <Route path="/hr" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><MainLayout user={user} title="HR Management"><HRPage /></MainLayout></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><MainLayout user={user} title="Account Settings"><SettingsPage /></MainLayout></ProtectedRoute>} />
+        {/* Root redirect */}
+        <Route path="/" element={<RootRedirect />} />
 
-        {/* Receptionist Portal (Restored Legacy UI) */}
-        <Route path="/receptionist" element={<ProtectedRoute allowedRoles={['receptionist']}><Receptionist onLogout={logout} /></ProtectedRoute>} />
-        {/* Helper aliases for sidebar navigation */}
-        <Route path="/opd" element={<ProtectedRoute allowedRoles={['receptionist']}><Receptionist onLogout={logout} /></ProtectedRoute>} />
-        <Route path="/admission" element={<ProtectedRoute allowedRoles={['receptionist']}><Receptionist onLogout={logout} /></ProtectedRoute>} />
-        <Route path="/lab-req" element={<ProtectedRoute allowedRoles={['receptionist']}><Receptionist onLogout={logout} /></ProtectedRoute>} />
-        <Route path="/payment" element={<ProtectedRoute allowedRoles={['receptionist']}><Receptionist onLogout={logout} /></ProtectedRoute>} />
+        {/* ADMIN */}
+        <Route path="/admin" element={
+          <RoleRoute allowedRole="admin">
+            <AdminLayout />
+          </RoleRoute>
+        }>
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="dashboard"  element={<DashboardPage />} />
+          <Route path="patients"   element={<PatientsPage />} />
+          <Route path="pharmacy"   element={<AdminPharmacyPage user={{ role: 'admin' }} />} />
+          <Route path="wards"      element={<WardsPage />} />
+          <Route path="payments"   element={<PaymentsPage />} />
+          <Route path="users"      element={<UsersPage />} />
+          <Route path="hr"         element={<HRPage />} />
+          <Route path="reports"    element={<ReportsPage />} />
+          <Route path="dispensary" element={<AdminDispensaryPage />} />
+          <Route path="settings"   element={<SettingsPage />} />
+        </Route>
 
-        {/* Doctor Portal (Restored Legacy UI) */}
-        <Route path="/doctor" element={<ProtectedRoute allowedRoles={['doctor']}><Doctor user={user} /></ProtectedRoute>} />
-        {/* Helper aliases */}
-        <Route path="/my-patients" element={<ProtectedRoute allowedRoles={['doctor']}><Doctor user={user} /></ProtectedRoute>} />
-        <Route path="/lab-orders" element={<ProtectedRoute allowedRoles={['doctor']}><Doctor user={user} /></ProtectedRoute>} />
+        {/* DOCTOR */}
+        <Route path="/doctor" element={
+          <RoleRoute allowedRole="doctor">
+            <DoctorLayout />
+          </RoleRoute>
+        }>
+          <Route index element={<Navigate to="/doctor/patients" replace />} />
+          <Route path="patients"  element={<DoctorPage user={{ role: 'doctor' }} />} />
+          <Route path="settings"  element={<SettingsPage />} />
+        </Route>
 
-        {/* Lab Portal (Restored Legacy UI) */}
-        <Route path="/lab" element={<ProtectedRoute allowedRoles={['lab']}><Lab onLogout={logout} /></ProtectedRoute>} />
-        {/* Helper aliases */}
-        <Route path="/lab-pending" element={<ProtectedRoute allowedRoles={['lab']}><Lab onLogout={logout} /></ProtectedRoute>} />
-        <Route path="/lab-results" element={<ProtectedRoute allowedRoles={['lab']}><Lab onLogout={logout} /></ProtectedRoute>} />
+        {/* RECEPTIONIST */}
+        <Route path="/receptionist" element={
+          <RoleRoute allowedRole="receptionist">
+            <ReceptionistLayout />
+          </RoleRoute>
+        }>
+          <Route index element={<Navigate to="/receptionist/opd" replace />} />
+          <Route path="opd"      element={<OpdPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+        </Route>
 
-        {/* Pharmacist Portal */}
-        <Route path="/dispense" element={<ProtectedRoute allowedRoles={['pharmacist']}><MainLayout user={user} title="Medicine Dispensing"><PharmacyPage user={user} /></MainLayout></ProtectedRoute>} />
-        <Route path="/inventory" element={<ProtectedRoute allowedRoles={['pharmacist']}><MainLayout user={user} title="Inventory Management"><PharmacyPage user={user} /></MainLayout></ProtectedRoute>} />
+        {/* LAB */}
+        <Route path="/lab" element={
+          <RoleRoute allowedRole="lab">
+            <LabLayout />
+          </RoleRoute>
+        }>
+          <Route index element={<Navigate to="/lab/queue" replace />} />
+          <Route path="queue"    element={<LabPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+        </Route>
 
-        {/* Manager Portal (Restored Legacy UI) */}
-        <Route path="/manager" element={<ProtectedRoute allowedRoles={['manager']}><Manager onLogout={logout} /></ProtectedRoute>} />
-        <Route path="/analytics" element={<ProtectedRoute allowedRoles={['manager']}><Manager onLogout={logout} /></ProtectedRoute>} />
+        {/* PHARMACIST */}
+        <Route path="/pharmacy" element={
+          <RoleRoute allowedRole="pharmacist">
+            <PharmacyLayout />
+          </RoleRoute>
+        }>
+          <Route index element={<Navigate to="/pharmacy/dispense" replace />} />
+          <Route path="dispense"  element={<PharmacistPage user={{ role: 'pharmacist' }} />} />
+          <Route path="settings"  element={<SettingsPage />} />
+        </Route>
 
-        {/* Patient Portal (Restored Legacy UI) */}
-        <Route path="/patient" element={<ProtectedRoute allowedRoles={['patient']}><Patient user={user} onLogout={logout} /></ProtectedRoute>} />
-        <Route path="/my-records" element={<ProtectedRoute allowedRoles={['patient']}><Patient user={user} onLogout={logout} /></ProtectedRoute>} />
+        {/* DISPENSARY */}
+        <Route path="/dispensary" element={
+          <RoleRoute allowedRole="dispensary">
+            <DispensaryLayout />
+          </RoleRoute>
+        }>
+          <Route index element={<Navigate to="/dispensary/dispense" replace />} />
+          <Route path="dispense"  element={<DispensaryPage />} />
+          <Route path="settings"  element={<SettingsPage />} />
+        </Route>
 
-        {/* Dispensary Portal */}
-        <Route path="/dispensary" element={<ProtectedRoute allowedRoles={['dispensary', 'admin']}><MainLayout user={user} title="Trust Dispensary"><DispensaryPage /></MainLayout></ProtectedRoute>} />
-        <Route path="/admin/dispensary" element={<ProtectedRoute allowedRoles={['admin']}><MainLayout user={user} title="Dispensary Management"><DispensaryPage /></MainLayout></ProtectedRoute>} />
+        {/* MANAGER */}
+        <Route path="/manager" element={
+          <RoleRoute allowedRole="manager">
+            <ManagerLayout />
+          </RoleRoute>
+        }>
+          <Route index element={<Navigate to="/manager/analytics" replace />} />
+          <Route path="analytics" element={<ManagerPage />} />
+          <Route path="settings"  element={<SettingsPage />} />
+        </Route>
 
-        {/* Reports Portal */}
-        <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><MainLayout user={user} title="Trust Reports"><ReportsPage /></MainLayout></ProtectedRoute>} />
+        {/* PATIENT */}
+        <Route path="/patient" element={
+          <RoleRoute allowedRole="patient">
+            <PatientLayout />
+          </RoleRoute>
+        }>
+          <Route index element={<Navigate to="/patient/records" replace />} />
+          <Route path="records"  element={<PatientPage user={{ role: 'patient' }} />} />
+          <Route path="settings" element={<SettingsPage />} />
+        </Route>
 
-        {/* Default Redirects */}
-        <Route path="/" element={user ? <Navigate to={`/${(user.role as string) === 'admin' ? 'dashboard' : (user.role as string) === 'pharmacist' ? 'dispense' : (user.role as string) === 'receptionist' ? 'receptionist' : (user.role as string) === 'dispensary' ? 'dispensary' : user.role}`} replace /> : <Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Old URLs → redirect to new (backward compat) */}
+        <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/my-patients" element={<Navigate to="/doctor/patients" replace />} />
+        <Route path="/opd" element={<Navigate to="/receptionist/opd" replace />} />
+        <Route path="/lab-portal" element={<Navigate to="/lab/queue" replace />} />
+        <Route path="/hr" element={<Navigate to="/admin/hr" replace />} />
+        <Route path="/reports" element={<Navigate to="/admin/reports" replace />} />
+        <Route path="/dispense" element={<Navigate to="/pharmacy/dispense" replace />} />
+        <Route path="/inventory" element={<Navigate to="/pharmacy/dispense?tab=inventory" replace />} />
+        <Route path="/analytics" element={<Navigate to="/manager/analytics" replace />} />
+        <Route path="/my-records" element={<Navigate to="/patient/records" replace />} />
+
+        {/* 404 */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </ErrorBoundary>
   );

@@ -46,93 +46,92 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: mobileOpen, onToggle: onMobil
   };
 
   const getNavConfig = () => {
-    const common: NavItem[] = [
-      { path: '/settings', label: 'Settings', icon: '⚙️' },
-    ];
-
     const config: Record<string, { basePath?: string; items: NavItem[] }> = {
       admin: {
         items: [
-          { path: '/dashboard',        label: 'Dashboard',  icon: '🛡️' },
-          { path: '/patients',         label: 'Patients',   icon: '👥' },
-          { path: '/pharmacy',         label: 'Pharmacy',   icon: '💊' },
-          { path: '/admin/dispensary', label: 'Dispensary', icon: '🆓' },
-          { path: '/wards',            label: 'Wards',      icon: '🏥' },
-          { path: '/payments',         label: 'Payments',   icon: '💰' },
-          { path: '/admin/users',      label: 'Users',      icon: '👤' },
-          { path: '/hr',               label: 'HR Management', icon: '📋' },
-          { path: '/reports',          label: 'Reports',    icon: '📊' },
-          { path: '/admin/managers',   label: 'Managers',   icon: '💼' },
+          { label: 'Dashboard',   icon: '🛡️', path: '/admin/dashboard' },
+          { label: 'Patients',    icon: '👥', path: '/admin/patients' },
+          { label: 'Pharmacy',    icon: '💊', path: '/admin/pharmacy' },
+          { label: 'Wards',       icon: '🏥', path: '/admin/wards' },
+          { label: 'Payments',    icon: '💰', path: '/admin/payments' },
+          { label: 'Users',       icon: '👤', path: '/admin/users' },
+          { label: 'HR Mgmt',     icon: '📋', path: '/admin/hr' },
+          { label: 'Reports',     icon: '📊', path: '/admin/reports' },
+          { label: 'Dispensary',  icon: '🆓', path: '/admin/dispensary' },
+          { label: 'Settings',    icon: '⚙️', path: '/admin/settings' },
         ]
       },
       doctor: {
-        basePath: '/doctor',
+        basePath: '/doctor/patients',
         items: [
-          { tab: 'assigned', label: 'My Patients', icon: '👨‍⚕️' },
-          { tab: 'records',  label: 'Patient Records', icon: '📜' },
-          { tab: 'history',  label: 'Clinical History',icon: '🔬' },
-          { tab: 'my-leave', label: 'My Leave',        icon: '🏖️' },
+          { label: 'My Patients',     icon: '👨‍⚕️', tab: 'assigned' },
+          { label: 'Patient Records', icon: '📋', tab: 'records'  },
+          { label: 'Clinical History',icon: '📜', tab: 'history'  },
+          { label: 'My Leave',        icon: '🏖️', tab: 'my-leave' },
+          { label: 'Settings',        icon: '⚙️', path: '/doctor/settings' },
         ]
       },
       receptionist: {
-        basePath: '/opd',
+        basePath: '/receptionist/opd',
         items: [
-          { tab: 'registration', label: 'OPD Queue',    icon: '🚶' },
-          { tab: 'admission',    label: 'Admission',    icon: '🏥' },
-          { tab: 'lab-request',  label: 'Lab Request',  icon: '🧪' },
-          { tab: 'payment',      label: 'Payment',      icon: '💰' },
-          { tab: 'today-list',   label: 'Today\'s List', icon: '📋' },
-          { tab: 'my-leave',     label: 'My Leave',     icon: '🏖️' },
+          { label: 'OPD Registration',icon: '📋', tab: 'registration'},
+          { label: 'Admission',       icon: '🛏️', tab: 'admission'   },
+          { label: 'Lab Request',     icon: '🔬', tab: 'lab-request' },
+          { label: 'Payment',         icon: '💳', tab: 'payment'     },
+          { label: "Today's List",    icon: '📊', tab: 'today-list'  },
+          { label: 'My Leave',        icon: '🏖️', tab: 'my-leave'    },
+          { label: 'Settings',        icon: '⚙️', path: '/receptionist/settings' },
         ]
       },
       lab: {
-        basePath: '/lab',
+        basePath: '/lab/queue',
         items: [
-          { tab: 'pending',  label: 'Pending Orders', icon: '🧪' },
-          { tab: 'results',  label: 'Enter Results', icon: '🔬' },
-          { tab: 'my-leave', label: 'My Leave',      icon: '🏖️' },
+          { label: 'Lab Queue',   icon: '⏳', tab: 'pending'  },
+          { label: 'Results',     icon: '📝', tab: 'results'  },
+          { label: 'My Leave',    icon: '🏖️', tab: 'my-leave' },
+          { label: 'Settings',    icon: '⚙️', path: '/lab/settings' },
         ]
       },
       pharmacist: {
-        basePath: '/dispense',
+        basePath: '/pharmacy/dispense',
         items: [
-          { tab: 'dispense',  label: 'Dispense',  icon: '💊' },
-          { tab: 'inventory', label: 'Inventory', icon: '📦' },
-          { tab: 'my-leave',  label: 'My Leave',  icon: '🏖️' },
-        ]
-      },
-      manager: {
-        basePath: '/analytics',
-        items: [
-          { tab: 'dashboard',   label: 'Analytics', icon: '📈' },
-          { tab: 'records',     label: 'Records',   icon: '📜' },
-          { tab: 'my-leave',    label: 'My Leave',  icon: '🏖️' },
-        ]
-      },
-      patient: {
-        basePath: '/patient',
-        items: [
-          { tab: 'records',  label: 'My Records', icon: '📜' },
+          { label: 'Dispense',    icon: '💊', tab: 'dispense'  },
+          { label: 'Inventory',   icon: '📦', tab: 'inventory' },
+          { label: 'Payments',    icon: '💳', tab: 'payments'  },
+          { label: 'My Leave',    icon: '🏖️', tab: 'my-leave'  },
+          { label: 'Settings',    icon: '⚙️', path: '/pharmacy/settings' },
         ]
       },
       dispensary: {
-        basePath: '/dispensary',
+        basePath: '/dispensary/dispense',
         items: [
-          { tab: 'dispense', label: 'Dispense',  icon: '🎁' },
-          { tab: 'stock',    label: 'Stock',     icon: '📦' },
-          { tab: 'history',  label: 'History',   icon: '📋' },
-          { tab: 'my-leave', label: 'My Leave',  icon: '🏖️' },
+          { label: 'Dispense',  icon: '🎁', tab: 'dispense' },
+          { label: 'Stock',     icon: '📦', tab: 'stock'    },
+          { label: 'History',   icon: '📋', tab: 'history'  },
+          { label: 'My Leave',  icon: '🏖️', tab: 'my-leave' },
+          { label: 'Settings',  icon: '⚙️', path: '/dispensary/settings' },
         ]
       },
+      manager: {
+        basePath: '/manager/analytics',
+        items: [
+          { label: 'Analytics', icon: '📊', tab: 'dashboard' },
+          { label: 'Revenue',   icon: '💰', tab: 'revenue'   },
+          { label: 'My Leave',  icon: '🏖️', tab: 'my-leave'  },
+          { label: 'Settings',  icon: '⚙️', path: '/manager/settings' },
+        ]
+      },
+      patient: {
+        basePath: '/patient/records',
+        items: [
+          { label: 'My Records', icon: '📜', tab: 'records' },
+          { label: 'Settings',   icon: '⚙️', path: '/patient/settings' },
+        ]
+      }
     };
 
     const role = user?.role || 'admin';
-    const roleConfig = config[role] || { items: [] };
-    
-    return {
-      basePath: roleConfig.basePath,
-      items: [...roleConfig.items, ...common]
-    };
+    return config[role] || { items: [] };
   };
 
   const name = user?.name || 'User';
@@ -182,42 +181,37 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: mobileOpen, onToggle: onMobil
         {/* Nav */}
         <nav className="mmh-nav">
           <div className="mmh-nav-section">Main Menu</div>
-          {navConfig.items.map(item => {
+          {navConfig.items.map((item, idx) => {
             if (item.path) {
               return (
                 <NavLink
-                  key={item.path}
+                  key={item.path + idx}
                   to={item.path}
-                  className={({ isActive }) => `mmh-nav-item${isActive ? ' active' : ''}`}
+                  className={({ isActive }) => `mmh-nav-item ${isActive ? 'active' : ''}`}
                   onClick={() => mobileOpen && onMobileToggle?.()}
                   title={!sidebarOpen ? item.label : ''}
-                  end={
-                    item.path === '/admin'       ||
-                    item.path === '/doctor'      ||
-                    item.path === '/receptionist'||
-                    item.path === '/patient'
-                  }
                 >
                   <span className="mmh-nav-icon">{item.icon}</span>
                   <span className="mmh-nav-label">{item.label}</span>
                 </NavLink>
               );
             } else if (item.tab && navConfig.basePath) {
-              const defaultTab = navConfig.items[0].tab;
-              const currentTab = searchParams.get('tab') || defaultTab;
+              const currentTab = searchParams.get('tab') || navConfig.items[0].tab;
               const isActive = currentTab === item.tab;
               
               return (
-                <Link
-                  key={item.tab}
-                  to={`${navConfig.basePath}?tab=${item.tab}`}
+                <button
+                  key={item.tab + idx}
+                  onClick={() => {
+                    navigate(`${navConfig.basePath}?tab=${item.tab}`);
+                    if (mobileOpen) onMobileToggle?.();
+                  }}
                   className={`mmh-nav-item ${isActive ? 'active' : ''}`}
-                  onClick={() => mobileOpen && onMobileToggle?.()}
                   title={!sidebarOpen ? item.label : ''}
                 >
                   <span className="mmh-nav-icon">{item.icon}</span>
                   <span className="mmh-nav-label">{item.label}</span>
-                </Link>
+                </button>
               );
             }
             return null;
